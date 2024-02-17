@@ -1,0 +1,11 @@
+
+cpp kodunu paketleyip pythonda çalıştır ve süre kontrolü yap.
+
+diğer phi açısını hesapla ve analize uygula. --> tüm analizi forward kinematiğe dayalı yazıcam.
+
+robot sonuçlarını robot adıyla dosyaya kaydet. --> tek dosya etiketli şekilde hazılranmış bir json olacak.
+
+devre kartını çiz.  	--> motorlar arası bağlantıyı kontrol edecek anahtarlar ekle.
+			-->
+
+

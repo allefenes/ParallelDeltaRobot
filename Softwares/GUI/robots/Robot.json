@@ -1,0 +1,13 @@
+{
+  "base": "80",
+  "bicep": "64.2",
+  "forearm": "201",
+  "end": "37.5",
+  "btf": "240",
+  "eeOffset": "10",
+  "turnAngle": "0.29",
+  "bicepPosAngle": "70",
+  "bicepNegAngle": "150",
+  "joint": "14",
+  "robotName": "Robot"
+}
