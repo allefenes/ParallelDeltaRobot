@@ -1,0 +1,13 @@
+{
+  "base": 65.0,
+  "bicep": 64.0,
+  "forearm": 201.0,
+  "end": 35.0,
+  "btf": 240.0,
+  "eeOffset": 15.0,
+  "turnAngle": 0.29,
+  "bicepPosAngle": 150.0,
+  "bicepNegAngle": 70.0,
+  "joint": 14.0,
+  "robotName": "Delta"
+}
