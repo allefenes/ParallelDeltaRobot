@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import json
 
-from tools.deltaRobot import deltaRobot
+from modules.deltaRobot import deltaRobot
 
 class Parameters():
     def createParamPage(self,tab):

@@ -1,19 +1,22 @@
 import tkinter as tk
 from tkinter import ttk
 
-from tools.parameters import Parameters
-from tools.kinematic import Kinematic
-from tools.trajectory import Trajectory
+from modules.parameters import Parameters
+from modules.kinematic import Kinematic
+from modules.trajectory import Trajectory
+from modules.motorControl import MotorControl
+from modules.imageProcess import ImageProcess
 
-
-class App(ttk.Frame, Parameters, Kinematic, Trajectory):
+class App(ttk.Frame, Parameters, Kinematic, Trajectory, MotorControl, ImageProcess):
     def __init__(self, parent):
+        ImageProcess.__init__(self)
+        MotorControl.__init__(self)
         ttk.Frame.__init__(self,parent)
         self.parent = parent
 
         self.parent.title("DELTA Robotics")
-        self.parent.iconbitmap('logo.ico')
-        self.parent.wm_iconbitmap('logo.ico')
+        self.parent.iconbitmap('theme/logo.ico')
+        self.parent.wm_iconbitmap('theme/logo.ico')
         self.parent.geometry("1280x720")
 
         self.parent.tk.call("source", "theme/azure.tcl")
@@ -60,14 +63,21 @@ class App(ttk.Frame, Parameters, Kinematic, Trajectory):
         tab1 = ttk.Frame(tab_control)
         tab2 = ttk.Frame(tab_control)
         tab3 = ttk.Frame(tab_control)
+        tab4 = ttk.Frame(tab_control)
+        tab5 = ttk.Frame(tab_control)
 
         tab_control.add(tab1, text='ROBOT')
         tab_control.add(tab2, text='KINEMATIC')
         tab_control.add(tab3, text='TRAJECTORY')
+        tab_control.add(tab4, text='CONTROL')
+        tab_control.add(tab5, text='IMAGE PROCESSING')
 
         self.createParamPage(tab1)
         self.createKinePage(tab2)
         self.createTrajPage(tab3)
+        self.createControlPage(tab4)
+        self.createImgPage(tab5)
+
 
         tab_control.pack(side="bottom",fill="both", expand=True)
 

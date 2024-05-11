@@ -1,8 +1,9 @@
 from dynamixel_sdk import *
+import time
 
-class dynamixel:
+class Dynamixel():
 
-    def __init__(self,BAUDRATE=1000000, DEVICENAME='COM9', PROTOCOL_VERSION=1.0, DXL_ID=[1,2,3]):
+    def __init__(self,BAUDRATE=1000000, DEVICENAME='COM4', PROTOCOL_VERSION=1.0, DXL_ID=[1,2,3]):
         
         self.ADDR_LED = 25
         self.ADDR_TEMPERATURE = 43
@@ -23,6 +24,7 @@ class dynamixel:
         self.DXL_ID                  = DXL_ID
         self.BAUDRATE                = BAUDRATE
         self.DEVICENAME              = DEVICENAME
+        
 
     def connect(self):
         self.portHandler = PortHandler(self.DEVICENAME)
@@ -86,7 +88,6 @@ class dynamixel:
         elif dxl_error != 0:
             print("%s" % self.packetHandler.getRxPacketError(dxl_error))
 
-        print(dxl_present_load)
         return dxl_present_load
      
     def readMoving(self, id):
@@ -97,7 +98,6 @@ class dynamixel:
         elif dxl_error != 0:
             print("%s" % self.packetHandler.getRxPacketError(dxl_error))
 
-        print(dxl_moving)
         return dxl_moving
 
     def readPresentVoltage(self, id):
@@ -109,7 +109,6 @@ class dynamixel:
         elif dxl_error != 0:
             print("%s" % self.packetHandler.getRxPacketError(dxl_error))
 
-        print(dxl_present_voltage)
         return dxl_present_voltage
 
     def led(self,id,state='off'):
@@ -131,9 +130,13 @@ class dynamixel:
         elif dxl_error != 0:
             print("%s" % self.packetHandler.getRxPacketError(dxl_error))
 
-    def writeCcwComplianceSlope(self,id,slope=5):
+    def writeComplianceSlope(self,id,slope=5):
         """
         A : CCW Compliance Slope
+        
+        and 
+
+        D : CW Compliance Slope
         """
         if slope > 7:
             print("Too big slope!")
@@ -145,10 +148,21 @@ class dynamixel:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
         elif dxl_error != 0:
             print("%s" % self.packetHandler.getRxPacketError(dxl_error))
+        
+        dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler,id,self.ADDR_CW_COMPLIANCE_SLOPE,2^slope)
+
+        if dxl_comm_result != COMM_SUCCESS:
+            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
+        elif dxl_error != 0:
+            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
 
     def writeCcwComplianceMargin(self,id,margin=1):
         """
         B : CCW Compliance Margin
+
+        and
+
+        C : CW Compliance Margin
         """
         if margin > 254:
             print("Too big margin!")
@@ -161,30 +175,7 @@ class dynamixel:
         elif dxl_error != 0:
             print("%s" % self.packetHandler.getRxPacketError(dxl_error))
 
-    def writeCwComplianceMargin(self,id,margin=1):
-        """
-        C : CW Compliance Margin
-        """
-        if margin > 254:
-            print("Too big margin!")
-            return
-
         dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler,id,self.ADDR_CW_COMPLIANCE_MARGIN,margin)
-        
-        if dxl_comm_result != COMM_SUCCESS:
-            print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
-        elif dxl_error != 0:
-            print("%s" % self.packetHandler.getRxPacketError(dxl_error))
-
-    def writeCwComplianceSlope(self,id,slope=5):
-        """
-        D : CW Compliance Slope
-        """
-        if slope > 7:
-            print("Too big slope!")
-            return
-
-        dxl_comm_result, dxl_error = self.packetHandler.write1ByteTxRx(self.portHandler,id,self.ADDR_CW_COMPLIANCE_SLOPE,2^slope)
         
         if dxl_comm_result != COMM_SUCCESS:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
@@ -215,11 +206,3 @@ class dynamixel:
             print("%s" % self.packetHandler.getTxRxResult(dxl_comm_result))
         elif dxl_error != 0:
             print("%s" % self.packetHandler.getRxPacketError(dxl_error))
-
-deneme = dynamixel()
-
-deneme.connect()
-
-deneme.ping()
-
-deneme.disconnect()

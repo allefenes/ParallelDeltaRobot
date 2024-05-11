@@ -3,7 +3,7 @@ from tkinter import ttk
 import json
 from tkinter import ttk, messagebox
 
-from tools.deltaRobot import deltaRobot
+from modules.deltaRobot import deltaRobot
 
 class Kinematic():
     def createKinePage(self,tab):

@@ -7,7 +7,7 @@ import os
 import numpy as np
 import json
 
-from tools.deltaRobot import deltaRobot
+from modules.deltaRobot import deltaRobot
 
 class Trajectory():
     def createTrajPage(self,tab):
