@@ -16,13 +16,11 @@ class UseYolo():
     def scanImage(self,frame):
         self.height, self.width, self.channels = frame.shape
 
-        # Detecting objects
         self.blob = cv2.dnn.blobFromImage(frame, 0.00392, (416,416), (0, 0, 0), True, crop=False)
 
         self.net.setInput(self.blob)
         self.outs = self.net.forward(self.output_layers)
 
-        # Showing informations on the screen
         self.class_ids = []
         self.confidences = []
         self.boxes = []
@@ -32,13 +30,12 @@ class UseYolo():
                 self.class_id = np.argmax(self.scores)
                 self.confidence = self.scores[self.class_id]
                 if self.confidence > 0.2:
-                    # Object detected
+
                     self.center_x = int(detection[0] * self.width)
                     self.center_y = int(detection[1] * self.height)
                     self.w = int(detection[2] * self.width)
                     self.h = int(detection[3] * self.height)
 
-                    # Rectangle coordinates
                     self.x = int(self.center_x - self.w / 2)
                     self.y = int(self.center_y - self.h / 2)
 
@@ -57,7 +54,6 @@ class UseYolo():
                 self.color = self.colors[self.class_ids[i]]
                 cv2.rectangle(frame, (self.x, self.y), (self.x + self.w, self.y + self.h), self.color, 2)
 
-                #Middle Point Calculation
                 self.a = self.x + (self.w/2)
                 self.b = self.y + (self.h/2)
                 cv2.circle(frame, ((int(self.a)), (int(self.b))), 1, (0, 0, 255), 6)

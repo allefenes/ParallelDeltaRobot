@@ -1,15 +1,19 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.animation as animation
 import os
 import numpy as np
 import json
+import pickle
 
+from modules.motorControl import *
 from modules.deltaRobot import deltaRobot
 
 class Trajectory():
+
     def createTrajPage(self,tab):
         self.label_frame = ttk.LabelFrame(tab, text="SIMULTANEOUS ROBOT")
         self.label_frame.grid(row=0, column=0, padx=10, pady=10, rowspan=2, sticky="nsew")
@@ -113,8 +117,8 @@ class Trajectory():
         self.accentbutton.grid(row=0, column=0,  padx=10, pady=10, sticky="nsew")
 
         self.traListVar = []
-        if os.path.exists("data/trajectories") and os.path.isdir("data/trajectories"):
-            dosya_isimleri = [os.path.splitext(dosya)[0] for dosya in os.listdir("data/trajectories") if dosya.endswith(".npy")]
+        if os.path.exists("data/trajectories/") and os.path.isdir("data/trajectories/"):
+            dosya_isimleri = [os.path.splitext(dosya)[0] for dosya in os.listdir("data/trajectories/") if dosya.endswith(".npy")]
             self.traListVar.extend(dosya_isimleri)
             self.traList = ttk.Combobox(self.buttons, state="readonly", values=self.traListVar)
             self.traList.current(0)
@@ -123,19 +127,10 @@ class Trajectory():
         self.accentbutton = ttk.Button(self.buttons, text="PLAY/PAUSE", style="Accent.TButton", command=self.toggleAni)
         self.accentbutton.grid(row=0, column=2,  padx=10, pady=10, sticky="nsew")
         self.aniPlay = True
-        
-        self.accentbutton = ttk.Button(self.buttons, text="ACTION", style="Accent.TButton")
-        self.accentbutton.grid(row=0, column=3,  padx=10, pady=10, sticky="nsew")
-        
-        self.repetetive = tk.BooleanVar(value=True)
-        self.checkbutton = ttk.Checkbutton(self.buttons, text="REPETITIVE", variable=self.repetetive, style="My.TCheckbutton")
-        self.checkbutton.grid(row=0, column=4, padx=10, pady=10, sticky="nsew")
 
         self.buttons.columnconfigure(index=0, weight=1)
         self.buttons.columnconfigure(index=1, weight=10)
         self.buttons.columnconfigure(index=2, weight=10)
-        self.buttons.columnconfigure(index=3, weight=10)
-        self.buttons.columnconfigure(index=4, weight=1)
 
         tab.columnconfigure(index=0, weight=5)
         tab.columnconfigure(index=1, weight=3)
@@ -164,6 +159,10 @@ class Trajectory():
                 self.ani.event_source.start()
                 self.aniTheta.event_source.start()
                 self.aniCoo.event_source.start()
+                self.canvasTra.draw()
+                self.canvasCoo.draw()
+                self.canvasAng.draw()
+
             else:
                 self.aniTrajectory()
 
@@ -177,8 +176,8 @@ class Trajectory():
         self.axTra.cla()
 
         try:
-            secilenTrajectory = self.traList.get()
-            trajectoryPlan = np.load(f"data/trajectories/{secilenTrajectory}.npy")
+            self.secilenTrajectory = self.traList.get()
+            trajectoryPlan = np.load(f"data/trajectories/{self.secilenTrajectory}.npy")
         except FileNotFoundError:
             print(f"Trajectory Seçiniz.")
 
@@ -320,12 +319,26 @@ class Trajectory():
 
         satirSayisi, sutunSayisi = np.shape(trajectoryPlan)
 
+        correct = False
         for i in range(sutunSayisi):
             res1 = myRobot.inverseKinematic(trajectoryPlan[0,i],trajectoryPlan[1,i],trajectoryPlan[2,i] - eeOffset )
-            planTableTheta.append(res1)
+            if res1 != False:
+                correct = True
+                planTableTheta.append(res1)
 
-            res2 = myRobot.forwardKinematic(res1[0], res1[1], res1[2])
-            planTableCoo.append(res2)
+                res2 = myRobot.forwardKinematic(res1[0], res1[1], res1[2])
+                planTableCoo.append(res2)
+
+            else:
+                correct = False
+                title = "HATA!"
+                message = "Yörünge çalışma alanı dışında noktalar içeriyor !"
+                messagebox.showerror(title, message)
+                break
+
+        if correct:
+            with open(f'data/trajectories/corrected/{self.secilenTrajectory}_Theta.pkl', 'wb') as f:
+                pickle.dump(planTableTheta, f)
 
         def init():
             return line_bicep1, line_bicep2, line_bicep3, line_forearm1, line_forearm2, line_forearm3, eeDot, line_ee, eeLine1, eeLine2, eeLine3, endDotW
@@ -381,6 +394,10 @@ class Trajectory():
 
         dynamicInterval = 0
         self.ani = animation.FuncAnimation(self.figTra, update, frames=sutunSayisi, fargs=[line_bicep1, line_bicep2, line_bicep3, line_forearm1, line_forearm2, line_forearm3, eeDot, line_ee, eeLine1, eeLine2, eeLine3, endDotW], interval=dynamicInterval, blit=False, init_func=init)
+
+        self.canvasTra.draw()
+        self.canvasCoo.draw()
+        self.canvasAng.draw()
 
         self.axTra.text(base,0,btf, f"{robotName}")
         self.axTra.view_init(elev=-145,azim=-145)

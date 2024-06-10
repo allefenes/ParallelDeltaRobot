@@ -11,11 +11,12 @@ class ImageProcess(UseYolo):
     def __init__(self):
         UseYolo.__init__(self)
         self.camActive = False
+        self.ADDR_CAM = 1
         
     def startYoloAgent(self):
         def yolo_background_task():
             if self.camActive:
-                self.cap = cv2.VideoCapture(0)
+                self.cap = cv2.VideoCapture(self.ADDR_CAM)
                 new_width, new_height = 320, 240
                 self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
                 self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
@@ -48,7 +49,7 @@ class ImageProcess(UseYolo):
     def startCamAgent(self):
         def cam_background_task():
             if self.camActive:
-                self.cap = cv2.VideoCapture(0)
+                self.cap = cv2.VideoCapture(self.ADDR_CAM)
                 new_width, new_height = 320, 240
                 self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, new_width)
                 self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, new_height)
@@ -107,9 +108,11 @@ class ImageProcess(UseYolo):
     def toggleCamActive(self):
         if self.camActive:
             self.camActive = False
+            print('Cam deactivated')
         else:
             self.camActive = True
             self.startCamAgent()
             self.startYoloAgent()
+            print('Cam Activated')
 
 

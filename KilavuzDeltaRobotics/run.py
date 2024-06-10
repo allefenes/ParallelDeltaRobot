@@ -4,25 +4,28 @@ import os
 
 if __name__ == "__main__":
 
-    # Scriptin bulunduğu dosya yolunu al
     script_dosya_yolu = os.path.dirname(os.path.abspath(__file__))
 
-    # Hedef klasör adı
     klasor_adi = "data/robots/"
 
-    klasörTwo = "data/trajectories/"
+    klasorTwo = "data/trajectories/"
 
-    # Klasör yolunu oluştur
+    klasorThree = "data/trajectories/corrected/"
+
     klasor_yolu = os.path.join(script_dosya_yolu, klasor_adi)
 
-    yolTwo = os.path.join(script_dosya_yolu, klasörTwo)
+    yolTwo = os.path.join(script_dosya_yolu, klasorTwo)
 
-    # Klasör kontrolü ve oluşturma
+    yolThree = os.path.join(script_dosya_yolu,klasorThree)
+
     if not os.path.exists(klasor_yolu):
         os.makedirs(klasor_yolu)
 
     if not os.path.exists(yolTwo):
         os.makedirs(yolTwo)
+
+    if not os.path.exists(yolThree):
+        os.makedirs(yolThree)
 
     root = tk.Tk()
     app = App(root)
