@@ -20,7 +20,7 @@ kinematics:
   forearm_length: 201.0 # json forearm: üst -> alt küresel eklem merkezi
   platform_radius: 35.0 # json end: platform merkezi -> alt eklem merkezi
   base_to_floor: 240.0 # json btf: motor ekseni düzlemi -> zemin (POM üst yüzü)
-  ee_offset: 15.0 # json eeOffset: V1'de platform noktasından uç işlevci ucuna
+  ee_offset: 15.0 # json eeOffset, kullanici: P'den (platform eklem düzlemi merkezi) mıknatıs ucuna; CAD'de sabit kısıt
   arm_angles: [0.0, 120.0, 240.0] # V1 kodu
   motor_limit_max: 150.0 # json bicepPosAngle (aşağı)
   motor_limit_min: -70.0 # json bicepNegAngle (yukarı)
@@ -89,34 +89,43 @@ forearm_rod: { diameter: 5.0, kaynak: kullanici } # M5 saplama; boy = forearm - 
 platform: # PLA %20
   radius: 35.0 # kullanici (R35)
   thickness: 5.0 # kullanici
+  # Eklem düzlemi (P) platform plakasının orta düzlemindedir; böylece P -> mıknatıs ucu = ee_offset sağlanır.
   ear_thickness: 12.0 # varsayim: 30 mm aralık = kulak + 2 x 5 mm burç + 8 mm küre
   bushings_per_side: 1 # varsayim (platform tarafı)
-  ear_axis_height: 10.0 # varsayim: pim ekseninin platform üst yüzünden yüksekliği (rot başı Ø18 diske değmesin)
-  ear_length: 16.0 # varsayim: radyal boy
+  ear_length: 16.0 # varsayim: kulak gövdesinin radyal boyu (eklem ekseni kenarda, r = radius)
+  ear_lug_radius: 6.0 # varsayim: pim çevresindeki kulak göbeği yarıçapı
+  rod_end_notch_clearance: 1.5 # varsayim: rot başı / burç / somun için plakadaki kesik boşluğu
 
+# Mıknatıs platformdaki cebe oturur; cep derinliği ee_offset'ten türetilir (üst yüzü P düzleminde).
 electromagnet: { diameter: 20.0, height: 15.0, mass: 35.0, kaynak: varsayim } # yükseklik kullanici
 
 frame:
   plate_thickness: 5.0 # kullanici
-  ceiling_round_radius: 100.0 # varsayim
+  ceiling_round_radius: 45.0 # varsayim: kullanıcıya göre robot tarafı yarıçapı küçük; bağlantı delikleri merkeze yakın
   neck_width: 70.0 # varsayim
   column_azimuth: 180.0 # varsayim: sütun -X yönünde, 2. ve 3. kolun arasında
   column_distance: 210.0 # varsayim: robot merkezinden sütun merkezine
-  column_radius: 50.0 # varsayim: yarım silindir dış yarıçapı
+  column_radius: 50.0 # varsayim: yarım silindir dış yarıçapı; açık yüzü 5 mm levhayla kapalı (D kesit, kullanici)
   pom_round_radius: 160.0 # varsayim
   pom_width: 320.0 # varsayim
   pom_extra_behind_column: 60.0 # varsayim
 
 housing: # PLA motor gövdesi, tavanın altına asılı
-  top_radius: 95.0 # varsayim
+  top_radius: 90.0 # varsayim: motor gövdelerini ve yatakları örtecek en küçük yuvarlak değer
   top_thickness: 5.0 # varsayim
   clearance_above_motor: 2.0 # varsayim
   bearing_block_width: 30.0 # varsayim: radyal
   bearing_block_below_axis: 16.0 # varsayim
   cap_height: 13.0 # varsayim
-  mount_holes: { count: 3, diameter: 5.5, pcd: 150.0, kaynak: varsayim }
+  mount_holes: { count: 3, diameter: 5.5, pcd: 36.0, kaynak: varsayim } # motor halkasının içinde, kollar arasında (60/180/300°)
+  # Kısa kol açıklıkları (kullanici: dikdörtgen). Kol çerçevesinde: x radyal (motor ekseninden), y teğet.
+  arm_slot: { x_from: -8.0, x_to: 40.0, half_width: 26.0, kaynak: varsayim }
 
 assembly_pose: # montaj ve render pozu: platform eklem düzlemi merkezi (V2 çerçevesi)
   x: 0.0
   y: 0.0
   z: -190.0
+
+# Ek kontrol pozları: yalnız çakışma kontrolü ve görsel için. kol1_yukari: 1. kol ~-70° (yazılım limiti).
+check_poses:
+  - { name: kol1_yukari, x: 52.0, y: 0.0, z: -141.0 }

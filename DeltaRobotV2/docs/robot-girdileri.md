@@ -69,26 +69,28 @@ Tüm uzunluklar eklem merkezinden eklem merkezine ölçülüdür (Kullanıcı).
 
 Model kurulurken veri olmayan yerler için seçilen değerler. Hepsi `config/robot.yaml`'da `varsayim` etiketlidir.
 
-| Konu                        | Seçilen                                                                                                                      | Neden                                                       |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Platform kulağı             | 12 mm kalınlık, her yanda 1 burç                                                                                             | 30 mm saplama aralığı korunsun (12 + 2×5 + 8)               |
-| Kulak pim ekseni yüksekliği | Platform üst yüzünden 10 mm                                                                                                  | Ø18 rot başı gövdesi platform diskine değmesin              |
-| Burç malzemesi              | PLA %100                                                                                                                     | Bilinmiyor                                                  |
-| Motor yerleşimi             | Çıkış ekseni teğet, gövde radyal içe, göbek ekseni gövde ucundan 11 mm                                                       | AX-12A zarfı; yataklar ve kısa kol kol düzleminde ortalanır |
-| Rulman yatakları            | Mil ekseninden ±9 mm, alt yarı askı duvarlarıyla üst plakaya bağlı, üstte kapak                                              | Kullanıcının anlattığı düzen; ölçüler varsayım              |
-| Motor gövdesi üst plakası   | R95, 5 mm, tavanın altına 3 cıvatayla (kollar arasında, R75)                                                                 | Tavan çizimindeki 3 delik                                   |
-| Gövde                       | Sütun merkezi robot merkezinden 210 mm (−X), yarım silindir R50; tavan dairesi R100, boyun 70 mm; POM R160 + 320 mm genişlik | Çizimlerle tutarlı tahmin                                   |
-| Elektromıknatıs             | Ø20 × 15 mm, ~35 g                                                                                                           | Yükseklik kullanıcıdan, diğerleri tipik                     |
-| PLA %20 etkin yoğunluk      | 0.56 g/cm³                                                                                                                   | İnce parçada duvar/kabuk baskın                             |
+| Konu                      | Seçilen                                                                                                                                               | Neden                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Platform kulağı           | 12 mm kalınlık, her yanda 1 burç; pim ekseni plakanın orta düzleminde, kenarda (r = 35)                                                               | 30 mm saplama aralığı (12 + 2×5 + 8) ve P → uç = 15 mm        |
+| Platform kesikleri        | Her kulağın iki yanında rot başı / burç / somun için dikdörtgen kesik                                                                                 | Ø18 rot başı gövdesi plakaya değmesin                         |
+| Mıknatıs cebi             | Plakanın alt yüzünden 2.5 mm derin; mıknatısın üst yüzü P düzleminde                                                                                  | P'den mıknatıs ucuna 15 mm (kullanıcı)                        |
+| Burç malzemesi            | PLA %100                                                                                                                                              | Bilinmiyor                                                    |
+| Motor yerleşimi           | Çıkış ekseni teğet, gövde radyal içe, göbek ekseni gövde ucundan 11 mm                                                                                | AX-12A zarfı; yataklar ve kısa kol kol düzleminde ortalanır   |
+| Rulman yatakları          | Mil ekseninden ±9 mm; alt yarı yalnız iç askı duvarıyla üst plakaya bağlı; üstte kapak                                                                | Dış taraf, kol yukarı kalkarken uzun kolların geçişi için boş |
+| Motor gövdesi üst plakası | R90 × 5 mm; her kolun üstünde 52 × 48 mm dikdörtgen açıklık                                                                                           | Kullanıcı: dikdörtgen açıklık; ölçüler varsayım               |
+| Bağlantı delikleri        | 3 × Ø5.5, R18 (kollar arasında, 60/180/300°), tavan ve üst plakada aynı                                                                               | Kullanıcı: merkeze yakın, motorların içinde                   |
+| Gövde                     | Sütun D kesitli (yarım silindir R50 + düz kapak), merkezi robot merkezinden 210 mm (−X); tavan robot ucu R45, boyun 70 mm; POM R160 + 320 mm genişlik | Çizimlerle tutarlı tahmin                                     |
+| Elektromıknatıs           | Ø20 × 15 mm, ~35 g                                                                                                                                    | Yükseklik kullanıcıdan, diğerleri tipik                       |
+| PLA %20 etkin yoğunluk    | 0.56 g/cm³                                                                                                                                            | İnce parçada duvar/kabuk baskın                               |
 
 ## CAD'den çıkan bulgular
 
 Ayrıntı: [cad/out/checks.md](../cad/out/checks.md)
 
-- Montaj, kinematik ölçüleri birebir sağlıyor: taban R65, kısa kol 64, uzun kol 201, platform R35, saplama aralığı 30 mm. Parçalar arasında çakışma yok.
-- **Kısa kolun yukarı hareketi mekanik olarak ≈ −15° ile sınırlı:** eklem ucu motor gövdesinin üst plakasına değer. V1'in yazılım limiti −70° idi; tavanda ya da plakada kol için açıklık yoksa gerçek limit −15° civarıdır. Doğrulanmalı.
-- **Uç işlevci ofseti:** Platform eklem düzleminden mıknatıs alt yüzüne 30 mm (10 kulak + 5 platform + 15 mıknatıs). V1 kinematiğinde bu değer 15 mm alınmıştı; F1'de ölçüyle netleştirilmeli.
-- Hareketli kütle (CAD): **~403 g** (3 kısa kol bağı 65 g, 6 uzun kol 256 g, platform + mıknatıs 82 g). Kaba tahmin 340–350 g idi; fark rot başı ve burçlardan.
+- Montaj kinematik ölçüleri birebir sağlıyor: taban R65, kısa kol 64, uzun kol 201, platform R35, saplama aralığı 30 mm.
+- İki pozda çakışma yok: montaj pozu (P = 0, 0, −190) ve 1. kolun yazılım limitinde olduğu kontrol pozu (θ1 = −69.6°). Üst plakadaki açıklıklar sayesinde kol −70°'ye kadar çıkabiliyor; o pozda diğer kolların rot başı açısı 12.95° (katalog sınırı 13°).
+- P'den mıknatıs ucuna 15.00 mm (kısıt olarak denetleniyor).
+- Hareketli kütle (CAD): **~398 g** (3 kısa kol bağı 88 g, 6 uzun kol 210 g, platform + mıknatıs 100 g; rot başı küreleri pimle birlikte kısa kol ve platform bağlarında).
 
 ## V1'e göre koordinat farkı
 

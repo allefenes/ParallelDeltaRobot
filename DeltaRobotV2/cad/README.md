@@ -14,7 +14,7 @@ FreeCAD konteynerde olmadığı için betikler Windows'ta yerel FreeCAD ile çal
 ./tools/cad.sh render
 ```
 
-`build` başsız çalışır (~1 dk). `render` FreeCAD arayüzünü birkaç saniye açar, görselleri kaydeder ve kapanır.
+`build` başsız çalışır (~1 dk; montaj pozu ve `check_poses` için çakışma kontrolü dahil). `render` FreeCAD arayüzünü birkaç saniye açar; montaj görsellerini (`docs/img/cad/`) ve parça önizlemelerini (`docs/img/cad/parcalar/`) 8 bit RGB PNG olarak kaydeder ve kapanır. Bir seferde tek FreeCAD süreci çalıştırılır.
 
 ## Dosyalar
 
@@ -26,6 +26,7 @@ FreeCAD konteynerde olmadığı için betikler Windows'ta yerel FreeCAD ile çal
 | `build.py`                 | Bağları kurar, poza yerleştirir, kontrol eder, dışa aktarır                          |
 | `render.py`                | Montajı malzemeye göre renklendirip görselleri üretir                                |
 | `out/delta_v2.FCStd`       | Montaj; her bağ ayrı `App::Part`, her parçanın `Malzeme` özelliği var                |
+| `out/delta_v2_<poz>.FCStd` | `check_poses` montajları (ör. 1. kol −70°); yalnız kontrol ve görsel için            |
 | `out/meshes/*.stl`         | Bağ mesh'leri, bağın yerel çerçevesinde (URDF / RViz / Gazebo / web ikizi)           |
 | `out/mass_properties.json` | Bağ başına kütle (kg), kütle merkezi (m), atalet tensörü (kg·m²)                     |
 | `out/checks.md`            | Kinematik ölçü, rot başı açısı, çakışma ve mekanik bulgular                          |

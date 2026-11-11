@@ -109,7 +109,12 @@ def arm_placement(p: dict, i: int) -> App.Placement:
 def stack_into(link: Link, p: dict, core_width: float, n_bush: int, pl: App.Placement) -> list:
     """Eklem istifini bağa ekler; rot başı küre merkezlerini (bağ yerel çerçevesinde) döndürür."""
     centers = []
-    mat = {"pin": "steel", "nut": "steel", "bushing": p["joint_stack"]["bushing_material"]}
+    mat = {
+        "pin": "steel",
+        "nut": "steel",
+        "rod_end_ball": "steel",
+        "bushing": p["joint_stack"]["bushing_material"],
+    }
     for name, s in P.joint_stack(p, core_width, n_bush):
         if name == "_ball_center":
             centers.append(pl.multVec(s.Point))
@@ -218,23 +223,14 @@ def interference(links: list[Link], tol_mm3: float = 0.5) -> list[str]:
 # --- Ana akış ----------------------------------------------------------------------------------
 
 
-def main() -> None:
-    p = params.load()
+def assemble(p: dict, d: kin.Delta, pose: kin.Vec) -> tuple[list[Link], list[str], list[float]]:
+    """Verilen platform pozunda tüm bağları kurar; (bağlar, ölçü raporu satırları, θ) döndürür."""
     k = p["kinematics"]
-    d = kin.Delta(k)
-    ap = p["assembly_pose"]
-    pose = (ap["x"], ap["y"], ap["z"])
     thetas = d.ik(pose)
-
-    base = build_base(p)
-    links = [base]
-    report = [
-        "# CAD kontrol raporu",
-        "",
-        f"Montaj pozu P = {pose} mm, θ = {[round(t, 2) for t in thetas]}°",
-        "",
-    ]
-
+    # Rot başı katalog kütlesi küre + gövdedir; küre çelik yoğunluğuyla, kalan gövdeye verilir.
+    ball_mass = P.rod_end_ball(p).Volume * p["materials"]["steel"]["density"] / 1000.0
+    housing_mass = p["rod_end"]["mass"] - ball_mass
+    links = [build_base(p)]
     platform, lower_centers = build_platform(p, pose)
     elbow_centers = []
     for i in range(3):
@@ -254,7 +250,7 @@ def main() -> None:
             top, bottom = elbow_centers[i][j], lower_centers[i][j]
             link = Link(f"forearm_{i + 1}_{tag}", forearm_placement(top, bottom, pin_axis))
             for name, s in P.forearm_link(p):
-                link.add(name, s, "steel", p["rod_end"]["mass"] if name == "rod_end" else None)
+                link.add(name, s, "steel", housing_mass if name == "rod_end" else None)
             links.append(link)
             # Kontrol: yerleştirilmiş rot başı küre merkezleri eklem istifiyle çakışmalı
             placed = []
@@ -271,8 +267,7 @@ def main() -> None:
             )
     links.append(platform)
 
-    # Geometri kontrolleri
-    report += ["## Kinematik ölçüler", ""]
+    report = ["### Kinematik ölçüler", ""]
     for i in range(3):
         mid_top = (elbow_centers[i][0] + elbow_centers[i][1]) * 0.5
         mid_bot = (lower_centers[i][0] + lower_centers[i][1]) * 0.5
@@ -283,40 +278,16 @@ def main() -> None:
             f"kısa kol {(mid_top - A).Length:.3f}, "
             f"platform yarıçapı {(mid_bot - V(*pose)).Length:.3f}, saplama aralığı {spacing:.3f} mm"
         )
-    report += ["", "## Uzun kollar", ""] + rows
-
-    # Mekanik notlar
-    z_top = P.housing_bottom_z(p)
-    boss = p["bicep"]["tip_boss_diameter"] / 2
-    th_up = -math.degrees(math.asin((z_top - boss) / k["bicep_length"]))
-    pl_ = p["platform"]
-    tool = pl_["ear_axis_height"] + pl_["thickness"] + p["electromagnet"]["height"]
-    report += [
-        "",
-        "## Mekanik bulgular",
-        "",
-        f"- Kısa kolun yukarı mekanik sınırı ≈ {th_up:.1f}° "
-        "(eklem ucu motor gövdesi üst plakasına değer); "
-        f"yazılım limiti {k['motor_limit_min']}°.",
-        f"- P'den mıknatıs alt yüzüne mesafe {tool:.1f} mm (V1 ee_offset = {k['ee_offset']} mm).",
-        f"- Montaj pozunda mıknatıs alt yüzü z = {pose[2] - tool:.1f} mm, "
-        f"zemin z = {-k['base_to_floor']:.1f} mm.",
-    ]
-
+    report += ["", "### Uzun kollar", ""] + rows
     hits = interference(links)
-    report += ["", "## Çakışma kontrolü (> 0.5 mm³)", ""]
+    report += ["", "### Çakışma (> 0.5 mm³)", ""]
     report += [f"- {h}" for h in hits] if hits else ["- Çakışma yok."]
+    return links, report, thetas
 
-    # Kütle ve atalet
-    props = {ln.name: mass_properties(p, ln) for ln in links}
-    report += ["", "## Kütleler", "", "| Bağ | Kütle (g) |", "|---|---|"]
-    report += [f"| {n} | {v['mass_kg'] * 1000:.1f} |" for n, v in props.items()]
-    moving = sum(v["mass_kg"] for n, v in props.items() if n != "base") * 1000
-    report += ["", f"Hareketli toplam: {moving:.1f} g"]
 
-    # Dışa aktarım
-    (OUT / "meshes").mkdir(parents=True, exist_ok=True)
-    doc = App.newDocument("delta_v2")
+def save_fcstd(links: list[Link], path: Path, meshes: Path | None = None) -> None:
+    """Bağları App::Part grupları olarak kaydeder; istenirse bağ başına STL yazar."""
+    doc = App.newDocument(path.stem)
     for ln in links:
         grp = doc.addObject("App::Part", ln.name)
         grp.Placement = ln.placement
@@ -328,13 +299,70 @@ def main() -> None:
             obj.Malzeme = it["material"]
             grp.addObject(obj)
             shapes.append(it["shape"])
-        mesh = MeshPart.meshFromShape(
-            Shape=Part.makeCompound(shapes), LinearDeflection=0.05, AngularDeflection=0.35
-        )
-        mesh.write(str(OUT / "meshes" / f"{ln.name}.stl"))
+        if meshes is not None:
+            mesh = MeshPart.meshFromShape(
+                Shape=Part.makeCompound(shapes), LinearDeflection=0.05, AngularDeflection=0.35
+            )
+            mesh.write(str(meshes / f"{ln.name}.stl"))
     doc.recompute()
-    doc.saveAs(str(OUT / "delta_v2.FCStd"))
+    doc.saveAs(str(path))
+    App.closeDocument(doc.Name)
 
+
+def main() -> None:
+    p = params.load()
+    k = p["kinematics"]
+    d = kin.Delta(k)
+    ap = p["assembly_pose"]
+    pose = (ap["x"], ap["y"], ap["z"])
+
+    links, rows, thetas = assemble(p, d, pose)
+    report = [
+        "# CAD kontrol raporu",
+        "",
+        f"## Montaj pozu P = {pose} mm, θ = {[round(t, 2) for t in thetas]}°",
+        "",
+    ] + rows
+
+    # Uç işlevci: P'den mıknatıs ucuna mesafe kısıttır (ee_offset); geometriden ölçülür.
+    plat = next(ln for ln in links if ln.name == "platform")
+    magnet = next(it["shape"] for it in plat.items if it["label"] == "electromagnet")
+    tool = -magnet.BoundBox.ZMin
+    report += [
+        "",
+        "### Uç işlevci",
+        "",
+        f"- P'den mıknatıs ucuna {tool:.2f} mm (kısıt: ee_offset = {k['ee_offset']} mm). "
+        f"P plakanın orta düzleminde; mıknatıs cebi alt yüzden {P.magnet_pocket_depth(p):.1f} mm "
+        "derin (varsayım).",
+        f"- Montaj pozunda mıknatıs ucu z = {pose[2] - tool:.1f} mm, "
+        f"zemin z = {-k['base_to_floor']:.1f} mm.",
+    ]
+    if abs(tool - k["ee_offset"]) > 1e-6:
+        raise RuntimeError(f"ee_offset kısıtı sağlanmadı: {tool} mm")
+
+    # Ek kontrol pozları (ör. 1. kol yazılım limitinde): çakışma ve ölçüler + görsel için FCStd
+    OUT.mkdir(parents=True, exist_ok=True)
+    for cp in p.get("check_poses", []):
+        cpose = (cp["x"], cp["y"], cp["z"])
+        clinks, crows, cth = assemble(p, d, cpose)
+        report += [
+            "",
+            f"## Kontrol pozu `{cp['name']}`: P = {cpose} mm, θ = {[round(t, 2) for t in cth]}°",
+            "",
+        ] + crows
+        save_fcstd(clinks, OUT / f"delta_v2_{cp['name']}.FCStd")
+
+    # Kütle ve atalet
+    props = {ln.name: mass_properties(p, ln) for ln in links}
+    report += ["", "## Kütleler", "", "| Bağ | Kütle (g) |", "|---|---|"]
+    report += [f"| {n} | {v['mass_kg'] * 1000:.1f} |" for n, v in props.items()]
+    moving = sum(v["mass_kg"] for n, v in props.items() if n != "base") * 1000
+    report += ["", f"Hareketli toplam: {moving:.1f} g"]
+
+    # Dışa aktarım: montaj + bağ mesh'leri
+    (OUT / "meshes").mkdir(parents=True, exist_ok=True)
+    save_fcstd(links, OUT / "delta_v2.FCStd", OUT / "meshes")
     meta = {
         "units": "SI (kg, m, kg·m²); kütle merkezi ve atalet bağın yerel çerçevesinde",
         "assembly_pose_mm": list(pose),
@@ -346,7 +374,13 @@ def main() -> None:
         json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
     )
     (OUT / "checks.md").write_text("\n".join(report) + "\n", encoding="utf-8", newline="\n")
-    print("\n".join(report))
+    print(f"checks.md yazildi ({len(report)} satir)")
 
 
-main()
+try:
+    main()
+except Exception:
+    import traceback
+
+    traceback.print_exc()
+    raise

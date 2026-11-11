@@ -13,18 +13,18 @@ Durum etiketleri: **Hazır** (adımlar yazılı), **Taslak** (içerik kısmen be
 
 ## 1. Parça üretimi — Taslak
 
-| Parça                         | Yöntem                         | Malzeme           | Not                                                            |
-| ----------------------------- | ------------------------------ | ----------------- | -------------------------------------------------------------- |
-| Kısa kol ×3                   | Lazer kesim                    | 2 mm 7075 Al      | Motor ucunda artı delik, eklem ucunda Ø5                       |
-| Tavan                         | Lazer kesim                    | 5 mm Al           | Anahtar deliği biçimi, motor gövdesi için 3 delik              |
-| Sütun                         | Lazer kesim + kıvırma + kaynak | 5 mm Al           | Yarım silindir                                                 |
-| Taban                         | CNC / lazer                    | 5 mm POM          |                                                                |
-| Motor gövdesi ve kapaklar     | 3B baskı                       | PLA               | Baskı ayarları F0.5'te                                         |
-| Artı kesitli çıkış milleri ×3 | 3B baskı                       | PLA, %100 doluluk | Ø8 rulman yatağı                                               |
-| Uç platform                   | 3B baskı                       | PLA, %20 doluluk  | R35, 5 mm, 3 kulak                                             |
-| Burçlar ×18                   | 3B baskı ya da torna           | PLA (varsayım)    | 5 mm, Ø5 delik, konik dış yüz; 12 kısa kol + 6 platform tarafı |
-| Uzun kollar ×6                | M5 saplama kesimi              | Çelik             | 167 mm; her rot başına 10 mm girer, merkezden merkeze 201 mm   |
-| Pimler ×6                     | M5 saplama kesimi              | Çelik             | ~50 mm                                                         |
+| Parça                         | Yöntem                         | Malzeme           | Not                                                                       |
+| ----------------------------- | ------------------------------ | ----------------- | ------------------------------------------------------------------------- |
+| Kısa kol ×3                   | Lazer kesim                    | 2 mm 7075 Al      | Motor ucunda artı delik, eklem ucunda Ø5                                  |
+| Tavan                         | Lazer kesim                    | 5 mm Al           | Anahtar deliği biçimi; robot ucu küçük (R45), merkeze yakın 3 delik (R18) |
+| Sütun                         | Lazer kesim + kıvırma + kaynak | 5 mm Al           | D kesit: yarım silindir + düz kapak levhası                               |
+| Taban                         | CNC / lazer                    | 5 mm POM          |                                                                           |
+| Motor gövdesi ve kapaklar     | 3B baskı                       | PLA               | Üst plakada her kol için dikdörtgen açıklık; baskı ayarları F5'te         |
+| Artı kesitli çıkış milleri ×3 | 3B baskı                       | PLA, %100 doluluk | Ø8 rulman yatağı                                                          |
+| Uç platform                   | 3B baskı                       | PLA, %20 doluluk  | R35, 5 mm, 3 kulak; pimler orta düzlemde; altta 2.5 mm mıknatıs cebi      |
+| Burçlar ×18                   | 3B baskı ya da torna           | PLA (varsayım)    | 5 mm, Ø5 delik, konik dış yüz; 12 kısa kol + 6 platform tarafı            |
+| Uzun kollar ×6                | M5 saplama kesimi              | Çelik             | 167 mm; her rot başına 10 mm girer, merkezden merkeze 201 mm              |
+| Pimler ×6                     | M5 saplama kesimi              | Çelik             | ~50 mm                                                                    |
 
 Hazır alınacaklar: 12× dişi M5 rot başı, 6× 608ZZ rulman, M5 fiber somunlar, elektromıknatıs (15 mm), 12 V güç kaynağı, Raspberry Pi 4B, haberleşme adaptörü, kamera.
 
@@ -35,11 +35,11 @@ Sıra F0.5 montaj modelinden ([cad/](../cad/README.md)) çıkarıldı; ölçüm 
 1. POM tabana sütunu bağla; sütunun üstündeki tavanın yatay olduğunu kontrol et.
 2. Motor gövdesi üst plakasına üç AX-12A'yı bağla (çıkış eksenleri teğet, göbekler aynı dönüş yönünde).
 3. Her motor için rulman yatağının alt yarısına iki 608ZZ'yi yerleştir; artı kesitli mili göbek flanşına bağlayıp rulmanlardan geçir.
-4. Kısa kolu, iki rulmanın arasında mile artı deliğinden geçir; kapakları 2'şer vidayla sık.
+4. Kısa kolu, iki rulmanın arasında mile artı deliğinden geçir; kapakları 2'şer vidayla sık. Kol, üst plakadaki açıklıktan −70°'ye kadar kalkabilmeli.
 5. Motor gövdesini 3 cıvatayla tavanın altına bağla.
 6. Uzun kolları hazırla: 167 mm saplamanın iki ucuna dişi rot başlarını 10 mm vidala; altı kolun merkezden merkeze boyunu 201 mm'ye eşitle.
 7. Kısa kol uçlarına eklem istifini kur: somun, rot başı, 2 burç, kısa kol, 2 burç, rot başı, somun.
-8. Platform kulaklarına aynı istifi kur (her yanda 1 burç); elektromıknatısı platformun altına bağla.
+8. Platform kulaklarına aynı istifi kur (her yanda 1 burç); elektromıknatısı platformun altındaki cebe oturt. P'den (pim eksenlerinin düzlemi) mıknatıs ucuna 15 mm olmalı.
 9. Motorlar enerjisizken platformu elle bütün çalışma alanında gezdir; takılma ya da sürtünme olmamalı.
 
 Bilinen ilkeler:

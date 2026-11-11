@@ -10,17 +10,17 @@ V2 sıfırdan yazılır. Repodaki eski klasörler (`LikeSoup/`, `KilavuzDeltaRob
 
 ## Durum
 
-| Faz  | Kapsam                                                    | Durum                   |
-| ---- | --------------------------------------------------------- | ----------------------- |
-| F0   | İskele, Docker geliştirme ortamı, Compose, i18n, CI       | Tamamlandı              |
-| F0.5 | FreeCAD ile parametrik 3B model, montaj, renkli görseller | Görseller onay bekliyor |
-| F1   | C++ kinematik çekirdeği + testler + Python bağlaması      | —                       |
-| F2   | Datasheet                                                 | —                       |
-| F3   | ROS2 + güvenlik süpervizörü + dijital ikiz                | —                       |
-| F4   | Uzaktan erişim: API, Python istemcisi, web, sandbox       | —                       |
-| F4.5 | Tic-tac-toe senaryosu                                     | —                       |
-| F5   | Robotun yeniden kurulumu                                  | —                       |
-| F6   | Saatlik kiralama                                          | —                       |
+| Faz  | Kapsam                                                    | Durum                    |
+| ---- | --------------------------------------------------------- | ------------------------ |
+| F0   | İskele, Docker geliştirme ortamı, Compose, i18n, CI       | Tamamlandı               |
+| F0.5 | FreeCAD ile parametrik 3B model, montaj, renkli görseller | Revizyon 2 onay bekliyor |
+| F1   | C++ kinematik çekirdeği + testler + Python bağlaması      | —                        |
+| F2   | Datasheet                                                 | —                        |
+| F3   | ROS2 + güvenlik süpervizörü + dijital ikiz                | —                        |
+| F4   | Uzaktan erişim: API, Python istemcisi, web, sandbox       | —                        |
+| F4.5 | Tic-tac-toe senaryosu                                     | —                        |
+| F5   | Robotun yeniden kurulumu                                  | —                        |
+| F6   | Saatlik kiralama                                          | —                        |
 
 Ayrıntı: [docs/yol-haritasi.md](docs/yol-haritasi.md)
 
@@ -66,6 +66,7 @@ Ayrıntı: [docs/gelistirme-ortami.md](docs/gelistirme-ortami.md)
 - [docs/yol-haritasi.md](docs/yol-haritasi.md): fazlar ve teslimler
 - [docs/robot-girdileri.md](docs/robot-girdileri.md): robotun ölçüleri ve mekanik bilgileri, kaynaklarıyla
 - [docs/gelistirme-ortami.md](docs/gelistirme-ortami.md): Docker, Compose, CI, kod standardı
+- [docs/ilerleme.md](docs/ilerleme.md): faz ilerlemesi, sayılarla
 - [docs/kurulum-plani.md](docs/kurulum-plani.md): robot üretilecekse üretim ve kurulum sırası
 
 Belgeler Türkçedir. Arayüz önce Türkçe, sonra İngilizce desteklenir.
