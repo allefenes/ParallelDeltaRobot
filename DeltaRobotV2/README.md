@@ -35,7 +35,6 @@ DeltaRobotV2/
   i18n/locales/       Arayüz metinleri; tr.json kaynak, en.json çeviri
   tools/              ci.sh, format.sh, i18n denetimi, git kancaları
   tests/              Python testleri (pytest)
-  ci/                 GitHub Actions iş akışı taslağı
   docs/               Mimari, yol haritası, robot girdileri, geliştirme ortamı
 ```
 

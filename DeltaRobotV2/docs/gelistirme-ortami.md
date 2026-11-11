@@ -58,4 +58,4 @@ Bundan sonra `DeltaRobotV2/` altında değişiklik içeren her commit'te biçim 
 
 ## CI
 
-GitHub Actions yalnız repo kökündeki `.github/workflows/` klasörünü okur. V2 kuralı gereği repo köküne (README dışında) dosya eklenmediği için iş akışı taslağı `ci/github-workflow.yml` olarak durur. Etkinleştirmek için kökte `.github/workflows/deltarobotv2.yml` olarak kopyalanması gerekir; bu adım proje sahibinin onayını bekler. İş akışı yalnız `DeltaRobotV2/**` değiştiğinde tetiklenir ve aynı imajda `tools/ci.sh` çalıştırır.
+İş akışı repo kökünde `.github/workflows/deltarobotv2.yml` dosyasındadır (V2 klasörü dışındaki tek dosya; proje sahibi onayladı). Yalnız `DeltaRobotV2/**` ya da iş akışı dosyası değiştiğinde tetiklenir, geliştirme imajını derler ve içinde `tools/ci.sh` çalıştırır; yani yerel denetimle birebir aynıdır.

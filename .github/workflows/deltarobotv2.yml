@@ -1,16 +1,15 @@
-# Delta Robotics V2 CI.
-# GitHub Actions yalnız repo kökündeki .github/workflows/ klasörünü okur.
-# Etkinleştirmek için bu dosya kökte .github/workflows/deltarobotv2.yml olarak kopyalanır
-# (bkz. docs/gelistirme-ortami.md).
+# Delta Robotics V2 CI: yalnız DeltaRobotV2/ ya da bu dosya değişince çalışır.
 name: DeltaRobotV2
 
 on:
   push:
     paths:
       - "DeltaRobotV2/**"
+      - ".github/workflows/deltarobotv2.yml"
   pull_request:
     paths:
       - "DeltaRobotV2/**"
+      - ".github/workflows/deltarobotv2.yml"
 
 jobs:
   checks:

@@ -1,36 +1,34 @@
 # Remote Acces Parallel Delta Robot Experiment Kit
 ![alt text](https://github.com/allefenes/ParallelDeltaRobot/blob/main/logo/logo.png)
 
-## Delta Robotics V2 (geliştiriliyor)
+## Delta Robotics V2 (in development)
 
-V2, aynı robotun uzaktan erişilebilir yeni sürümüdür: kullanıcılar web sayfasından ya da VS Code'dan Python yazarak robotu (ya da dijital ikizini) güvenli bir çerçevede kontrol eder. C++ çekirdek, ROS2 Jazzy, Docker. Tüm V2 çalışması [`DeltaRobotV2/`](DeltaRobotV2/) klasöründedir; durum ve yol haritası için [DeltaRobotV2/README.md](DeltaRobotV2/README.md).
+V2 is a remotely accessible rewrite of the same robot: users write Python in a web page or in VS Code to control the robot (or its digital twin) within a safe framework. C++ core, ROS2 Jazzy, Docker. All V2 work lives in [`DeltaRobotV2/`](DeltaRobotV2/); see [DeltaRobotV2/README.md](DeltaRobotV2/README.md) for status and roadmap (V2 documentation is in Turkish).
 
-[![Claude Code ile geliştirildi](https://img.shields.io/badge/Claude%20Code%20ile-geli%C5%9Ftirildi-D97757?logo=claude&logoColor=white)](https://claude.com/claude-code) V2, [Claude Code](https://claude.com/claude-code) ile geliştirilmektedir.
+[![Built with Claude Code](https://img.shields.io/badge/Built%20with-Claude%20Code-D97757?logo=claude&logoColor=white)](https://claude.com/claude-code) V2 is being developed with [Claude Code](https://claude.com/claude-code).
 
-V2 is the remotely accessible rewrite of the same robot; everything lives in [`DeltaRobotV2/`](DeltaRobotV2/).
+## V1 review and lessons carried into V2
 
-## V1 değerlendirmesi ve V2'ye taşınan dersler
+V1 was a graduation project built solo alongside final-year coursework. Before starting V2, we reviewed the code end to end.
 
-V1, son sınıf dersleriyle paralel olarak tek başına geliştirilmiş bir bitirme projesidir. V2'ye başlamadan önce kodu baştan sona gözden geçirdik.
+**Strengths**
 
-**Güçlü yanlar**
+- Correct forward and inverse kinematics: round-trip error ~1e-13 mm. Passive joint angles and the spherical-joint limit are computed as well.
+- The code was refactored by hand from a single-file first version that had grown out of control (`LikeSoup/`) into a modular, object-oriented structure (`KilavuzDeltaRobotics/`); the kinematic model is independent of the UI.
+- A working end-to-end pipeline: parametric robot definition → kinematics → trajectory validation and simulation → synchronized motor control and telemetry → image processing.
+- Solid mechanics: output shafts are supported by bearings so the servos carry no arm loads, and with the motors unpowered the end effector moves freely by hand.
 
-- İleri ve ters kinematik doğru: gidiş-dönüş hatası ~1e-13 mm. Pasif mafsal açıları ve küresel mafsal limiti de hesaplanıyor.
-- Kod, kontrolden çıkan tek dosyalık ilk sürümden (`LikeSoup/`) modüler, nesne yönelimli bir yapıya (`KilavuzDeltaRobotics/`) elle ayrıştırıldı; kinematik modeli arayüzden bağımsız.
-- Uçtan uca çalışan bir hat: parametrik robot tanımı → kinematik → yörünge doğrulama ve simülasyon → senkron motor kontrolü ve telemetri → görüntü işleme.
-- Sağlam mekanik: çıkış milleri rulmanla yataklanmış, servolar kol yükü taşımıyor; motorlar enerjisizken uç işlevci elle zahmetsizce hareket ediyor.
+**To improve → how V2 addresses it**
 
-**Geliştirilmesi gerekenler → V2'deki karşılığı**
+- The motor command path could bypass the limit checks → in V2 every command passes through a single safety supervisor.
+- Servo speed and command values were not limited → velocity/acceleration limits and value clamping in the supervisor.
+- The serial port and the UI were used concurrently from several threads → a driver layer that is the sole owner of the hardware (ROS2).
+- No tests, dependency list or packaging → C++ core with tests, Docker environment, CI.
+- Build artifacts and large data were committed, and code style was inconsistent → `.gitignore`, automatic formatting and a pre-commit check.
 
-- Motora giden komut yolu limit kontrolünü atlayabiliyordu → V2'de her komut tek bir güvenlik süpervizöründen geçer.
-- Servo hızı ve komut değerleri sınırlanmıyordu → süpervizörde hız/ivme sınırları ve değer kırpma.
-- Seri port ve arayüz birden çok thread'den eşzamanlı kullanılıyordu → donanımın tek sahibi olan sürücü katmanı (ROS2).
-- Test, bağımlılık listesi ve paketleme yoktu → C++ çekirdek ve testler, Docker ortamı, CI.
-- Derleme çıktıları ve büyük veri repoya girmişti; kod biçimi tutarsızdı → `.gitignore`, otomatik biçimlendirme ve pre-commit denetimi.
+## V1 (2024, archive)
 
-## V1 (2024, arşiv)
-
-Aşağıdaki metin ve `LikeSoup/`, `KilavuzDeltaRobotics/`, `ImageProcessing/`, `WsAnalysis/` klasörleri 2024 bitirme projesine aittir ve referans olarak değiştirilmeden tutulur.
+The text below and the `LikeSoup/`, `KilavuzDeltaRobotics/`, `ImageProcessing/` and `WsAnalysis/` folders belong to the 2024 graduation project and are kept unchanged as a reference.
 
 We are developing Remote Access Parallel Delta Robot Experiment Kit for TEKNOFEST competition. Our team name is DELTA ROBOTICS.
 
