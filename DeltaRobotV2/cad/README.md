@@ -18,18 +18,19 @@ FreeCAD konteynerde olmadığı için betikler Windows'ta yerel FreeCAD ile çal
 
 ## Dosyalar
 
-| Dosya                      | Görev                                                                                |
-| -------------------------- | ------------------------------------------------------------------------------------ |
-| `lib/params.py`            | `config/robot.yaml` okuyucu                                                          |
-| `lib/kinematics.py`        | Montaj pozu için hafif ters kinematik (F1'de C++ çekirdekle çapraz kontrol edilecek) |
-| `lib/parts.py`             | Her parçanın geometrisi, kendi yerel çerçevesinde                                    |
-| `build.py`                 | Bağları kurar, poza yerleştirir, kontrol eder, dışa aktarır                          |
-| `render.py`                | Montajı malzemeye göre renklendirip görselleri üretir                                |
-| `out/delta_v2.FCStd`       | Montaj; her bağ ayrı `App::Part`, her parçanın `Malzeme` özelliği var                |
-| `out/delta_v2_<poz>.FCStd` | `check_poses` montajları (ör. 1. kol −70°); yalnız kontrol ve görsel için            |
-| `out/meshes/*.stl`         | Bağ mesh'leri, bağın yerel çerçevesinde (URDF / RViz / Gazebo / web ikizi)           |
-| `out/mass_properties.json` | Bağ başına kütle (kg), kütle merkezi (m), atalet tensörü (kg·m²)                     |
-| `out/checks.md`            | Kinematik ölçü, rot başı açısı, çakışma ve mekanik bulgular                          |
+| Dosya                      | Görev                                                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| `lib/params.py`            | `config/robot.yaml` okuyucu                                                                |
+| `lib/kinematics.py`        | Montaj pozu için hafif ters kinematik (F1'de C++ çekirdekle çapraz kontrol edilecek)       |
+| `lib/parts.py`             | Her parçanın geometrisi, kendi yerel çerçevesinde                                          |
+| `build.py`                 | Bağları kurar, poza yerleştirir, kontrol eder, dışa aktarır                                |
+| `render.py`                | Montajı malzemeye göre renklendirip görselleri üretir                                      |
+| `out/delta_v2.FCStd`       | Montaj; her bağ ayrı `App::Part`, her parçanın `Malzeme` özelliği var                      |
+| `out/delta_v2_<poz>.FCStd` | `check_poses` montajları (ör. 1. kol −70°); yalnız kontrol ve görsel için                  |
+| `out/meshes/*.stl`         | Bağ mesh'leri, bağın yerel çerçevesinde (URDF / RViz / Gazebo / web ikizi)                 |
+| `out/mass_properties.json` | Bağ başına kütle (kg), kütle merkezi (m), atalet tensörü (kg·m²)                           |
+| `out/parts.json`           | Parça etiketi başına adet ve birim kütle; malzeme listesinin (hardware/bom.md) CAD kaynağı |
+| `out/checks.md`            | Kinematik ölçü, rot başı açısı, çakışma ve mekanik bulgular                                |
 
 Görseller: [docs/img/cad/](../docs/img/cad/)
 

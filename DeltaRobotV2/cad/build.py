@@ -19,6 +19,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -339,6 +340,29 @@ def save_fcstd(links: list[Link], path: Path, meshes: Path | None = None) -> Non
     App.closeDocument(doc.Name)
 
 
+def write_parts_summary(p: dict, links: list[Link], path: Path) -> None:
+    """Parça etiketi başına adet ve birim kütle (g); BOM'un CAD'den türeyen sütunları.
+
+    Etiketlerdeki kol numarası (`motor_1` -> `motor`) atılır. Aynı etiketli parçaların
+    kütlesi farklıysa (ör. iki boy iç burç) ortalama birim kütle yazılır.
+    """
+    acc: dict[str, list] = {}
+    for ln in links:
+        for it in ln.items:
+            label = re.sub(r"_\d+$", "", it["label"])
+            s = it["shape"]
+            m = density_g_mm3(p, it["material"], s, it["mass"]) * s.Volume
+            e = acc.setdefault(label, [0, 0.0, it["material"]])
+            e[0] += 1
+            e[1] += m
+    out = {
+        k: {"count": n, "unit_mass_g": round(total / n, 2), "material": mat}
+        for k, (n, total, mat) in sorted(acc.items())
+    }
+    text = json.dumps(out, indent=2, ensure_ascii=False) + chr(10)
+    path.write_text(text, encoding="utf-8", newline=chr(10))
+
+
 def main() -> None:
     p = params.load()
     k = p["kinematics"]
@@ -384,6 +408,9 @@ def main() -> None:
             "",
         ] + crows
         save_fcstd(clinks, OUT / f"delta_v2_{cp['name']}.FCStd")
+
+    # Malzeme listesi için parça özeti (hardware/bom.yaml ile tools/bom.py birleştirir)
+    write_parts_summary(p, links, OUT / "parts.json")
 
     # Kütle ve atalet
     props = {ln.name: mass_properties(p, ln) for ln in links}

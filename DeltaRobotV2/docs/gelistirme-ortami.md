@@ -25,9 +25,10 @@ Bütün derleme ve testler Docker konteynerinde çalışır. Böylece Windows (D
 `tools/ci.sh` sırasıyla şunları yapar:
 
 1. Biçim denetimi (`tools/format.sh --check`)
-2. i18n kataloglarını denetler (`tools/check_i18n.py`)
-3. Python testlerini çalıştırır (`tests/`)
-4. `core/` C++ kütüphanesini derler ve testlerini çalıştırır (`build/core/`)
+2. Malzeme listesinin CAD ile senkronunu denetler (`tools/bom.py --check`)
+3. i18n kataloglarını denetler (`tools/check_i18n.py`)
+4. Python testlerini çalıştırır (`tests/`)
+5. `core/` C++ kütüphanesini derler ve testlerini çalıştırır (`build/core/`)
 
 ## Kod standardı
 

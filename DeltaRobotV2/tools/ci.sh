@@ -8,6 +8,9 @@ cd "$(dirname "$0")/.."
 echo "== Biçim =="
 ./tools/format.sh --check
 
+echo "== Malzeme listesi (CAD ile senkron) =="
+python3 tools/bom.py --check
+
 echo "== i18n =="
 python3 tools/check_i18n.py
 

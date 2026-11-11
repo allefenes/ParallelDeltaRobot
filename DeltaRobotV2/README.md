@@ -35,7 +35,8 @@ DeltaRobotV2/
   cad/                FreeCAD betikleri, montaj, mesh ve kütle çıktıları
   core/               delta_core: ROS'tan bağımsız C++ çekirdek kütüphane (F1'de dolacak)
   i18n/locales/       Arayüz metinleri; tr.json kaynak, en.json çeviri
-  tools/              ci.sh, format.sh, i18n denetimi, git kancaları
+  hardware/           Malzeme listesi: bom.yaml (kaynak) -> bom.csv, bom.md (CAD ile senkron)
+  tools/              ci.sh, format.sh, cad.sh, bom.py, i18n denetimi, git kancaları
   tests/              Python testleri (pytest)
   docs/               Mimari, yol haritası, robot girdileri, geliştirme ortamı
 ```
@@ -67,6 +68,7 @@ Ayrıntı: [docs/gelistirme-ortami.md](docs/gelistirme-ortami.md)
 - [docs/robot-girdileri.md](docs/robot-girdileri.md): robotun ölçüleri ve mekanik bilgileri, kaynaklarıyla
 - [docs/gelistirme-ortami.md](docs/gelistirme-ortami.md): Docker, Compose, CI, kod standardı
 - [docs/ilerleme.md](docs/ilerleme.md): faz ilerlemesi, sayılarla
+- [hardware/bom.md](hardware/bom.md): malzeme listesi (BOM)
 - [docs/kurulum-plani.md](docs/kurulum-plani.md): robot üretilecekse üretim ve kurulum sırası
 
 Belgeler Türkçedir. Arayüz önce Türkçe, sonra İngilizce desteklenir.

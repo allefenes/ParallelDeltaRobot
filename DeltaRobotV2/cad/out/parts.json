@@ -1,0 +1,97 @@
+{
+  "bearing": {
+    "count": 6,
+    "unit_mass_g": 12.0,
+    "material": "bearing"
+  },
+  "bearing_cap": {
+    "count": 6,
+    "unit_mass_g": 1.13,
+    "material": "pla_infill20"
+  },
+  "bicep_plate": {
+    "count": 3,
+    "unit_mass_g": 8.42,
+    "material": "al7075"
+  },
+  "bushing_inner": {
+    "count": 12,
+    "unit_mass_g": 0.26,
+    "material": "pla_solid"
+  },
+  "bushing_outer": {
+    "count": 12,
+    "unit_mass_g": 0.17,
+    "material": "pla_solid"
+  },
+  "cap_screw": {
+    "count": 12,
+    "unit_mass_g": 1.72,
+    "material": "steel"
+  },
+  "ceiling": {
+    "count": 1,
+    "unit_mass_g": 321.26,
+    "material": "al7075"
+  },
+  "column": {
+    "count": 1,
+    "unit_mass_g": 897.35,
+    "material": "al7075"
+  },
+  "electromagnet": {
+    "count": 1,
+    "unit_mass_g": 35.0,
+    "material": "electromagnet"
+  },
+  "motor": {
+    "count": 3,
+    "unit_mass_g": 54.6,
+    "material": "motor"
+  },
+  "motor_housing": {
+    "count": 1,
+    "unit_mass_g": 113.52,
+    "material": "pla_infill20"
+  },
+  "nut": {
+    "count": 12,
+    "unit_mass_g": 1.4,
+    "material": "steel"
+  },
+  "output_shaft": {
+    "count": 3,
+    "unit_mass_g": 1.94,
+    "material": "pla_solid"
+  },
+  "pin": {
+    "count": 6,
+    "unit_mass_g": 8.94,
+    "material": "steel"
+  },
+  "platform": {
+    "count": 1,
+    "unit_mass_g": 9.2,
+    "material": "pla_infill20"
+  },
+  "pom_base": {
+    "count": 1,
+    "unit_mass_g": 1004.21,
+    "material": "pom"
+  },
+  "rod": {
+    "count": 6,
+    "unit_mass_g": 18.6,
+    "material": "steel"
+  },
+  "rod_end": {
+    "count": 12,
+    "unit_mass_g": 8.2,
+    "material": "steel"
+  },
+  "rod_end_ball": {
+    "count": 12,
+    "unit_mass_g": 3.8,
+    "material": "steel"
+  }
+}

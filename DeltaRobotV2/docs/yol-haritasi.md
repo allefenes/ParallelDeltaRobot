@@ -1,6 +1,8 @@
 # Yol haritası
 
-Her faz bir sonrakine geçmeden önce proje sahibinin onayını alır. Fiziksel robot şu an yok (V1 robotu okula hibe edildi); F5'e kadar her şey dijital ikiz üzerinde çalışır. Donanım arka ucu, ikizle aynı arayüzü kullandığı için F5'te yalnız o katman değişir.
+Her faz bir sonrakine geçmeden önce proje sahibinin onayını alır. Fiziksel robot şu an yok (V1 robotu okula hibe edildi); F5'e kadar her şey dijital ikiz üzerinde çalışır. Mimari: beyin sunucuda, robot başında ince ama güvenli bir Raspberry Pi kenarı ([mimari.md](mimari.md)). Sanal Pi, gerçek Pi ile aynı kenar protokolünü konuştuğu için F5'te yalnız donanım katmanı değişir.
+
+Bütün fazlarda [hardware/bom.md](../hardware/bom.md) (malzeme listesi) ve [kurulum-plani.md](kurulum-plani.md) güncel tutulur.
 
 ## F0 — İskele
 
@@ -33,18 +35,30 @@ Her faz bir sonrakine geçmeden önce proje sahibinin onayını alır. Fiziksel 
 - Motor parametrelerine göre yeniden üretilebilir (motor değişirse tek komutla güncellenir)
 - Her değerin kaynağı: hesap / simülasyon / ölçüm
 
-## F3 — ROS2 ve dijital ikiz
+## F3 — ROS2, kenar protokolü ve dijital ikiz
 
-- `ros2_control` donanım arayüzü: motordan bağımsız; AX-12A ve mock arka uçları
-- Güvenlik süpervizörü: her komutun geçtiği tek kapı
-- Yörünge yürütücü, durum makinesi, telemetri
+Sunucu:
+
+- ROS2 yığını; 1. güvenlik kapısı (tam süpervizör: çalışma alanı, çarpışma, görev mantığı, hız/ivme profili)
+- Yörünge planlama (zaman damgalı tam yörünge), durum makinesi
+- Kenar köprüsü düğümü: ROS2 yörüngesi -> kenar protokolü, telemetri -> ROS2 konuları
 - Tabla, taşlar ve elektromıknatıs dahil dijital ikiz
+
+Kenar (`edge/`, C++17, ROS'suz):
+
+- Kenar protokolü tanımı ve sürümlemesi (WebSocket + TLS, Pi dışarı bağlanır)
+- `delta_edge`: yörünge tamponu ve yerel saatle 50–100 Hz oynatma, 2. (son) güvenlik kapısı, bekçi (kalp atışı), telemetri
+- Motordan bağımsız sürücü arayüzü; AX-12A arka ucu (Protocol 1.0) ve mock arka ucu
+- Sanal Pi: `delta_edge` + mock/ikiz arka ucu bir konteynerde; sunucu gerçek robottan ayırt edemez
+- Testler: kapı sınırları, bekçi senaryoları (hareket ortasında bağlantı kopması), yörünge zamanlaması
 
 ## F4 — Uzaktan erişim
 
 - Komut API'si (token ile), `pip` ile kurulan Python istemcisi (VS Code'dan kullanım)
 - Web: kod editörü, 3B ikiz, telemetri, TR arayüz
 - Web editöründeki kod için sandbox (ağsız, kaynak sınırlı konteyner)
+- Kamera akışının web'e bağlanması (WebRTC; F5'e kadar ikizden sanal görüntü)
+- Sunucu dağıtımı (`compose.yaml`): web, API, ROS2 yığını, kenar uç noktası
 
 ## F4.5 — Tic-tac-toe
 
@@ -54,7 +68,10 @@ Her faz bir sonrakine geçmeden önce proje sahibinin onayını alır. Fiziksel 
 ## F5 — Yeniden kurulum
 
 - Motor seçimi, havalandırmalı kutu, kamera, elektromıknatıs sürücüsü
-- Datasheet'in ölçüm alanları
+- Raspberry Pi kurulumu: `delta_edge` servisi (systemd), TLS kimliği, dışarı bağlantı
+- Fiziksel acil stop: güç yolunu keser ve Pi'ye bildirir (ağdan bağımsız)
+- Kamera: Pi'den doğrudan WebRTC yayını
+- Gerçek donanımla bekçi ve kapı testleri; datasheet'in ölçüm alanları
 
 ## F6 — Kiralama
 

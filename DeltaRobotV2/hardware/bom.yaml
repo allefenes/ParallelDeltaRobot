@@ -1,0 +1,349 @@
+# Delta Robotics V2 malzeme listesi (BOM): elle tutulan kaynak.
+#
+# Adet ve birim kütle, CAD'de modellenen parçalarda `cad` alanındaki etiket(ler)den otomatik gelir
+# (cad/out/parts.json, ./tools/cad.sh build üretir). CAD'de olmayan kalemlerde `qty` ve
+# `unit_mass_g` elle yazılır. hardware/bom.csv ve hardware/bom.md bu dosyadan üretilir:
+#   docker compose run --rm dev python3 tools/bom.py          (üret)
+#   docker compose run --rm dev python3 tools/bom.py --check  (CI: CAD ile senkron mu, dosyalar güncel mi)
+#
+# Alanlar:
+#   id        kalem numarası (bir kez verilir, değişmez)
+#   name      Türkçe ad
+#   category  govde | baski | satin_alma | baglanti | elektronik | sarf
+#   spec      malzeme / standart / model
+#   method    üretim yöntemi
+#   supplier  tedarikçi (bilinmiyorsa TBD)
+#   price     yaklaşık birim fiyat, TL (bilinmiyorsa boş)
+#   status    v1 (V1'deki gibi) | varsayim (bilgi yok, seçildi) | v2 (V2'de değişti)
+#   notes     not
+
+items:
+  # --- Gövde (metal / plastik levha) ---
+  - {
+      id: 1,
+      name: POM taban,
+      category: govde,
+      cad: [pom_base],
+      spec: "POM, 5 mm levha",
+      method: "CNC / lazer kesim, köşeler R20",
+      supplier: TBD,
+      status: v1,
+      notes: "Dış ölçüler varsayım",
+    }
+  - {
+      id: 2,
+      name: Sütun (D kesit),
+      category: govde,
+      cad: [column],
+      spec: "Al 7075, 5 mm",
+      method: "Lazer kesim + kıvırma + kaynak",
+      supplier: TBD,
+      status: v1,
+      notes: "7075 kaynağa pek uygun değil; yeniden üretimde 6061/5083",
+    }
+  - {
+      id: 3,
+      name: Tavan levhası,
+      category: govde,
+      cad: [ceiling],
+      spec: "Al 7075, 5 mm",
+      method: "Lazer kesim, geçişler R8; sütuna kaynaklı",
+      supplier: TBD,
+      status: v1,
+      notes: "Robot ucu R45 (varsayım)",
+    }
+  - {
+      id: 4,
+      name: Kısa kol,
+      category: govde,
+      cad: [bicep_plate],
+      spec: "Al 7075, 2 mm",
+      method: "Lazer kesim; artı delik iç köşeleri R0.8",
+      supplier: TBD,
+      status: v1,
+      notes: "Merkezden merkeze 64 mm",
+    }
+
+  # --- 3B baskı (PLA) ---
+  - {
+      id: 10,
+      name: Motor gövdesi (tek parça),
+      category: baski,
+      cad: [motor_housing],
+      spec: "PLA, %20 doluluk",
+      method: "3B baskı",
+      supplier: kendi üretim,
+      status: v2,
+      notes: "Üst plaka + 3 motor kutusu + 6 rulman yatağı alt yarısı",
+    }
+  - {
+      id: 11,
+      name: Rulman kapağı,
+      category: baski,
+      cad: [bearing_cap],
+      spec: "PLA, %20 doluluk",
+      method: "3B baskı",
+      supplier: kendi üretim,
+      status: v1,
+      notes: "2 vidayla sıkılır",
+    }
+  - {
+      id: 12,
+      name: Çıkış mili (artı kesit),
+      category: baski,
+      cad: [output_shaft],
+      spec: "PLA, %100 doluluk",
+      method: "3B baskı",
+      supplier: kendi üretim,
+      status: v1,
+      notes: "Uçları Ø8 dairede, 608ZZ'ye oturur",
+    }
+  - {
+      id: 13,
+      name: İç burç (konik),
+      category: baski,
+      cad: [bushing_inner],
+      spec: "PLA %100 (varsayım)",
+      method: "3B baskı ya da torna",
+      supplier: kendi üretim,
+      status: v1,
+      notes: "6 × 10 mm (kısa kol) + 6 × 5 mm (platform); Ø9 → Ø6.5",
+    }
+  - {
+      id: 14,
+      name: Dış burç (konik),
+      category: baski,
+      cad: [bushing_outer],
+      spec: "PLA %100 (varsayım)",
+      method: "3B baskı ya da torna",
+      supplier: kendi üretim,
+      status: v1,
+      notes: "5 mm; dar ucu rot başına bakar",
+    }
+  - {
+      id: 15,
+      name: Uç platform,
+      category: baski,
+      cad: [platform],
+      spec: "PLA, %20 doluluk",
+      method: "3B baskı",
+      supplier: kendi üretim,
+      status: v1,
+      notes: "R35 × 5 mm, 3 kulak, 3 süs deliği, mıknatıs cebi",
+    }
+
+  # --- Satın alma (mekanik) ---
+  - {
+      id: 20,
+      name: Servo motor,
+      category: satin_alma,
+      cad: [motor],
+      spec: "Dynamixel AX-12A",
+      method: satın alma,
+      supplier: TBD,
+      status: v1,
+      notes: "Yeniden kurulumda motor değişebilir",
+    }
+  - {
+      id: 21,
+      name: Rulman,
+      category: satin_alma,
+      cad: [bearing],
+      spec: "608ZZ (8 × 22 × 7)",
+      method: satın alma,
+      supplier: TBD,
+      status: v1,
+      notes: "",
+    }
+  - {
+      id: 22,
+      name: Rot başı (dişi M5),
+      category: satin_alma,
+      cad: [rod_end, rod_end_ball],
+      spec: "DIN ISO 12240-4 K, SI5 benzeri",
+      method: satın alma,
+      supplier: TBD,
+      status: v1,
+      notes: "Kütle katalog değeri (~12 g)",
+    }
+  - {
+      id: 23,
+      name: Elektromıknatıs,
+      category: satin_alma,
+      cad: [electromagnet],
+      spec: "Ø20 × 15 mm, 12 V (varsayım)",
+      method: satın alma,
+      supplier: TBD,
+      status: varsayim,
+      notes: "Model ve tutma kuvveti bilinmiyor",
+    }
+
+  # --- Bağlantı elemanları ---
+  - {
+      id: 30,
+      name: Uzun kol saplaması,
+      category: baglanti,
+      cad: [rod],
+      spec: "M5 saplama, çelik, 167 mm",
+      method: "Saplama kesimi",
+      supplier: TBD,
+      status: v1,
+      notes: "Rot başlarına 10'ar mm girer",
+    }
+  - {
+      id: 31,
+      name: Eklem pimi,
+      category: baglanti,
+      cad: [pin],
+      spec: "M5 saplama, çelik, ~60 mm",
+      method: "Saplama kesimi",
+      supplier: TBD,
+      status: v2,
+      notes: "Yeni istif: 58 mm",
+    }
+  - {
+      id: 32,
+      name: Fiber somun,
+      category: baglanti,
+      cad: [nut],
+      spec: "M5 DIN 985",
+      method: satın alma,
+      supplier: TBD,
+      status: v1,
+      notes: "",
+    }
+  - {
+      id: 33,
+      name: Kapak vidası,
+      category: baglanti,
+      cad: [cap_screw],
+      spec: "M3 × 20 (varsayım)",
+      method: satın alma,
+      supplier: TBD,
+      status: varsayim,
+      notes: "",
+    }
+  - {
+      id: 34,
+      name: Gövde-tavan cıvatası,
+      category: baglanti,
+      qty: 3,
+      unit_mass_g: 3.0,
+      spec: "M5 × 12 + somun (varsayım)",
+      method: satın alma,
+      supplier: TBD,
+      status: varsayim,
+      notes: "CAD'de çizilmedi",
+    }
+  - {
+      id: 35,
+      name: Sütun-taban bağlantısı,
+      category: baglanti,
+      qty: 4,
+      unit_mass_g: 4.0,
+      spec: "M5 cıvata + somun (varsayım)",
+      method: satın alma,
+      supplier: TBD,
+      status: varsayim,
+      notes: "Bağlantı şekli bilinmiyor; CAD'de çizilmedi",
+    }
+
+  # --- Elektronik ---
+  - {
+      id: 40,
+      name: Robot bilgisayarı,
+      category: elektronik,
+      qty: 1,
+      unit_mass_g: 46,
+      spec: "Raspberry Pi 4B (8 GB)",
+      method: satın alma,
+      supplier: TBD,
+      status: v1,
+      notes: "İnce kenar: delta_edge servisi",
+    }
+  - {
+      id: 41,
+      name: Güç kaynağı,
+      category: elektronik,
+      qty: 1,
+      unit_mass_g: "",
+      spec: "12 V, ≥5 A, LED tipi anahtarlamalı",
+      method: satın alma,
+      supplier: TBD,
+      status: v1,
+      notes: "Akım değeri varsayım",
+    }
+  - {
+      id: 42,
+      name: Pi beslemesi,
+      category: elektronik,
+      qty: 1,
+      unit_mass_g: "",
+      spec: "12 V → 5 V / 3 A DC-DC (varsayım)",
+      method: satın alma,
+      supplier: TBD,
+      status: varsayim,
+      notes: "Acil stop Pi beslemesini kesmez",
+    }
+  - {
+      id: 43,
+      name: Dynamixel arayüzü,
+      category: elektronik,
+      qty: 1,
+      unit_mass_g: "",
+      spec: "U2D2 ya da 74LS241 yarım-dupleks devre",
+      method: satın alma / kendi devre,
+      supplier: TBD,
+      status: varsayim,
+      notes: "V1'deki devre bilinmiyor",
+    }
+  - {
+      id: 44,
+      name: Elektromıknatıs sürücüsü,
+      category: elektronik,
+      qty: 1,
+      unit_mass_g: "",
+      spec: "Lojik seviyeli MOSFET + serbest dönüş diyotu",
+      method: satın alma,
+      supplier: TBD,
+      status: varsayim,
+      notes: "Güvenli durum F3'te",
+    }
+  - {
+      id: 45,
+      name: Acil stop butonu,
+      category: elektronik,
+      qty: 1,
+      unit_mass_g: "",
+      spec: "Mantar buton, NC + NO kontak",
+      method: satın alma,
+      supplier: TBD,
+      status: v2,
+      notes: "Güç yolunu keser, Pi GPIO'ya bildirir",
+    }
+  - {
+      id: 46,
+      name: Kamera,
+      category: elektronik,
+      qty: 1,
+      unit_mass_g: "",
+      spec: "USB ya da CSI kamera",
+      method: satın alma,
+      supplier: TBD,
+      status: v1,
+      notes: "WebRTC yayını Pi'den",
+    }
+
+  # --- Sarf ---
+  - {
+      id: 50,
+      name: PLA filament,
+      category: sarf,
+      qty: 1,
+      unit_mass_g: "",
+      spec: "1.75 mm PLA",
+      method: satın alma,
+      supplier: TBD,
+      status: v1,
+      notes: "Toplam baskı kütlesi BOM toplamından",
+    }

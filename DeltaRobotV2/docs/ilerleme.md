@@ -6,11 +6,12 @@ Son güncelleme: 2026-11-12
 
 ## Özet
 
-| Faz          | Durum                                                      | Sayaç                                                |
-| ------------ | ---------------------------------------------------------- | ---------------------------------------------------- |
-| F0 İskele    | Tamamlandı                                                 | 6 / 6 teslim                                         |
-| F0.5 CAD     | Revizyon 3 tamamlandı, **montaj görselleri onay bekliyor** | 19 / 19 parça çizildi, 111 / 111 bileşen montajlandı |
-| F1 Kinematik | Başlamadı (F0.5 onayı bekleniyor)                          | —                                                    |
+| Faz             | Durum                                                      | Sayaç                                                          |
+| --------------- | ---------------------------------------------------------- | -------------------------------------------------------------- |
+| F0 İskele       | Tamamlandı                                                 | 6 / 6 teslim                                                   |
+| F0.5 CAD        | Revizyon 3 tamamlandı, **montaj görselleri onay bekliyor** | 19 / 19 parça çizildi, 111 / 111 bileşen montajlandı           |
+| F1 Kinematik    | Başlamadı (F0.5 onayı bekleniyor)                          | —                                                              |
+| Malzeme listesi | Başladı; her fazda güncellenir                             | 28 kalem (19'u CAD'den), [hardware/bom.md](../hardware/bom.md) |
 
 Kalan süre (F0.5): onay gelirse 0; düzeltme istenirse tur başına ~1 saat.
 

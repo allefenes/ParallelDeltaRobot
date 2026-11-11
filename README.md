@@ -3,7 +3,7 @@
 
 ## Delta Robotics V2 (in development)
 
-V2 is a remotely accessible rewrite of the same robot: users write Python in a web page or in VS Code to control the robot (or its digital twin) within a safe framework. C++ core, ROS2 Jazzy, Docker. All V2 work lives in [`DeltaRobotV2/`](DeltaRobotV2/); see [DeltaRobotV2/README.md](DeltaRobotV2/README.md) for status and roadmap (V2 documentation is in Turkish).
+V2 is a remotely accessible rewrite of the same robot: users write Python in a web page or in VS Code to control the robot (or its digital twin) within a safe framework. The server is the brain (web, API, sandbox, kinematics, trajectory planning, digital twin, ROS2 Jazzy); a thin but safe Raspberry Pi edge plays back time-stamped trajectories, enforces the final safety gate and a watchdog, and dials out to the server. C++ core, Docker. All V2 work lives in [`DeltaRobotV2/`](DeltaRobotV2/); see [DeltaRobotV2/README.md](DeltaRobotV2/README.md) for status and roadmap (V2 documentation is in Turkish).
 
 [![Built with Claude Code](https://img.shields.io/badge/Built%20with-Claude%20Code-D97757?logo=claude&logoColor=white)](https://claude.com/claude-code) V2 is being developed with [Claude Code](https://claude.com/claude-code).
 
