@@ -9,6 +9,25 @@ V2, aynı robotun uzaktan erişilebilir yeni sürümüdür: kullanıcılar web s
 
 V2 is the remotely accessible rewrite of the same robot; everything lives in [`DeltaRobotV2/`](DeltaRobotV2/).
 
+## V1 değerlendirmesi ve V2'ye taşınan dersler
+
+V1, son sınıf dersleriyle paralel olarak tek başına geliştirilmiş bir bitirme projesidir. V2'ye başlamadan önce kodu baştan sona gözden geçirdik.
+
+**Güçlü yanlar**
+
+- İleri ve ters kinematik doğru: gidiş-dönüş hatası ~1e-13 mm. Pasif mafsal açıları ve küresel mafsal limiti de hesaplanıyor.
+- Kod, kontrolden çıkan tek dosyalık ilk sürümden (`LikeSoup/`) modüler, nesne yönelimli bir yapıya (`KilavuzDeltaRobotics/`) elle ayrıştırıldı; kinematik modeli arayüzden bağımsız.
+- Uçtan uca çalışan bir hat: parametrik robot tanımı → kinematik → yörünge doğrulama ve simülasyon → senkron motor kontrolü ve telemetri → görüntü işleme.
+- Sağlam mekanik: çıkış milleri rulmanla yataklanmış, servolar kol yükü taşımıyor; motorlar enerjisizken uç işlevci elle zahmetsizce hareket ediyor.
+
+**Geliştirilmesi gerekenler → V2'deki karşılığı**
+
+- Motora giden komut yolu limit kontrolünü atlayabiliyordu → V2'de her komut tek bir güvenlik süpervizöründen geçer.
+- Servo hızı ve komut değerleri sınırlanmıyordu → süpervizörde hız/ivme sınırları ve değer kırpma.
+- Seri port ve arayüz birden çok thread'den eşzamanlı kullanılıyordu → donanımın tek sahibi olan sürücü katmanı (ROS2).
+- Test, bağımlılık listesi ve paketleme yoktu → C++ çekirdek ve testler, Docker ortamı, CI.
+- Derleme çıktıları ve büyük veri repoya girmişti; kod biçimi tutarsızdı → `.gitignore`, otomatik biçimlendirme ve pre-commit denetimi.
+
 ## V1 (2024, arşiv)
 
 Aşağıdaki metin ve `LikeSoup/`, `KilavuzDeltaRobotics/`, `ImageProcessing/`, `WsAnalysis/` klasörleri 2024 bitirme projesine aittir ve referans olarak değiştirilmeden tutulur.
