@@ -34,10 +34,10 @@
 - POM taban: dikdörtgen uç köşeleri: R20, 2 kenar
 - kısa kol: artı delik iç köşeleri: R0.8, 4 kenar
 - motor kutusu: dış kenarlar: R2, 8 kenar
-- platform: kulak kökleri ve kesik köşeleri: R1.5, 12/24 kenar (tek tek)
+- platform: kulak kökleri: R1.5, 6 kenar
 - tavan: boyun geçişleri: R8, 4 kenar
 - çıkış mili: artı kesit iç köşeleri: R0.5, 4 kenar
-- üst plaka: açıklık köşeleri: R3, 15 kenar
+- üst plaka: açıklık köşeleri: R3, 6/15 kenar (tek tek)
 
 ### Uç işlevci
 
@@ -67,11 +67,20 @@
 
 - Çakışma yok.
 
+Üst plaka yarıçapı: R84.7 (rulman yatağı dış köşesi + 2.5 mm pay)
+
+## Kısa kol yukarı sınırı (1. kol, ikiye bölme taraması)
+
+- Yazılım limiti -70°: temiz.
+- Mekanik yukarı sınır ≈ -71.6° (ilk çakışma -72.0°'de):
+  - base/motor_housing ∩ forearm_1_a/rod: 2.1 mm³
+  - base/motor_housing ∩ forearm_1_b/rod: 2.1 mm³
+
 ## Kütleler
 
 | Bağ | Kütle (g) |
 |---|---|
-| base | 2599.6 |
+| base | 2597.5 |
 | bicep_1 | 30.7 |
 | bicep_2 | 30.7 |
 | bicep_3 | 30.7 |
@@ -81,6 +90,6 @@
 | forearm_2_b | 35.0 |
 | forearm_3_a | 35.0 |
 | forearm_3_b | 35.0 |
-| platform | 104.3 |
+| platform | 103.2 |
 
-Hareketli toplam: 406.5 g
+Hareketli toplam: 405.4 g

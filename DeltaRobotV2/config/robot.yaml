@@ -94,7 +94,8 @@ platform: # PLA %20
   inner_bushing_length: 5.0 # turetilmis: (30 - 12 - 8) / 2; dış burç joint_stack'teki gibi
   ear_length: 16.0 # varsayim: kulak gövdesinin radyal boyu (eklem ekseni kenarda, r = radius)
   ear_lug_radius: 6.0 # varsayim: pim çevresindeki kulak göbeği yarıçapı
-  rod_end_notch_clearance: 1.5 # varsayim: rot başı / burç / somun için plakadaki kesik boşluğu
+  # Kullanici: dairesel plaka; kulaklar kenardan biraz taşar. Disk, rot başı gövdelerine değmeyecek kadar küçük.
+  disc_radius: 28.0 # varsayim: rot başı gövdesinin en yakın noktası r = 30 mm
   # Süs delikleri (kullanici: 3 adet, işlevsiz). Kulakların arasında; mıknatıs cebine ve kesiklere değmez.
   deco_holes: { count: 3, diameter: 8.0, radius: 17.0, angle_offset: 60.0, kaynak: varsayim }
 
@@ -113,7 +114,9 @@ frame:
   pom_extra_behind_column: 60.0 # varsayim
 
 housing: # PLA motor gövdesi, tavanın altına asılı
-  top_radius: 96.0 # turetilmis: motor kutularının dış köşesi R95'e uzanıyor
+  # Kullanici: plaka rulman yataklarını tam taşıyacak en küçük yarıçapta. 'auto' = yatak dış köşesi + pay.
+  top_radius: auto
+  top_margin: 2.5 # varsayim: yatak dış köşesinden plaka kenarına pay
   motor_box_wall: 2.5 # varsayim: motorun oturduğu kutunun et kalınlığı (altı açık, motor alttan girer)
   horn_hole_diameter: 24.0 # varsayim: kutu duvarında göbeğin döndüğü delik
   top_thickness: 5.0 # varsayim
@@ -132,7 +135,8 @@ housing: # PLA motor gövdesi, tavanın altına asılı
     }
   mount_holes: { count: 3, diameter: 5.5, pcd: 36.0, kaynak: varsayim } # motor halkasının içinde, kollar arasında (60/180/300°)
   # Kısa kol açıklıkları (kullanici: dikdörtgen). Kol çerçevesinde: x radyal (motor ekseninden), y teğet.
-  arm_slot: { x_from: -8.0, x_to: 40.0, half_width: 26.0, kaynak: varsayim }
+  # Kullanici: yalnız 3 mm; kısa kol levhası (2 mm) geçer, rulman yatakları plakaya bağlı kalır.
+  arm_slot: { width: 3.0, x_from: -8.0, x_to: 40.0, kaynak: kullanici }
 
 # Radyuslar (kullanici: çentik etkisi ve görünüm için mümkün olan her yerde). Satın alınan parçalara uygulanmaz.
 fillets:

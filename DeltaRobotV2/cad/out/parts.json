@@ -51,7 +51,7 @@
   },
   "motor_housing": {
     "count": 1,
-    "unit_mass_g": 113.52,
+    "unit_mass_g": 111.38,
     "material": "pla_infill20"
   },
   "nut": {
@@ -71,7 +71,7 @@
   },
   "platform": {
     "count": 1,
-    "unit_mass_g": 9.2,
+    "unit_mass_g": 8.05,
     "material": "pla_infill20"
   },
   "pom_base": {

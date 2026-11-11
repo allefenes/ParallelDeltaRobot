@@ -230,8 +230,11 @@ def sphere_centers(shape: Part.Shape) -> list[App.Vector]:
     return out
 
 
-def interference(links: list[Link], tol_mm3: float = 0.5) -> list[str]:
-    """Tüm parça çiftleri arasında hacimsel çakışma (> tol). Sınır kutusu ile ön eleme yapılır."""
+def interference(links: list[Link], tol_mm3: float = 0.5, only: tuple = ()) -> list[str]:
+    """Parça çiftleri arasında hacimsel çakışma (> tol). Sınır kutusu ile ön eleme yapılır.
+
+    only: verilirse yalnız en az bir tarafı bu bağ adlarıyla başlayan çiftler denetlenir.
+    """
     placed = []
     for ln in links:
         for it in ln.items:
@@ -243,6 +246,8 @@ def interference(links: list[Link], tol_mm3: float = 0.5) -> list[str]:
         na, sa = placed[a]
         for b in range(a + 1, len(placed)):
             nb, sb = placed[b]
+            if only and not (na.startswith(only) or nb.startswith(only)):
+                continue
             if not sa.BoundBox.intersect(sb.BoundBox):
                 continue
             v = sa.common(sb).Volume
@@ -254,7 +259,9 @@ def interference(links: list[Link], tol_mm3: float = 0.5) -> list[str]:
 # --- Ana akış ----------------------------------------------------------------------------------
 
 
-def assemble(p: dict, d: kin.Delta, pose: kin.Vec) -> tuple[list[Link], list[str], list[float]]:
+def assemble(
+    p: dict, d: kin.Delta, pose: kin.Vec, check: bool = True
+) -> tuple[list[Link], list[str], list[float]]:
     """Verilen platform pozunda tüm bağları kurar; (bağlar, ölçü raporu satırları, θ) döndürür."""
     k = p["kinematics"]
     thetas = d.ik(pose)
@@ -310,10 +317,82 @@ def assemble(p: dict, d: kin.Delta, pose: kin.Vec) -> tuple[list[Link], list[str
             f"platform yarıçapı {(mid_bot - V(*pose)).Length:.3f}, saplama aralığı {spacing:.3f} mm"
         )
     report += ["", "### Uzun kollar", ""] + rows
+    if not check:
+        return links, [], thetas
     hits = interference(links)
     report += ["", "### Çakışma (> 0.5 mm³)", ""]
     report += [f"- {h}" for h in hits] if hits else ["- Çakışma yok."]
     return links, report, thetas
+
+
+def pose_for_theta1(d: kin.Delta, target: float, x: float = 52.0) -> kin.Vec | None:
+    """1. kol açısı `target` olacak platform pozu (x sabit, y=0; z ikiye bölmeyle). Yoksa None."""
+
+    def th1(z):
+        try:
+            return d.ik((x, 0.0, z))[0]
+        except ValueError:
+            return None
+
+    # z azaldıkça θ1 büyür (kol iner). Önce 1 mm adımla tara, hedefi çevreleyen iki geçerli
+    # noktayı bul, sonra aralarında ikiye böl.
+    zs = [-230.0 + k for k in range(121)]
+    vals = [(z, th1(z)) for z in zs]
+    bracket = None
+    for (z0, v0), (z1, v1) in zip(vals, vals[1:], strict=False):
+        if v0 is not None and v1 is not None and min(v0, v1) <= target <= max(v0, v1):
+            bracket = (z0, z1)
+            break
+    if bracket is None:
+        return None
+    lo, hi = bracket
+    for _ in range(50):
+        mid = (lo + hi) / 2
+        v = th1(mid)
+        if v is None:
+            return None
+        lo, hi = (mid, hi) if v > target else (lo, mid)
+    return (x, 0.0, (lo + hi) / 2)
+
+
+def upper_limit_sweep(p: dict, d: kin.Delta) -> list[str]:
+    """1. kolu yukarı kaldırarak ilk çakışma açısını ikiye bölmeyle bulur (0.5° çözünürlük).
+
+    Yalnız 1. kolun bağlarını içeren çiftler denetlenir. Yazılım limiti çakışmasızsa daha
+    yukarısı da (en fazla -95°) aranır; sınırı ya çakışma ya da erişilemezlik belirler.
+    """
+    only = ("bicep_1/", "forearm_1_")
+
+    def probe(theta):
+        pose = pose_for_theta1(d, theta)
+        if pose is None:
+            return "erişilemez", []
+        links, _, _ = assemble(p, d, pose, check=False)
+        hits = interference(links, only=only)
+        return ("çakışma" if hits else "temiz"), hits
+
+    soft = p["kinematics"]["motor_limit_min"]
+    state, hits = probe(soft)
+    rows = ["## Kısa kol yukarı sınırı (1. kol, ikiye bölme taraması)", ""]
+    if state == "temiz":
+        good, bad, why = soft, -95.0, None
+    else:
+        good, bad, why = -5.0, soft, hits
+    first_hits = hits
+    while good - bad > 0.5:
+        mid = (good + bad) / 2
+        st, h = probe(mid)
+        if st == "temiz":
+            good = mid
+        else:
+            bad, why, first_hits = mid, (st if st == "erişilemez" else h), h
+    rows.append(f"- Yazılım limiti {soft:g}°: {state}.")
+    if why is None or why == "erişilemez":
+        rows.append(f"- Çakışmasız en yukarı açı ≈ {good:.1f}°; ötesinde poz erişilemez.")
+    else:
+        rows.append(f"- Mekanik yukarı sınır ≈ {good:.1f}° (ilk çakışma {bad:.1f}°'de):")
+        rows += [f"  - {h}" for h in first_hits[:6]]
+    return rows
 
 
 def save_fcstd(links: list[Link], path: Path, meshes: Path | None = None) -> None:
@@ -408,6 +487,15 @@ def main() -> None:
             "",
         ] + crows
         save_fcstd(clinks, OUT / f"delta_v2_{cp['name']}.FCStd")
+
+    # Kısa kolun yukarı sınırı ve üst plaka yarıçapı
+    report += [
+        "",
+        f"Üst plaka yarıçapı: R{P.housing_radius(p):.1f} (rulman yatağı dış köşesi + "
+        f"{p['housing']['top_margin']:g} mm pay)",
+        "",
+    ]
+    report += upper_limit_sweep(p, d)
 
     # Malzeme listesi için parça özeti (hardware/bom.yaml ile tools/bom.py birleştirir)
     write_parts_summary(p, links, OUT / "parts.json")
