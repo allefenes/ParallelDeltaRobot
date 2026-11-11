@@ -26,16 +26,16 @@ Durum etiketleri: **Hazır** (adımlar yazılı), **Taslak** (içerik kısmen be
 | Uzun kollar ×6                           | M5 saplama kesimi              | Çelik             | 167 mm; her rot başına 10 mm girer, merkezden merkeze 201 mm                                                                |
 | Pimler ×6                                | M5 saplama kesimi              | Çelik             | ~60 mm (istif 58 mm)                                                                                                        |
 
-Hazır alınacaklar: 12× dişi M5 rot başı, 6× 608ZZ rulman, 12× M5 fiber somun, 12× M3 × 20 vida (kapaklar), 3× M5 cıvata (gövde-tavan), elektromıknatıs (15 mm), 12 V güç kaynağı, Raspberry Pi 4B, haberleşme adaptörü, kamera.
+Hazır alınacaklar: 12× dişi M5 rot başı, 12× M3 ısıyla gömülen insert (Ø4.6 × 5.7), 6× 608ZZ rulman, 12× M5 fiber somun, 12× M3 × 20 vida (kapaklar), 3× M5 cıvata (gövde-tavan), elektromıknatıs (15 mm), 12 V güç kaynağı, Raspberry Pi 4B, haberleşme adaptörü, kamera.
 
 ## 2. Mekanik montaj — Taslak (F0.5)
 
 Sıra F0.5 montaj modelinden ([cad/](../cad/README.md)) çıkarıldı; ölçüm yapılmış bir robotla doğrulanmadı.
 
 1. POM tabana sütunu bağla; sütunun üstündeki tavanın yatay olduğunu kontrol et.
-2. Motor gövdesini hazırla (tek parça baskı; çıkış eksenleri teğet, göbek delikleri kutuların dış duvarında).
+2. Motor gövdesini hazırla (tek parça baskı). Rulman yatağı üst yarılarındaki 12 cebe M3 ısıyla gömülen insertleri havyayla bastır: havya ~200–220 °C (PLA), insert dik ve yüzeyle aynı hizada; soğumadan oynatma. Bu adım montajdan önce yapılır.
 3. Gövdeyi ters çevir. Motorları kutularına alttan yerleştir (kutu motorun dönmesini engeller). Artı kesitli mili göbeğe bağla; iki 608ZZ'yi mile geçirip gövdeyle tek parça olan yatak üst yarılarına alttan oturt.
-4. Kısa kolu iki rulmanın arasında, artı deliğinden mile geçir (kol levhası üst plakadaki 3 mm açıklıkta kalır). Alt kapakları (yatakların alt yarısı) alttan tak ve her birini 2 × M3 vidayla alttan, başları aşağıda kalacak şekilde sık. Kol −70°'ye kadar kalkabilmeli (mekanik sınır ≈ −71.6°).
+4. Kısa kolu iki rulmanın arasında, artı deliğinden mile geçir (kol levhası üst plakadaki 3 mm açıklıkta kalır). Alt kapakları (yatakların alt yarısı) alttan tak ve her birini 2 × M3 vidayla alttan, başları aşağıda kalacak şekilde insertlere sık. Kol −70°'ye kadar kalkabilmeli (mekanik sınır ≈ −71.2°).
 5. Motor gövdesini 3 cıvatayla tavanın altına bağla.
 6. Uzun kolları hazırla: 167 mm saplamanın iki ucuna dişi rot başlarını 10 mm vidala; altı kolun merkezden merkeze boyunu 201 mm'ye eşitle.
 7. Kısa kol uçlarına eklem istifini kur: somun, dış burç (5 mm), rot başı, iç burç (10 mm), kısa kol, iç burç, rot başı, dış burç, somun. Burçların dar uçları rot başına bakar.

@@ -67,20 +67,20 @@
 
 - Çakışma yok.
 
-Üst plaka yarıçapı: R84.7 (rulman yatağı dış köşesi + 2.5 mm pay)
+Üst plaka yarıçapı: R85.2 (rulman yatağı dış köşesi + 1 mm pay)
 
 ## Kısa kol yukarı sınırı (1. kol, ikiye bölme taraması)
 
 - Yazılım limiti -70°: temiz.
-- Mekanik yukarı sınır ≈ -71.6° (ilk çakışma -72.0°'de):
-  - base/motor_housing ∩ forearm_1_a/rod: 2.1 mm³
-  - base/motor_housing ∩ forearm_1_b/rod: 2.1 mm³
+- Mekanik yukarı sınır ≈ -71.2° (ilk çakışma -71.6°'de):
+  - base/motor_housing ∩ forearm_1_a/rod: 3.8 mm³
+  - base/motor_housing ∩ forearm_1_b/rod: 3.8 mm³
 
 ## Kütleler
 
 | Bağ | Kütle (g) |
 |---|---|
-| base | 2598.8 |
+| base | 2609.4 |
 | bicep_1 | 30.7 |
 | bicep_2 | 30.7 |
 | bicep_3 | 30.7 |

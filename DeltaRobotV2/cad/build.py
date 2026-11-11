@@ -139,6 +139,8 @@ def build_base(p: dict) -> Link:
             for q in P.cap_screw_points(p, side):
                 spl = pl.multiply(App.Placement(q + V(0, 0, cap_bottom), App.Rotation()))
                 base.add_at(f"cap_screw_{i + 1}", P.cap_screw(p), "steel", spl)
+                ipl = pl.multiply(App.Placement(q, App.Rotation()))
+                base.add_at(f"insert_{i + 1}", P.insert_nut(p), "brass", ipl)
     return base
 
 

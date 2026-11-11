@@ -38,6 +38,7 @@ COLORS = {
     "bearing": (0.68, 0.70, 0.73),
     "motor": (0.13, 0.13, 0.15),
     "electromagnet": (0.72, 0.45, 0.20),
+    "brass": (0.82, 0.66, 0.28),
 }
 HELPERS = ("App::Origin", "App::Line", "App::Plane", "App::Point")
 
@@ -176,8 +177,12 @@ def part_groups(p: dict) -> list:
         ("02_sutun_tavan.png", [(P.column(p), "al7075"), (P.ceiling(p), "al7075")]),
         ("03_motor_govdesi.png", [(P.motor_housing(p), "pla_infill20")]),
         (
-            "04_rulman_kapagi_vida.png",
-            [(P.bearing_cap(p, 1), "pla_infill20"), (P.cap_screw(p), "steel")],
+            "04_rulman_kapagi_vida_insert.png",
+            [
+                (P.bearing_cap(p, 1), "pla_infill20"),
+                (P.cap_screw(p), "steel"),
+                (P.insert_nut(p), "brass"),
+            ],
         ),
         (
             "05_motor_rulman_mil.png",

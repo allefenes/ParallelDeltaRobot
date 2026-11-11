@@ -248,6 +248,18 @@ items:
       notes: "Bağlantı şekli bilinmiyor; CAD'de çizilmedi",
     }
 
+  - {
+      id: 36,
+      name: Isıyla gömülen insert,
+      category: baglanti,
+      cad: [insert],
+      spec: "M3, pirinç, Ø4.6 × 5.7 mm (varsayım)",
+      method: "satın alma; havya ile PLA'ya gömülür",
+      supplier: TBD,
+      status: v1,
+      notes: "Rulman yatağı üst yarılarında; kapak vidaları buna girer",
+    }
+
   # --- Elektronik ---
   - {
       id: 40,

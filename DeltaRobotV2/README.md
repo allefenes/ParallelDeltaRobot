@@ -13,7 +13,7 @@ V2 sıfırdan yazılır. Repodaki eski klasörler (`LikeSoup/`, `KilavuzDeltaRob
 | Faz  | Kapsam                                                    | Durum                    |
 | ---- | --------------------------------------------------------- | ------------------------ |
 | F0   | İskele, Docker geliştirme ortamı, Compose, i18n, CI       | Tamamlandı               |
-| F0.5 | FreeCAD ile parametrik 3B model, montaj, renkli görseller | Revizyon 5 onay bekliyor |
+| F0.5 | FreeCAD ile parametrik 3B model, montaj, renkli görseller | Revizyon 6 onay bekliyor |
 | F1   | C++ kinematik çekirdeği + testler + Python bağlaması      | —                        |
 | F2   | Datasheet                                                 | —                        |
 | F3   | ROS2 + güvenlik süpervizörü + dijital ikiz                | —                        |

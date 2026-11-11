@@ -6,7 +6,7 @@
   },
   "bearing_cap": {
     "count": 6,
-    "unit_mass_g": 1.13,
+    "unit_mass_g": 1.42,
     "material": "pla_infill20"
   },
   "bicep_plate": {
@@ -44,6 +44,11 @@
     "unit_mass_g": 35.0,
     "material": "electromagnet"
   },
+  "insert": {
+    "count": 12,
+    "unit_mass_g": 0.46,
+    "material": "brass"
+  },
   "motor": {
     "count": 3,
     "unit_mass_g": 54.6,
@@ -51,7 +56,7 @@
   },
   "motor_housing": {
     "count": 1,
-    "unit_mass_g": 112.72,
+    "unit_mass_g": 116.01,
     "material": "pla_infill20"
   },
   "nut": {

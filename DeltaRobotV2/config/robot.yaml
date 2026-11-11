@@ -31,6 +31,7 @@ materials: # yoğunluk g/cm3
   al7075: { density: 2.81, kaynak: katalog }
   pom: { density: 1.41, kaynak: katalog }
   steel: { density: 7.85, kaynak: katalog }
+  brass: { density: 8.5, kaynak: katalog }
   pla_solid: { density: 1.24, kaynak: katalog } # %100 doluluk
   # %20 doluluklu ince PLA parçada duvar ve üst/alt katmanlar baskın; etkin yoğunluk ~%45 alındı
   pla_infill20: { density: 0.56, kaynak: varsayim }
@@ -116,21 +117,23 @@ frame:
 housing: # PLA motor gövdesi, tavanın altına asılı
   # Kullanici: plaka rulman yataklarını tam taşıyacak en küçük yarıçapta. 'auto' = yatak dış köşesi + pay.
   top_radius: auto
-  top_margin: 2.5 # varsayim: yatak dış köşesinden plaka kenarına pay
+  top_margin: 1.0 # varsayim: yatak dış köşesinden plaka kenarına pay; 2.5 mm'de uzun kollar -69.5°'de plakayı sıyırıyordu
   motor_box_wall: 2.5 # varsayim: motorun oturduğu kutunun et kalınlığı (altı açık, motor alttan girer)
   horn_hole_diameter: 24.0 # varsayim: kutu duvarında göbeğin döndüğü delik
   top_thickness: 5.0 # varsayim
   clearance_above_motor: 2.0 # varsayim
-  bearing_block_width: 32.0 # varsayim: radyal; kapak vidaları rulmana ve askıya değmesin
+  bearing_block_width: 36.0 # varsayim: radyal; insert rulman yuvasına ve kenara değmesin (≥1 mm et)
   # Kullanici: yatağın üst yarısı plakayla tek parça; alt yarı (kapak) alttan takılır, vida başları aşağıda.
   cap_height: 13.0 # varsayim: kapağın mil ekseninden aşağı kalınlığı
+  # Kullanici: üst yarılarda insert somun vardı. Isıyla gömülen M3 pirinç insert (ölçü varsayım).
+  insert: { od: 4.6, length: 5.7, bore: 3.0, kaynak: varsayim } # standart M3 ısıyla gömülen (CNC Kitchen tipi)
   cap_screw:
     {
       diameter: 3.0,
       head_diameter: 5.5,
       head_height: 3.0,
       depth_into_block: 8.0,
-      offset: 13.0,
+      offset: 14.5,
       kaynak: varsayim,
     }
   mount_holes: { count: 3, diameter: 5.5, pcd: 36.0, kaynak: varsayim } # motor halkasının içinde, kollar arasında (60/180/300°)
