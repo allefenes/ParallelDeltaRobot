@@ -122,8 +122,8 @@ housing: # PLA motor gövdesi, tavanın altına asılı
   top_thickness: 5.0 # varsayim
   clearance_above_motor: 2.0 # varsayim
   bearing_block_width: 32.0 # varsayim: radyal; kapak vidaları rulmana ve askıya değmesin
-  bearing_block_below_axis: 16.0 # varsayim
-  cap_height: 13.0 # varsayim
+  # Kullanici: yatağın üst yarısı plakayla tek parça; alt yarı (kapak) alttan takılır, vida başları aşağıda.
+  cap_height: 13.0 # varsayim: kapağın mil ekseninden aşağı kalınlığı
   cap_screw:
     {
       diameter: 3.0,

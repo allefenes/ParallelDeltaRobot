@@ -51,7 +51,7 @@
   },
   "motor_housing": {
     "count": 1,
-    "unit_mass_g": 111.38,
+    "unit_mass_g": 112.72,
     "material": "pla_infill20"
   },
   "nut": {

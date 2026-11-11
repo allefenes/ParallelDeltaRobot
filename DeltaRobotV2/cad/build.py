@@ -128,7 +128,7 @@ def build_base(p: dict) -> Link:
     base.add("column", P.column(p), "al7075")
     base.add("ceiling", P.ceiling(p), "al7075")
     base.add("motor_housing", P.motor_housing(p), "pla_infill20")
-    cs_head = p["housing"]["cap_height"]
+    cap_bottom = -p["housing"]["cap_height"]  # vida başları kapağın alt yüzünde, aşağı bakar
     for i in range(3):
         pl = arm_placement(p, i)
         base.add_at(f"motor_{i + 1}", P.motor_body(p), "motor", pl, mass=p["motor"]["mass"])
@@ -137,7 +137,7 @@ def build_base(p: dict) -> Link:
             yc = side * p["output_shaft"]["bearing_offset"]
             base.add_at(f"bearing_{i + 1}", P.bearing(p, yc), "bearing", pl, p["bearing"]["mass"])
             for q in P.cap_screw_points(p, side):
-                spl = pl.multiply(App.Placement(q + V(0, 0, cs_head), App.Rotation()))
+                spl = pl.multiply(App.Placement(q + V(0, 0, cap_bottom), App.Rotation()))
                 base.add_at(f"cap_screw_{i + 1}", P.cap_screw(p), "steel", spl)
     return base
 

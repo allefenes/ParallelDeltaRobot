@@ -9,7 +9,7 @@ Son güncelleme: 2026-11-12
 | Faz             | Durum                                                      | Sayaç                                                          |
 | --------------- | ---------------------------------------------------------- | -------------------------------------------------------------- |
 | F0 İskele       | Tamamlandı                                                 | 6 / 6 teslim                                                   |
-| F0.5 CAD        | Revizyon 4 tamamlandı, **montaj görselleri onay bekliyor** | 19 / 19 parça çizildi, 111 / 111 bileşen montajlandı           |
+| F0.5 CAD        | Revizyon 5 tamamlandı, **montaj görselleri onay bekliyor** | 19 / 19 parça çizildi, 111 / 111 bileşen montajlandı           |
 | F1 Kinematik    | Başlamadı (F0.5 onayı bekleniyor)                          | —                                                              |
 | Malzeme listesi | Başladı; her fazda güncellenir                             | 28 kalem (19'u CAD'den), [hardware/bom.md](../hardware/bom.md) |
 
@@ -50,9 +50,9 @@ Kalan süre (F0.5): onay gelirse 0; düzeltme istenirse tur başına ~1 saat.
 | 1   | POM taban                  | 1    | 5 mm; R160 yuvarlak uç + 320 mm genişlik; köşeler R20                                                                                                                  | Dış ölçüler        | [01](img/cad/parcalar/01_pom_taban.png)                 |
 | 2   | Sütun (D kesit)            | 1    | 7075, 5 mm; yarım silindir R50 + düz kapak levhası, 267 mm                                                                                                             | Yarıçap, konum     | [02](img/cad/parcalar/02_sutun_tavan.png)               |
 | 3   | Tavan                      | 1    | 7075, 5 mm; robot ucu R45, boyun 70 mm (geçişler R8), sütun ucu R50; 3 delik Ø5.5 / R18                                                                                | Ölçüler            | [02](img/cad/parcalar/02_sutun_tavan.png)               |
-| 4   | Motor gövdesi (tek parça)  | 1    | PLA; R84.7 × 5 mm üst plaka (rulman yatağı dış köşesi + 2.5 mm), 3 × 3 mm kol açıklığı, 3 motor kutusu (2.5 mm et, altı açık, kenarlar R2), 6 rulman yatağı alt yarısı | Pay, kutular       | [03](img/cad/parcalar/03_motor_govdesi.png)             |
-| 5   | Rulman kapağı              | 6    | PLA; 32 × 10 × 13 mm                                                                                                                                                   | Ölçüler            | [04](img/cad/parcalar/04_rulman_kapagi_vida.png)        |
-| 6   | Kapak vidası               | 12   | M3 × 21 mm                                                                                                                                                             | Ölçü               | [04](img/cad/parcalar/04_rulman_kapagi_vida.png)        |
+| 4   | Motor gövdesi (tek parça)  | 1    | PLA; R84.7 × 5 mm üst plaka (rulman yatağı dış köşesi + 2.5 mm), 3 × 3 mm kol açıklığı, 3 motor kutusu (2.5 mm et, altı açık, kenarlar R2), 6 rulman yatağı üst yarısı | Pay, kutular       | [03](img/cad/parcalar/03_motor_govdesi.png)             |
+| 5   | Rulman yatağı alt kapağı   | 6    | PLA; 32 × 10 × 13 mm; alttan takılır                                                                                                                                   | Ölçüler            | [04](img/cad/parcalar/04_rulman_kapagi_vida.png)        |
+| 6   | Kapak vidası               | 12   | M3 × 21 mm, alttan, başı aşağıda                                                                                                                                       | Ölçü, diş/insert   | [04](img/cad/parcalar/04_rulman_kapagi_vida.png)        |
 | 7   | AX-12A                     | 3    | 32 × 50 × 40 mm zarf, göbek Ø20                                                                                                                                        | Göbek konumu       | [05](img/cad/parcalar/05_motor_rulman_mil.png)          |
 | 8   | 608ZZ rulman               | 6    | 8 × 22 × 7 mm                                                                                                                                                          | —                  | [05](img/cad/parcalar/05_motor_rulman_mil.png)          |
 | 9   | Çıkış mili                 | 3    | PLA %100; tüm boyu artı kesit (uçlar Ø8 dairede, kol 3 mm, iç köşeler R0.5), Ø16 flanş                                                                                 | Kol genişliği      | [05](img/cad/parcalar/05_motor_rulman_mil.png)          |
@@ -89,3 +89,4 @@ Kalan süre (F0.5): onay gelirse 0; düzeltme istenirse tur başına ~1 saat.
 | 12  | Üst plakada 3 mm kol açıklıkları; rulman yatakları plakaya bağlı                                                                          | ✔    |
 | 13  | Platform dairesel (R28, kulaklar taşar)                                                                                                   | ✔    |
 | 14  | Üst plaka en küçük yarıçapta (6. madde)                                                                                                   | ✔    |
+| 15  | Rulman yatağının üst yarısı plakayla tek parça; alt kapak ve vidalar alttan                                                               | ✔    |

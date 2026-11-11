@@ -132,7 +132,9 @@ def render_assembly() -> None:
             ("base_motor_1", "base_bearing_1", "base_bearing_cap_1", "base_cap_screw_1")
         )
     ]
-    view.viewIsometric()
+    view.setViewDirection(
+        (-1.0, 1.0, 0.8)
+    )  # alttan, eğik: alttan takılan kapak ve vida başları görünür
     focus(doc, near)
     view.zoomOut()
     save(view, IMG_DIR / "motor_kutusu_yakin.png", SIZE)

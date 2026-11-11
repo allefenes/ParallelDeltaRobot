@@ -3,8 +3,8 @@ No,Ad,Kategori,Malzeme / özellik,Adet,Birim kütle (g),Toplam kütle (g),Üreti
 2,Sütun (D kesit),Gövde,"Al 7075, 5 mm",1,897.4,897.4,Lazer kesim + kıvırma + kaynak,TBD,,V1 (olduğu gibi),CAD,7075 kaynağa pek uygun değil; yeniden üretimde 6061/5083
 3,Tavan levhası,Gövde,"Al 7075, 5 mm",1,321.3,321.3,"Lazer kesim, geçişler R8; sütuna kaynaklı",TBD,,V1 (olduğu gibi),CAD,Robot ucu R45 (varsayım)
 4,Kısa kol,Gövde,"Al 7075, 2 mm",3,8.4,25.3,Lazer kesim; artı delik iç köşeleri R0.8,TBD,,V1 (olduğu gibi),CAD,Merkezden merkeze 64 mm
-10,Motor gövdesi (tek parça),3B baskı,"PLA, %20 doluluk",1,111.4,111.4,3B baskı,kendi üretim,,V2'de değişti,CAD,Üst plaka + 3 motor kutusu + 6 rulman yatağı alt yarısı
-11,Rulman kapağı,3B baskı,"PLA, %20 doluluk",6,1.1,6.8,3B baskı,kendi üretim,,V1 (olduğu gibi),CAD,2 vidayla sıkılır
+10,Motor gövdesi (tek parça),3B baskı,"PLA, %20 doluluk",1,112.7,112.7,3B baskı,kendi üretim,,V2'de değişti,CAD,Üst plaka + 3 motor kutusu + 6 rulman yatağı üst yarısı
+11,Rulman yatağı alt kapağı,3B baskı,"PLA, %20 doluluk",6,1.1,6.8,3B baskı,kendi üretim,,V1 (olduğu gibi),CAD,"Yatağın alt yarısı; alttan takılır, 2 vidayla alttan sıkılır"
 12,Çıkış mili (artı kesit),3B baskı,"PLA, %100 doluluk",3,1.9,5.8,3B baskı,kendi üretim,,V1 (olduğu gibi),CAD,"Uçları Ø8 dairede, 608ZZ'ye oturur"
 13,İç burç (konik),3B baskı,PLA %100 (varsayım),12,0.3,3.1,3B baskı ya da torna,kendi üretim,,V1 (olduğu gibi),CAD,6 × 10 mm (kısa kol) + 6 × 5 mm (platform); Ø9 → Ø6.5
 14,Dış burç (konik),3B baskı,PLA %100 (varsayım),12,0.2,2.0,3B baskı ya da torna,kendi üretim,,V1 (olduğu gibi),CAD,5 mm; dar ucu rot başına bakar
@@ -16,7 +16,7 @@ No,Ad,Kategori,Malzeme / özellik,Adet,Birim kütle (g),Toplam kütle (g),Üreti
 30,Uzun kol saplaması,Bağlantı elemanı,"M5 saplama, çelik, 167 mm",6,18.6,111.6,Saplama kesimi,TBD,,V1 (olduğu gibi),CAD,Rot başlarına 10'ar mm girer
 31,Eklem pimi,Bağlantı elemanı,"M5 saplama, çelik, ~60 mm",6,8.9,53.6,Saplama kesimi,TBD,,V2'de değişti,CAD,Yeni istif: 58 mm
 32,Fiber somun,Bağlantı elemanı,M5 DIN 985,12,1.4,16.8,satın alma,TBD,,V1 (olduğu gibi),CAD,
-33,Kapak vidası,Bağlantı elemanı,M3 × 20 (varsayım),12,1.7,20.6,satın alma,TBD,,Varsayım,CAD,
+33,Kapak vidası,Bağlantı elemanı,"M3 × 20, alttan (varsayım)",12,1.7,20.6,satın alma,TBD,,Varsayım,CAD,
 34,Gövde-tavan cıvatası,Bağlantı elemanı,M5 × 12 + somun (varsayım),3,3.0,9.0,satın alma,TBD,,Varsayım,elle,CAD'de çizilmedi
 35,Sütun-taban bağlantısı,Bağlantı elemanı,M5 cıvata + somun (varsayım),4,4.0,16.0,satın alma,TBD,,Varsayım,elle,Bağlantı şekli bilinmiyor; CAD'de çizilmedi
 40,Robot bilgisayarı,Elektronik,Raspberry Pi 4B (8 GB),1,46.0,46.0,satın alma,TBD,,V1 (olduğu gibi),elle,İnce kenar: delta_edge servisi

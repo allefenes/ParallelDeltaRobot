@@ -74,18 +74,18 @@ items:
       method: "3B baskı",
       supplier: kendi üretim,
       status: v2,
-      notes: "Üst plaka + 3 motor kutusu + 6 rulman yatağı alt yarısı",
+      notes: "Üst plaka + 3 motor kutusu + 6 rulman yatağı üst yarısı",
     }
   - {
       id: 11,
-      name: Rulman kapağı,
+      name: Rulman yatağı alt kapağı,
       category: baski,
       cad: [bearing_cap],
       spec: "PLA, %20 doluluk",
       method: "3B baskı",
       supplier: kendi üretim,
       status: v1,
-      notes: "2 vidayla sıkılır",
+      notes: "Yatağın alt yarısı; alttan takılır, 2 vidayla alttan sıkılır",
     }
   - {
       id: 12,
@@ -217,7 +217,7 @@ items:
       name: Kapak vidası,
       category: baglanti,
       cad: [cap_screw],
-      spec: "M3 × 20 (varsayım)",
+      spec: "M3 × 20, alttan (varsayım)",
       method: satın alma,
       supplier: TBD,
       status: varsayim,
