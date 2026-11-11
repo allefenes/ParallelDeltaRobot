@@ -1,5 +1,9 @@
 # Delta Robotics V2
 
+[![Claude Code ile geliştirildi](https://img.shields.io/badge/Claude%20Code%20ile-geli%C5%9Ftirildi-D97757?logo=claude&logoColor=white)](https://claude.com/claude-code)
+
+V2, [Claude Code](https://claude.com/claude-code) ile geliştirilmektedir: tasarım kararları ve gözden geçirme proje sahibinde, kodlama ve belgeleme Claude Code ile birlikte yapılır.
+
 Uzaktan erişilebilir paralel delta robot deney kiti, ikinci sürüm. Kullanıcılar web sayfasından ya da VS Code'dan Python yazarak gerçek robotu (ya da onun dijital ikizini) güvenli bir çerçevede kontrol eder. Hedef senaryo: havalandırmalı bir kutudaki robotun altındaki 3B baskı tic-tac-toe tablasında taşları hücreler arasında taşımak. Erişim saatlik kiralanır.
 
 V2 sıfırdan yazılır. Repodaki eski klasörler (`LikeSoup/`, `KilavuzDeltaRobotics/`, `ImageProcessing/`, `WsAnalysis/`) 2024 bitirme projesinin değiştirilmeyen referansıdır; V2 bu klasörlerin hiçbirine dokunmaz ve onlardan kod almaz. Robotun mekaniği V1 ile birebir aynıdır.
