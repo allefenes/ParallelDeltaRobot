@@ -1,0 +1,122 @@
+# Delta Robotics V2 robot tanımı: tek doğruluk kaynağı.
+# CAD (cad/), kinematik testleri (F1) ve datasheet (F2) bu dosyayı okur; değerler koda kopyalanmaz.
+#
+# Birimler: uzunluk mm, açı derece, yoğunluk g/cm3, kütle g.
+# Her değerin kaynağı `kaynak` alanlarında ya da yorumda belirtilir (bkz. docs/robot-girdileri.md):
+#   json        V1 KilavuzDeltaRobotics/data/myRobot.json
+#   kullanici   proje sahibinin anlatımı / çizimi
+#   turetilmis  kullanıcı bilgisinden hesaplandı
+#   varsayim    veri yok, makul değer; ölçümle doğrulanacak
+#   katalog     standart parça kataloğu
+#
+# Koordinat sistemi (V2 robot çerçevesi, V1'den farklı):
+#   Orijin: üç motor ekseninin oluşturduğu düzlemin merkezi (taban merkezi).
+#   +Z yukarı (V1'de +Z aşağıydı). 1. kol +X yönünde; kollar üstten bakınca saat yönünün tersine 0/120/240°.
+#   Motor açısı θ: 0 = kısa kol yatay ve dışa dönük; pozitif θ kolu AŞAĞI indirir (V1 ile aynı işaret).
+
+kinematics:
+  base_radius: 65.0 # json base: merkezden motor eksenine
+  bicep_length: 64.0 # json bicep: motor ekseni -> üst küresel eklem merkezi
+  forearm_length: 201.0 # json forearm: üst -> alt küresel eklem merkezi
+  platform_radius: 35.0 # json end: platform merkezi -> alt eklem merkezi
+  base_to_floor: 240.0 # json btf: motor ekseni düzlemi -> zemin (POM üst yüzü)
+  ee_offset: 15.0 # json eeOffset: V1'de platform noktasından uç işlevci ucuna
+  arm_angles: [0.0, 120.0, 240.0] # V1 kodu
+  motor_limit_max: 150.0 # json bicepPosAngle (aşağı)
+  motor_limit_min: -70.0 # json bicepNegAngle (yukarı)
+  spherical_joint_limit: 14.0 # json joint: rot başı yanal açı limiti
+  motor_step: 0.29 # json turnAngle: AX-12A 300°/1024
+
+materials: # yoğunluk g/cm3
+  al7075: { density: 2.81, kaynak: katalog }
+  pom: { density: 1.41, kaynak: katalog }
+  steel: { density: 7.85, kaynak: katalog }
+  pla_solid: { density: 1.24, kaynak: katalog } # %100 doluluk
+  # %20 doluluklu ince PLA parçada duvar ve üst/alt katmanlar baskın; etkin yoğunluk ~%45 alındı
+  pla_infill20: { density: 0.56, kaynak: varsayim }
+
+motor: # Dynamixel AX-12A, sadeleştirilmiş zarf
+  model: AX-12A
+  body: { width: 32.0, height: 50.0, depth: 40.0, kaynak: katalog } # genişlik = çıkış ekseni yönü
+  mass: 54.6 # katalog
+  # Çıkış ekseninin gövdenin uzun kenarı boyunca uca uzaklığı ve göbek ölçüleri: yaklaşık
+  horn_axis_from_end: 11.0 # varsayim
+  horn: { diameter: 20.0, thickness: 3.0, kaynak: varsayim }
+  stall_torque_nm: 1.5 # katalog, 12 V
+  no_load_rpm: 59.0 # katalog, 12 V
+
+output_shaft: # PLA %100, artı kesitli; 2 rulmanla yataklı
+  journal_diameter: 8.0 # turetilmis: 608ZZ iç çapı
+  cross_size: 8.0 # varsayim: artı kesitin uçtan uca ölçüsü
+  cross_arm_width: 3.0 # varsayim
+  bearing_offset: 9.0 # varsayim: rulman merkezlerinin kol düzleminden uzaklığı (±)
+  length_beyond_bearing: 4.0 # varsayim
+
+bearing: { model: 608ZZ, inner: 8.0, outer: 22.0, width: 7.0, mass: 12.0, kaynak: kullanici }
+
+bicep: # 7075 levha, lazer kesim
+  thickness: 2.0 # kullanici
+  motor_lobe_radius: 14.0 # varsayim (cizimden)
+  tip_boss_diameter: 10.0 # kullanici
+  pin_hole: 5.0 # kullanici
+  cross_hole_clearance: 0.2 # varsayim: artı deliğin mile göre boşluğu
+  small_holes: { count: 4, diameter: 2.2, pcd: 18.0, kaynak: varsayim } # cizimdeki küçük delikler
+
+rod_end: # dişi M5 rot başı (DIN ISO 12240-4 K serisi, SI5 benzeri)
+  bore: 5.0
+  ball_diameter: 11.11 # katalog
+  ball_width: 8.0 # katalog
+  housing_width: 6.0 # katalog
+  head_diameter: 18.0 # katalog (yaklaşık)
+  center_to_end: 27.0 # katalog (yaklaşık)
+  shank_diameter: 9.0 # katalog (yaklaşık)
+  thread_depth: 10.0 # varsayim: saplamanın rot başına giren boyu
+  tilt_limit: 13.0 # katalog; kinematik limit 14° ile uyumlu
+  mass: 12.0 # katalog (yaklaşık); katı model içi dolu olduğundan kütle bu değere sabitlenir
+
+joint_stack: # pim boyunca: somun | rot başı | burç x2 | kol | burç x2 | rot başı | somun
+  rod_spacing: 30.0 # turetilmis: 2 + 2*10 + 2*(8/2)
+  bushing_length: 5.0 # kullanici
+  bushings_per_side: 2 # kullanici (kısa kol tarafı)
+  bushing_outer: 9.0 # varsayim
+  bushing_cone_outer: 6.5 # varsayim: rot başına bakan yüzdeki küçük çap (14° boşluk için)
+  pin_length: 48.0 # turetilmis
+  nut: { width_af: 8.0, height: 5.0, kaynak: katalog } # M5 fiber somun
+  bushing_material: pla_solid # varsayim: burç malzemesi bilinmiyor
+
+forearm_rod: { diameter: 5.0, kaynak: kullanici } # M5 saplama; boy = forearm - 2*(center_to_end - thread_depth)
+
+platform: # PLA %20
+  radius: 35.0 # kullanici (R35)
+  thickness: 5.0 # kullanici
+  ear_thickness: 12.0 # varsayim: 30 mm aralık = kulak + 2 x 5 mm burç + 8 mm küre
+  bushings_per_side: 1 # varsayim (platform tarafı)
+  ear_axis_height: 10.0 # varsayim: pim ekseninin platform üst yüzünden yüksekliği (rot başı Ø18 diske değmesin)
+  ear_length: 16.0 # varsayim: radyal boy
+
+electromagnet: { diameter: 20.0, height: 15.0, mass: 35.0, kaynak: varsayim } # yükseklik kullanici
+
+frame:
+  plate_thickness: 5.0 # kullanici
+  ceiling_round_radius: 100.0 # varsayim
+  neck_width: 70.0 # varsayim
+  column_azimuth: 180.0 # varsayim: sütun -X yönünde, 2. ve 3. kolun arasında
+  column_distance: 210.0 # varsayim: robot merkezinden sütun merkezine
+  column_radius: 50.0 # varsayim: yarım silindir dış yarıçapı
+  pom_round_radius: 160.0 # varsayim
+  pom_width: 320.0 # varsayim
+  pom_extra_behind_column: 60.0 # varsayim
+
+housing: # PLA motor gövdesi, tavanın altına asılı
+  top_radius: 95.0 # varsayim
+  top_thickness: 5.0 # varsayim
+  clearance_above_motor: 2.0 # varsayim
+  bearing_block_width: 30.0 # varsayim: radyal
+  bearing_block_below_axis: 16.0 # varsayim
+  cap_height: 13.0 # varsayim
+  mount_holes: { count: 3, diameter: 5.5, pcd: 150.0, kaynak: varsayim }
+
+assembly_pose: # montaj ve render pozu: platform eklem düzlemi merkezi (V2 çerçevesi)
+  x: 0.0
+  y: 0.0
+  z: -190.0

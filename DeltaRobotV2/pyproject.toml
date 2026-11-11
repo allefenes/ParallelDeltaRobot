@@ -2,7 +2,7 @@
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py311" # FreeCAD 1.1 Python 3.11 ile çalışır
 
 [tool.ruff.lint]
 # E/F: pyflakes + pycodestyle, I: import sırası, UP: modern sözdizimi, B: olası hatalar

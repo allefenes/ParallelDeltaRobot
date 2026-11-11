@@ -65,16 +65,31 @@ Tüm uzunluklar eklem merkezinden eklem merkezine ölçülüdür (Kullanıcı).
 | Pi ↔ AX-12A haberleşme adaptörü | Bilinmiyor (V1 README bir devreden söz ediyor, repoda yok)       | Açık      |
 | Kamera                           | Var (V1 kodu)                                                    | V1 kodu   |
 
-## Yaklaşık hareketli kütle
+## CAD'de eklenen varsayımlar (F0.5)
 
-F0.5'teki CAD modeli kesin değeri verecek. Kaba tahmin:
+Model kurulurken veri olmayan yerler için seçilen değerler. Hepsi `config/robot.yaml`'da `varsayim` etiketlidir.
 
-| Parça                | Adet    | Tahmin         |
-| -------------------- | ------- | -------------- |
-| Kısa kol             | 3       | ~30 g          |
-| M5 saplama (~175 mm) | 6       | ~130 g         |
-| Dişi M5 rot başı     | 12      | ~120 g         |
-| Pim ve somunlar      | 6 eklem | ~20 g          |
-| Uç platform          | 1       | ~10 g          |
-| Elektromıknatıs      | 1       | ~30–40 g       |
-| **Toplam**           |         | **~340–350 g** |
+| Konu                        | Seçilen                                                                                                                      | Neden                                                       |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Platform kulağı             | 12 mm kalınlık, her yanda 1 burç                                                                                             | 30 mm saplama aralığı korunsun (12 + 2×5 + 8)               |
+| Kulak pim ekseni yüksekliği | Platform üst yüzünden 10 mm                                                                                                  | Ø18 rot başı gövdesi platform diskine değmesin              |
+| Burç malzemesi              | PLA %100                                                                                                                     | Bilinmiyor                                                  |
+| Motor yerleşimi             | Çıkış ekseni teğet, gövde radyal içe, göbek ekseni gövde ucundan 11 mm                                                       | AX-12A zarfı; yataklar ve kısa kol kol düzleminde ortalanır |
+| Rulman yatakları            | Mil ekseninden ±9 mm, alt yarı askı duvarlarıyla üst plakaya bağlı, üstte kapak                                              | Kullanıcının anlattığı düzen; ölçüler varsayım              |
+| Motor gövdesi üst plakası   | R95, 5 mm, tavanın altına 3 cıvatayla (kollar arasında, R75)                                                                 | Tavan çizimindeki 3 delik                                   |
+| Gövde                       | Sütun merkezi robot merkezinden 210 mm (−X), yarım silindir R50; tavan dairesi R100, boyun 70 mm; POM R160 + 320 mm genişlik | Çizimlerle tutarlı tahmin                                   |
+| Elektromıknatıs             | Ø20 × 15 mm, ~35 g                                                                                                           | Yükseklik kullanıcıdan, diğerleri tipik                     |
+| PLA %20 etkin yoğunluk      | 0.56 g/cm³                                                                                                                   | İnce parçada duvar/kabuk baskın                             |
+
+## CAD'den çıkan bulgular
+
+Ayrıntı: [cad/out/checks.md](../cad/out/checks.md)
+
+- Montaj, kinematik ölçüleri birebir sağlıyor: taban R65, kısa kol 64, uzun kol 201, platform R35, saplama aralığı 30 mm. Parçalar arasında çakışma yok.
+- **Kısa kolun yukarı hareketi mekanik olarak ≈ −15° ile sınırlı:** eklem ucu motor gövdesinin üst plakasına değer. V1'in yazılım limiti −70° idi; tavanda ya da plakada kol için açıklık yoksa gerçek limit −15° civarıdır. Doğrulanmalı.
+- **Uç işlevci ofseti:** Platform eklem düzleminden mıknatıs alt yüzüne 30 mm (10 kulak + 5 platform + 15 mıknatıs). V1 kinematiğinde bu değer 15 mm alınmıştı; F1'de ölçüyle netleştirilmeli.
+- Hareketli kütle (CAD): **~403 g** (3 kısa kol bağı 65 g, 6 uzun kol 256 g, platform + mıknatıs 82 g). Kaba tahmin 340–350 g idi; fark rot başı ve burçlardan.
+
+## V1'e göre koordinat farkı
+
+V2 çerçevesinde +Z yukarıdır; V1'de +Z aşağıydı. Motor açısı θ'nın işareti aynıdır (pozitif θ kolu indirir). Eksen çevrildiği için kol numaralandırması aynalanır: V1'in 2. ve 3. kolu V2'de yer değiştirir. F1'de V1 ile karşılaştırma bu eşlemeyle yapılır.
