@@ -18,3 +18,7 @@ testpaths = ["tests"]
 [tool.coverage.run]
 # v1_vectors.py ana makinede bir kez çalışan üretim betiğidir (V1 koduna erişir).
 omit = ["tools/v1_vectors.py"]
+
+[tool.ruff.lint.per-file-ignores]
+# HTML şablonu ve tablo satırları doğal olarak uzun; anlamı bölmemek için satır sınırı uygulanmaz.
+"tools/datasheet/build_datasheet.py" = ["E501"]

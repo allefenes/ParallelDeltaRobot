@@ -15,7 +15,7 @@ V2 sıfırdan yazılır. Repodaki eski klasörler (`LikeSoup/`, `KilavuzDeltaRob
 | F0   | İskele, Docker geliştirme ortamı, Compose, i18n, CI       | Tamamlandı |
 | F0.5 | FreeCAD ile parametrik 3B model, montaj, renkli görseller | Tamamlandı |
 | F1   | C++ kinematik çekirdeği + testler + Python bağlaması      | Tamamlandı |
-| F2   | Datasheet                                                 | —          |
+| F2   | Datasheet (etkileşimli HTML)                              | Tamamlandı |
 | F3   | ROS2 + güvenlik süpervizörü + dijital ikiz                | —          |
 | F4   | Uzaktan erişim: API, Python istemcisi, web, sandbox       | —          |
 | F4.5 | Tic-tac-toe senaryosu                                     | —          |
@@ -67,6 +67,7 @@ Ayrıntı: [docs/gelistirme-ortami.md](docs/gelistirme-ortami.md)
 - [docs/yol-haritasi.md](docs/yol-haritasi.md): fazlar ve teslimler
 - [docs/robot-girdileri.md](docs/robot-girdileri.md): robotun ölçüleri ve mekanik bilgileri, kaynaklarıyla
 - [docs/gelistirme-ortami.md](docs/gelistirme-ortami.md): Docker, Compose, CI, kod standardı
+- [docs/datasheet/datasheet.html](docs/datasheet/datasheet.html): etkileşimli datasheet
 - [docs/ilerleme.md](docs/ilerleme.md): faz ilerlemesi, sayılarla
 - [docs/guvenlik-gereksinimleri.md](docs/guvenlik-gereksinimleri.md): güvenlik gereksinimleri ve testleri
 - [docs/kabul-testleri.md](docs/kabul-testleri.md): donanım kabul testleri (F5)

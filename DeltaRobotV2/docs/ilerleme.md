@@ -11,9 +11,10 @@ Son güncelleme: 2026-11-12
 | F0 İskele       | Tamamlandı                                   | 6 / 6 teslim                                                                    |
 | F0.5 CAD        | Tamamlandı (revizyon 6 onaylandı, `95358ba`) | 20 / 20 parça çizildi, 123 / 123 bileşen montajlandı                            |
 | F1 Kinematik    | Tamamlandı                                   | 8 / 8 teslim; 532 test geçti; 4 / 12 güvenlik gereksinimi kanıtlandı (çekirdek) |
+| F2 Datasheet    | Tamamlandı                                   | 1 / 1 etkileşimli HTML; 6 grafik, 10 bölüm; 25 / 25 test                        |
 | Malzeme listesi | Başladı; her fazda güncellenir               | 28 kalem (19'u CAD'den), [hardware/bom.md](../hardware/bom.md)                  |
 
-Kalan süre: F2 başlıyor, tahmin ~2.5–3.5 saat.
+Kalan süre: F3 başlıyor (Pi kenar servisi paralel yazılıyor), tahmin ~4–6 saat.
 
 ## F0 İskele
 
@@ -119,3 +120,28 @@ Kalan süre: F2 başlıyor, tahmin ~2.5–3.5 saat.
 - Mutasyon testi: kritik modüller (sunucu kapısı, Pi kapısı, bekçi) F3'te yazılınca uygulanacak.
 - Hypothesis bulgusu: θ ≈ 90° (kol düşey) bölgesinde sistem tekile yakın; FK → IK sayısal hassasiyeti düşüyor (0.05°). Özellik testi tekil olmayan bölgeyle sınırlandı; datasheet bu bölgeyi gösterecek.
 - Varsayım: rot başı yanal açı limiti 13° (V1: 14°), modellenen rot başının katalog sınırı.
+
+## F2 Datasheet
+
+[docs/datasheet/datasheet.html](datasheet/datasheet.html) — tek dosya, etkileşimli (Plotly, Mermaid; sabit sürümlü CDN). `tools/datasheet/build_datasheet.py` ile robot.yaml, çekirdek kinematik, CAD kütleleri ve BOM'dan üretilir; motor parametreleri değişince yeniden üretilir.
+
+| Bölüm                                                               | İçerik                                                                                                                    | Durum   |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Özet                                                                | 14 temel değer, etiketli (H/S/K/V/Ö)                                                                                      | ✔      |
+| Çalışma alanı                                                       | 3B nokta bulutu, XY dilimleri (z kaydırıcılı), XZ/YZ kesitleri (V1 tarzı), r(z) ve kullanılabilir silindir, ret nedenleri | ✔      |
+| Performans haritaları                                               | Çözünürlük, garanti hız, garanti kuvvet, koşul sayısı; 2 yükseklik                                                        | ✔      |
+| Görev (tabla)                                                       | Taş alma yüksekliğinde erişim ve en büyük 3×3 tabla                                                                       | ✔      |
+| Geometri ve limitler, motor ve elektrik, kütle ve atalet, BOM özeti | Tablolar                                                                                                                  | ✔      |
+| Yazılım / ROS2 ağı                                                  | İskelet (planlanan mimari); F3'te çalışan sistemden üretilecek                                                            | İskelet |
+| Varsayımlar                                                         | robot.yaml'daki tüm "varsayim" değerleri                                                                                  | ✔      |
+
+Öne çıkan değerler (hesap): çalışma alanı 871 cm³; kullanılabilir silindir Ø82 × 110 mm; tabla yüksekliğinde en büyük kare 60 mm (hücre 20 mm); merkezde tek adım çözünürlüğü ~0.5 mm, en kötü durum ~1 mm; garanti hız ~253 mm/s; garanti kuvvet ~3.9 N; düşey taşıma ~1.5 kg.
+
+**Bulgu:** Çalışma alanını çoğunlukla rot başının yanal açı sınırı (13°) belirliyor; tic-tac-toe tablası bu yüzden küçük (60 mm). Gerçek rot başı modeli bilinince yeniden hesaplanır.
+
+### F2 test özeti
+
+| Bileşen                                | Test (geçen / toplam) | Satır % |
+| -------------------------------------- | --------------------- | ------- |
+| Datasheet hesapları + üretici          | 10 / 10               | 96–99   |
+| Araçlar toplamı (bom, i18n, datasheet) | 25 / 25               | 97.5    |

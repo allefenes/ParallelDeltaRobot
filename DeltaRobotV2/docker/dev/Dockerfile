@@ -24,6 +24,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-pybind11 \
         libyaml-cpp-dev \
         gcovr \
+        libboost-dev \
+        libssl-dev \
+        nlohmann-json3-dev \
+        clang \
         nodejs \
         npm \
     && rm -rf /var/lib/apt/lists/*
@@ -35,11 +39,14 @@ ARG RUFF_VERSION=0.6.9
 # Testler: Hypothesis (özellik tabanlı testler), pytest-cov (kapsama ölçümü)
 ARG HYPOTHESIS_VERSION=6.112.2
 ARG PYTEST_COV_VERSION=5.0.0
+# Datasheet: Plotly (etkileşimli grafikler; tarayıcıda sabit sürümlü plotly.js kullanılır)
+ARG PLOTLY_VERSION=5.24.1
 RUN npm install -g "prettier@${PRETTIER_VERSION}" \
     && pip3 install --no-cache-dir --break-system-packages \
         "ruff==${RUFF_VERSION}" \
         "hypothesis==${HYPOTHESIS_VERSION}" \
-        "pytest-cov==${PYTEST_COV_VERSION}"
+        "pytest-cov==${PYTEST_COV_VERSION}" \
+        "plotly==${PLOTLY_VERSION}"
 
 # ubuntu kullanıcısı (UID 1000) noble imajında hazır gelir; ROS ortamı kabukta otomatik yüklenir.
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /home/ubuntu/.bashrc

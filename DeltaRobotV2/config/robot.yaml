@@ -45,6 +45,18 @@ motor: # Dynamixel AX-12A, sadeleştirilmiş zarf
   horn: { diameter: 20.0, thickness: 3.0, kaynak: varsayim }
   stall_torque_nm: 1.5 # katalog, 12 V
   no_load_rpm: 59.0 # katalog, 12 V
+  # Datasheet hesapları motor değerlerine göre parametriktir; motor değişirse burası güncellenir.
+  continuous_torque_fraction: 0.3 # varsayim: sürekli çalışmada stall torkunun kullanılabilir oranı
+  rated_voltage: 12.0 # katalog (çalışma aralığı 9-12 V)
+  stall_current_a: 1.5 # katalog (yaklaşık)
+  position_range_deg: 300.0 # katalog: 0-1023 adım
+  protocol: "Dynamixel Protocol 1.0, 1 Mbps, yarım-dupleks TTL" # katalog
+
+# Görev (F4.5 tic-tac-toe) yükseklikleri; tasarım F4.5'te kesinleşir.
+task:
+  board_thickness: 4.0 # varsayim: 3B baskı tabla, POM üstünde
+  piece_height: 8.0 # varsayim: çelik pullu PLA taş
+  lift_height: 20.0 # varsayim: taşıma sırasında taş altı ile diğer taşların üstü arası
 
 output_shaft: # PLA %100; tüm boyu artı kesitli (kullanici), 2 rulmanla yataklı
   journal_diameter: 8.0 # turetilmis: 608ZZ iç çapı; artı kesitin uçları bu dairenin üzerinde
