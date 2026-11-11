@@ -8,6 +8,7 @@ Kurallar (bkz. i18n/README.md):
 - Eksik çeviri uyarıdır; arayüz Türkçeye düşer.
 - Anahtar biçimi: küçük harf, rakam, alt çizgi; nokta ile ayrılmış (hata).
 """
+
 from __future__ import annotations
 
 import json

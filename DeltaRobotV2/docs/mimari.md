@@ -27,18 +27,18 @@ Bu belge hedef mimariyi anlatır; parçalar fazlar ilerledikçe hayata geçer ([
 
 ## Kullanıcıya açılan kontrol seviyeleri
 
-| Seviye | Örnek | Not |
-|---|---|---|
-| Yüksek | `move_to(x, y, z)`, `pick()`, `place()` | Yeni başlayanlar için |
-| Orta | eklem açıları, zamanlı yörüngeler | Kinematik derslerinin ödevleri |
-| Alt | kullanıcı kendi ters kinematiğini yazar, açı gönderir | Süpervizör yine her komutu denetler |
+| Seviye | Örnek                                                 | Not                                 |
+| ------ | ----------------------------------------------------- | ----------------------------------- |
+| Yüksek | `move_to(x, y, z)`, `pick()`, `place()`               | Yeni başlayanlar için               |
+| Orta   | eklem açıları, zamanlı yörüngeler                     | Kinematik derslerinin ödevleri      |
+| Alt    | kullanıcı kendi ters kinematiğini yazar, açı gönderir | Süpervizör yine her komutu denetler |
 
 ## Teknoloji seçimleri
 
-| Konu | Seçim |
-|---|---|
-| Robot tarafı | Ubuntu 24.04 + ROS2 Jazzy, C++17 |
-| Çekirdek | Saf CMake C++ kütüphane (ROS bağımsız), GoogleTest |
-| Kullanıcı dili | Python |
-| Geliştirme | Docker Desktop (WSL 2), Compose |
-| CAD | FreeCAD 1.1 Python betikleri |
+| Konu           | Seçim                                              |
+| -------------- | -------------------------------------------------- |
+| Robot tarafı   | Ubuntu 24.04 + ROS2 Jazzy, C++17                   |
+| Çekirdek       | Saf CMake C++ kütüphane (ROS bağımsız), GoogleTest |
+| Kullanıcı dili | Python                                             |
+| Geliştirme     | Docker Desktop (WSL 2), Compose                    |
+| CAD            | FreeCAD 1.1 Python betikleri                       |

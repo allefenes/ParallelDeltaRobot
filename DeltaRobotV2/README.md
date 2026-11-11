@@ -6,17 +6,17 @@ V2 sıfırdan yazılır. Repodaki eski klasörler (`LikeSoup/`, `KilavuzDeltaRob
 
 ## Durum
 
-| Faz | Kapsam | Durum |
-|---|---|---|
-| F0 | İskele, Docker geliştirme ortamı, Compose, i18n, CI | Tamamlandı |
+| Faz  | Kapsam                                                    | Durum                  |
+| ---- | --------------------------------------------------------- | ---------------------- |
+| F0   | İskele, Docker geliştirme ortamı, Compose, i18n, CI       | Tamamlandı             |
 | F0.5 | FreeCAD ile parametrik 3B model, montaj, renkli görseller | Sırada (onay bekliyor) |
-| F1 | C++ kinematik çekirdeği + testler + Python bağlaması | — |
-| F2 | Datasheet | — |
-| F3 | ROS2 + güvenlik süpervizörü + dijital ikiz | — |
-| F4 | Uzaktan erişim: API, Python istemcisi, web, sandbox | — |
-| F4.5 | Tic-tac-toe senaryosu | — |
-| F5 | Robotun yeniden kurulumu | — |
-| F6 | Saatlik kiralama | — |
+| F1   | C++ kinematik çekirdeği + testler + Python bağlaması      | —                      |
+| F2   | Datasheet                                                 | —                      |
+| F3   | ROS2 + güvenlik süpervizörü + dijital ikiz                | —                      |
+| F4   | Uzaktan erişim: API, Python istemcisi, web, sandbox       | —                      |
+| F4.5 | Tic-tac-toe senaryosu                                     | —                      |
+| F5   | Robotun yeniden kurulumu                                  | —                      |
+| F6   | Saatlik kiralama                                          | —                      |
 
 Ayrıntı: [docs/yol-haritasi.md](docs/yol-haritasi.md)
 
@@ -29,7 +29,7 @@ DeltaRobotV2/
   docker/dev/         Geliştirme imajı: Ubuntu 24.04 + ROS2 Jazzy + C++/Python araçları
   core/               delta_core: ROS'tan bağımsız C++ çekirdek kütüphane (F1'de dolacak)
   i18n/locales/       Arayüz metinleri; tr.json kaynak, en.json çeviri
-  tools/              ci.sh ve yardımcı betikler
+  tools/              ci.sh, format.sh, i18n denetimi, git kancaları
   tests/              Python testleri (pytest)
   ci/                 GitHub Actions iş akışı taslağı
   docs/               Mimari, yol haritası, robot girdileri, geliştirme ortamı
@@ -60,6 +60,7 @@ Ayrıntı: [docs/gelistirme-ortami.md](docs/gelistirme-ortami.md)
 - [docs/mimari.md](docs/mimari.md): sistem mimarisi ve güvenlik ilkeleri
 - [docs/yol-haritasi.md](docs/yol-haritasi.md): fazlar ve teslimler
 - [docs/robot-girdileri.md](docs/robot-girdileri.md): robotun ölçüleri ve mekanik bilgileri, kaynaklarıyla
-- [docs/gelistirme-ortami.md](docs/gelistirme-ortami.md): Docker, Compose, CI
+- [docs/gelistirme-ortami.md](docs/gelistirme-ortami.md): Docker, Compose, CI, kod standardı
+- [docs/kurulum-plani.md](docs/kurulum-plani.md): robot üretilecekse üretim ve kurulum sırası
 
 Belgeler Türkçedir. Arayüz önce Türkçe, sonra İngilizce desteklenir.

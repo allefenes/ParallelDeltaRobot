@@ -1,0 +1,4 @@
+# C++ biçimlendirme: Google stili, 100 sütun.
+BasedOnStyle: Google
+ColumnLimit: 100
+IncludeBlocks: Regroup

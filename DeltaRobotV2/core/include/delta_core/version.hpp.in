@@ -1,3 +1,6 @@
+// delta_core sürüm bilgisi. CMake configure_file ile build/ altında version.hpp'ye dönüştürülür;
+// sürüm core/CMakeLists.txt içindeki project(VERSION ...) değerinden gelir.
+// Not: Bu bir CMake şablonudur; @AD@ yer tutucuları bozulmasın diye tools/format.sh dışındadır.
 #pragma once
 
 namespace delta_core {

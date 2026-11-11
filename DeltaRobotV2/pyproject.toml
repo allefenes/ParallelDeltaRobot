@@ -1,0 +1,16 @@
+# Python araç ayarları. Paket tanımı ileride (F1 Python bağlaması, F4 istemci) eklenir.
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# E/F: pyflakes + pycodestyle, I: import sırası, UP: modern sözdizimi, B: olası hatalar
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.format]
+quote-style = "double"
+line-ending = "lf"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

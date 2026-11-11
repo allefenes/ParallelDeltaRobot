@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Git pre-commit kancası: DeltaRobotV2/ altında değişen dosya commitleniyorsa biçim denetimini
+# geliştirme konteynerinde çalıştırır. Biçimsiz dosya varsa commit durur.
+# Kurulum (repo kökünde, bir kez): git config core.hooksPath DeltaRobotV2/tools/git-hooks
+set -euo pipefail
+
+if ! git diff --cached --name-only --diff-filter=ACMR | grep -q '^DeltaRobotV2/'; then
+  exit 0
+fi
+
+if ! docker info >/dev/null 2>&1; then
+  echo "pre-commit: Docker çalışmıyor; biçim denetimi yapılamadı. Docker Desktop'ı başlatın."
+  exit 1
+fi
+
+# Git Bash'in yol dönüştürmesini kapat; konteyner içi yollar olduğu gibi gitsin.
+export MSYS_NO_PATHCONV=1
+docker compose -f DeltaRobotV2/compose.yaml run --rm -T dev ./tools/format.sh --check

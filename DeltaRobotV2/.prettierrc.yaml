@@ -1,0 +1,6 @@
+# Prettier ayarları: JSON, YAML, Markdown (ileride JS/TS).
+# Markdown paragrafları yeniden sarılmaz (proseWrap: preserve); diff'ler okunur kalsın.
+printWidth: 100
+tabWidth: 2
+proseWrap: preserve
+endOfLine: lf
