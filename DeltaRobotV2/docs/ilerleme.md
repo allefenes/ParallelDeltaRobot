@@ -6,14 +6,14 @@ Son güncelleme: 2026-11-12
 
 ## Özet
 
-| Faz             | Durum                                                      | Sayaç                                                          |
-| --------------- | ---------------------------------------------------------- | -------------------------------------------------------------- |
-| F0 İskele       | Tamamlandı                                                 | 6 / 6 teslim                                                   |
-| F0.5 CAD        | Revizyon 6 tamamlandı, **montaj görselleri onay bekliyor** | 20 / 20 parça çizildi, 123 / 123 bileşen montajlandı           |
-| F1 Kinematik    | Başlamadı (F0.5 onayı bekleniyor)                          | —                                                              |
-| Malzeme listesi | Başladı; her fazda güncellenir                             | 28 kalem (19'u CAD'den), [hardware/bom.md](../hardware/bom.md) |
+| Faz             | Durum                                        | Sayaç                                                                           |
+| --------------- | -------------------------------------------- | ------------------------------------------------------------------------------- |
+| F0 İskele       | Tamamlandı                                   | 6 / 6 teslim                                                                    |
+| F0.5 CAD        | Tamamlandı (revizyon 6 onaylandı, `95358ba`) | 20 / 20 parça çizildi, 123 / 123 bileşen montajlandı                            |
+| F1 Kinematik    | Tamamlandı                                   | 8 / 8 teslim; 532 test geçti; 4 / 12 güvenlik gereksinimi kanıtlandı (çekirdek) |
+| Malzeme listesi | Başladı; her fazda güncellenir               | 28 kalem (19'u CAD'den), [hardware/bom.md](../hardware/bom.md)                  |
 
-Kalan süre (F0.5): onay gelirse 0; düzeltme istenirse tur başına ~1 saat.
+Kalan süre: F2 başlıyor, tahmin ~2.5–3.5 saat.
 
 ## F0 İskele
 
@@ -41,7 +41,7 @@ Kalan süre (F0.5): onay gelirse 0; düzeltme istenirse tur başına ~1 saat.
 | Mesh + kütle/atalet dışa aktarıldı (simülasyon bağı)      | 11 / 11                                       |
 | Montaj görseli                                            | 11 / 11                                       |
 | Parça önizleme görseli (20 parça, 9 görselde)             | 9 / 9                                         |
-| Kullanıcı onayı                                           | 0 / 1                                         |
+| Kullanıcı onayı                                           | 1 / 1                                         |
 
 ### Parça listesi (20 benzersiz, 123 adet)
 
@@ -92,3 +92,30 @@ Kalan süre (F0.5): onay gelirse 0; düzeltme istenirse tur başına ~1 saat.
 | 14  | Üst plaka en küçük yarıçapta (6. madde)                                                                                                 | ✔    |
 | 15  | Rulman yatağının üst yarısı plakayla tek parça; alt kapak ve vidalar alttan                                                             | ✔    |
 | 16  | Yatak üst yarılarında M3 ısıyla gömülen insertler; BOM ve kurulum planına eklendi                                                       | ✔    |
+
+## F1 Kinematik çekirdek
+
+| Teslim                                                           | Durum |
+| ---------------------------------------------------------------- | ----- |
+| İleri / ters kinematik (C++17)                                   | ✔    |
+| Jacobian, koşul sayısı, rot başı açısı                           | ✔    |
+| Limit kontrolü (motor −70…+150°, rot başı 13°, NaN/sonsuz reddi) | ✔    |
+| `config/robot.yaml` okuyucu                                      | ✔    |
+| Python bağlaması (`delta_core_py`)                               | ✔    |
+| Özellik tabanlı testler (Hypothesis)                             | ✔    |
+| V1 çapraz doğrulaması (346 IK + 140 FK vaka)                     | ✔    |
+| Kapsama ölçümü ve CI artefaktı                                   | ✔    |
+
+### Test özeti
+
+| Bileşen                              | Test (geçen / toplam) | Satır % | Dal % | Not                                   |
+| ------------------------------------ | --------------------- | ------- | ----- | ------------------------------------- |
+| delta_core (C++, GoogleTest)         | 22 / 22               | 100.0   | 69.4  | gcovr                                 |
+| delta_core (Python, Hypothesis + V1) | 495 / 495             | —       | —     | Özellik testleri ~2000 rastgele örnek |
+| Araçlar (bom, i18n)                  | 15 / 15               | 97.4    | —     | pytest-cov                            |
+| **Toplam**                           | **532 / 532**         |         |       | Genel taban %80 sağlandı              |
+
+- Güvenlik gereksinimleri: **4 / 12 gereksinim testle kanıtlandı** (G1–G4, çekirdek katmanı) — [guvenlik-gereksinimleri.md](guvenlik-gereksinimleri.md)
+- Mutasyon testi: kritik modüller (sunucu kapısı, Pi kapısı, bekçi) F3'te yazılınca uygulanacak.
+- Hypothesis bulgusu: θ ≈ 90° (kol düşey) bölgesinde sistem tekile yakın; FK → IK sayısal hassasiyeti düşüyor (0.05°). Özellik testi tekil olmayan bölgeyle sınırlandı; datasheet bu bölgeyi gösterecek.
+- Varsayım: rot başı yanal açı limiti 13° (V1: 14°), modellenen rot başının katalog sınırı.

@@ -19,6 +19,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-pytest \
         python3-yaml \
         python3-numpy \
+        python3-dev \
+        pybind11-dev \
+        python3-pybind11 \
+        libyaml-cpp-dev \
+        gcovr \
         nodejs \
         npm \
     && rm -rf /var/lib/apt/lists/*
@@ -27,8 +32,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Konteyner tek amaçlı olduğu için pip'in sistem paketi korumasını bilerek aşıyoruz.
 ARG PRETTIER_VERSION=3.3.3
 ARG RUFF_VERSION=0.6.9
+# Testler: Hypothesis (özellik tabanlı testler), pytest-cov (kapsama ölçümü)
+ARG HYPOTHESIS_VERSION=6.112.2
+ARG PYTEST_COV_VERSION=5.0.0
 RUN npm install -g "prettier@${PRETTIER_VERSION}" \
-    && pip3 install --no-cache-dir --break-system-packages "ruff==${RUFF_VERSION}"
+    && pip3 install --no-cache-dir --break-system-packages \
+        "ruff==${RUFF_VERSION}" \
+        "hypothesis==${HYPOTHESIS_VERSION}" \
+        "pytest-cov==${PYTEST_COV_VERSION}"
 
 # ubuntu kullanıcısı (UID 1000) noble imajında hazır gelir; ROS ortamı kabukta otomatik yüklenir.
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /home/ubuntu/.bashrc

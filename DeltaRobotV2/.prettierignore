@@ -2,3 +2,4 @@ build/
 install/
 log/
 cad/out/
+core/tests/data/v1_vectors.json

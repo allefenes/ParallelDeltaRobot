@@ -13,18 +13,18 @@ V2, V1 robotunun birebir aynısıdır. Bu belge, CAD (F0.5), kinematik (F1) ve d
 
 Tüm uzunluklar eklem merkezinden eklem merkezine ölçülüdür (Kullanıcı).
 
-| Parametre                       | Değer          | Kaynak           | Not                                |
-| ------------------------------- | -------------- | ---------------- | ---------------------------------- |
-| Taban yarıçapı (motor ekseni)   | 65 mm          | JSON `base`      |                                    |
-| Kısa kol (bicep)                | 64 mm          | JSON `bicep`     | V1 kodundaki varsayılan 64.2 değil |
-| Uzun kol (forearm)              | 201 mm         | JSON `forearm`   |                                    |
-| Uç platform eklem yarıçapı      | 35 mm          | JSON `end`       | V1 kodundaki varsayılan 37.5 değil |
-| Taban düzleminden zemine        | 240 mm         | JSON `btf`       |                                    |
-| Uç işlevci ofseti               | 15 mm          | JSON `eeOffset`  | Elektromıknatıs yüksekliği         |
-| Motor açı limitleri             | +150° / −70°   | JSON             |                                    |
-| Küresel mafsal yanal açı limiti | 14°            | JSON `joint`     | Rot başı açısal sapma sınırı       |
-| Motor adım açısı                | 0.29°          | JSON `turnAngle` | AX-12A: 300° / 1024                |
-| Kol açıları                     | 0°, 120°, 240° | V1 kodu          |                                    |
+| Parametre                       | Değer          | Kaynak                 | Not                                                                                           |
+| ------------------------------- | -------------- | ---------------------- | --------------------------------------------------------------------------------------------- |
+| Taban yarıçapı (motor ekseni)   | 65 mm          | JSON `base`            |                                                                                               |
+| Kısa kol (bicep)                | 64 mm          | JSON `bicep`           | V1 kodundaki varsayılan 64.2 değil                                                            |
+| Uzun kol (forearm)              | 201 mm         | JSON `forearm`         |                                                                                               |
+| Uç platform eklem yarıçapı      | 35 mm          | JSON `end`             | V1 kodundaki varsayılan 37.5 değil                                                            |
+| Taban düzleminden zemine        | 240 mm         | JSON `btf`             |                                                                                               |
+| Uç işlevci ofseti               | 15 mm          | JSON `eeOffset`        | Elektromıknatıs yüksekliği                                                                    |
+| Motor açı limitleri             | +150° / −70°   | JSON                   |                                                                                               |
+| Küresel mafsal yanal açı limiti | 13°            | Varsayım (V1 JSON 14°) | Modellenen rot başının katalog sınırı; ihtiyatlı taraf, gerçek rot başı bilinince güncellenir |
+| Motor adım açısı                | 0.29°          | JSON `turnAngle`       | AX-12A: 300° / 1024                                                                           |
+| Kol açıları                     | 0°, 120°, 240° | V1 kodu                |                                                                                               |
 
 ## Mekanik
 

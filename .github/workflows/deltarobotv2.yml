@@ -29,3 +29,11 @@ jobs:
           -u "$(id -u):$(id -g)" -e HOME=/tmp
           -v "$PWD":/workspace -w /workspace
           deltarobotv2-dev:ci ./tools/ci.sh
+
+      - name: Kapsama raporları (artefakt)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kapsama-raporlari
+          path: DeltaRobotV2/build/coverage/
+          if-no-files-found: ignore

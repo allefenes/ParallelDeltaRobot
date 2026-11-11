@@ -44,3 +44,23 @@ def test_bad_key_format_is_error(tmp_path):
     write(tmp_path, "tr", {"Bad Key": "x"})
     errors, _ = check_i18n.check(tmp_path)
     assert errors
+
+
+def test_main_on_repo_and_errors(tmp_path, capsys):
+    assert check_i18n.main(["x", str(ROOT)]) == 0
+    loc = tmp_path / "i18n" / "locales"
+    loc.mkdir(parents=True)
+    write(loc, "tr", {"a": "x"})
+    write(loc, "en", {"a": "x", "b": "y"})
+    assert check_i18n.main(["x", str(tmp_path)]) == 1
+    (loc / "en.json").write_text("[]", encoding="utf-8")
+    assert check_i18n.main(["x", str(tmp_path)]) == 1
+    (loc / "tr.json").unlink()
+    assert check_i18n.main(["x", str(tmp_path)]) == 1
+    assert "HATA" in capsys.readouterr().out
+
+
+def test_bad_source_catalog(tmp_path):
+    (tmp_path / "tr.json").write_text('{"a": 1}', encoding="utf-8")
+    errors, _ = check_i18n.check(tmp_path)
+    assert errors

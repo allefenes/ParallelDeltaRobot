@@ -24,7 +24,7 @@ kinematics:
   arm_angles: [0.0, 120.0, 240.0] # V1 kodu
   motor_limit_max: 150.0 # json bicepPosAngle (aşağı)
   motor_limit_min: -70.0 # json bicepNegAngle (yukarı)
-  spherical_joint_limit: 14.0 # json joint: rot başı yanal açı limiti
+  spherical_joint_limit: 13.0 # varsayim (V1 json 14): modellenen rot başının katalog sınırı, ihtiyatlı taraf; gerçek rot başı modeli bilinince güncellenir
   motor_step: 0.29 # json turnAngle: AX-12A 300°/1024
 
 materials: # yoğunluk g/cm3
