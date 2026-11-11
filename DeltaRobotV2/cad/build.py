@@ -341,10 +341,11 @@ def main() -> None:
         "assembly_thetas_deg": thetas,
         "links": props,
     }
+    # Windows'ta da LF yazılır; böylece yeniden üretim git farkı oluşturmaz.
     (OUT / "mass_properties.json").write_text(
-        json.dumps(meta, indent=2, ensure_ascii=False), encoding="utf-8"
+        json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
     )
-    (OUT / "checks.md").write_text("\n".join(report) + "\n", encoding="utf-8")
+    (OUT / "checks.md").write_text("\n".join(report) + "\n", encoding="utf-8", newline="\n")
     print("\n".join(report))
 
 
