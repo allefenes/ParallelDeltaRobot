@@ -1,0 +1,16 @@
+# Delta Robotics V2 konteyner servisleri.
+# Şimdilik yalnız geliştirme ortamı var. Sonraki fazlarda eklenecekler:
+#   F3: robot (ROS2 süpervizör + donanım arayüzü / mock), sim (dijital ikiz)
+#   F4: api, web, sandbox
+name: deltarobotv2
+
+services:
+  dev:
+    build:
+      context: docker/dev
+    image: deltarobotv2-dev:latest
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    stdin_open: true
+    tty: true

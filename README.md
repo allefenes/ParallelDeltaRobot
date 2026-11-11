@@ -1,5 +1,16 @@
 # Remote Acces Parallel Delta Robot Experiment Kit
 ![alt text](https://github.com/allefenes/ParallelDeltaRobot/blob/main/logo/logo.png)
+
+## Delta Robotics V2 (geliştiriliyor)
+
+V2, aynı robotun uzaktan erişilebilir yeni sürümüdür: kullanıcılar web sayfasından ya da VS Code'dan Python yazarak robotu (ya da dijital ikizini) güvenli bir çerçevede kontrol eder. C++ çekirdek, ROS2 Jazzy, Docker. Tüm V2 çalışması [`DeltaRobotV2/`](DeltaRobotV2/) klasöründedir; durum ve yol haritası için [DeltaRobotV2/README.md](DeltaRobotV2/README.md).
+
+V2 is the remotely accessible rewrite of the same robot; everything lives in [`DeltaRobotV2/`](DeltaRobotV2/).
+
+## V1 (2024, arşiv)
+
+Aşağıdaki metin ve `LikeSoup/`, `KilavuzDeltaRobotics/`, `ImageProcessing/`, `WsAnalysis/` klasörleri 2024 bitirme projesine aittir ve referans olarak değiştirilmeden tutulur.
+
 We are developing Remote Access Parallel Delta Robot Experiment Kit for TEKNOFEST competition. Our team name is DELTA ROBOTICS.
 
 Our project consists of several different areas. These are listed below under the electronic, mechanical and software categories.

@@ -1,0 +1,19 @@
+# Derleme çıktıları
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# FreeCAD yedekleri
+*.FCBak
+*.FCStd1
+
+# Editör ve işletim sistemi
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,17 @@
+{
+  "app.title": "Delta Robotics",
+  "app.subtitle": "Uzaktan erişimli paralel delta robot",
+  "nav.editor": "Kod editörü",
+  "nav.twin": "Dijital ikiz",
+  "nav.camera": "Kamera",
+  "nav.reservations": "Rezervasyonlar",
+  "robot.state.idle": "Boşta",
+  "robot.state.homing": "Referansa gidiyor",
+  "robot.state.ready": "Hazır",
+  "robot.state.running": "Çalışıyor",
+  "robot.state.fault": "Hata",
+  "robot.estop": "Acil stop",
+  "safety.rejected.joint_limit": "Komut reddedildi: {motor}. motor {angle}° ile limit dışında.",
+  "safety.rejected.workspace": "Komut reddedildi: ({x}, {y}, {z}) noktası çalışma alanı dışında.",
+  "session.remaining": "Kalan süre: {minutes} dk"
+}

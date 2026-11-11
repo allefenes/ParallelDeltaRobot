@@ -1,0 +1,32 @@
+# Delta Robotics V2 CI.
+# GitHub Actions yalnız repo kökündeki .github/workflows/ klasörünü okur.
+# Etkinleştirmek için bu dosya kökte .github/workflows/deltarobotv2.yml olarak kopyalanır
+# (bkz. docs/gelistirme-ortami.md).
+name: DeltaRobotV2
+
+on:
+  push:
+    paths:
+      - "DeltaRobotV2/**"
+  pull_request:
+    paths:
+      - "DeltaRobotV2/**"
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: DeltaRobotV2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Geliştirme imajını derle
+        run: docker build -t deltarobotv2-dev:ci docker/dev
+
+      - name: Denetimler (tools/ci.sh)
+        run: >
+          docker run --rm
+          -u "$(id -u):$(id -g)" -e HOME=/tmp
+          -v "$PWD":/workspace -w /workspace
+          deltarobotv2-dev:ci ./tools/ci.sh

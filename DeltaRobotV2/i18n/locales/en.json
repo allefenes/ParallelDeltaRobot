@@ -1,0 +1,17 @@
+{
+  "app.title": "Delta Robotics",
+  "app.subtitle": "Remotely accessible parallel delta robot",
+  "nav.editor": "Code editor",
+  "nav.twin": "Digital twin",
+  "nav.camera": "Camera",
+  "nav.reservations": "Reservations",
+  "robot.state.idle": "Idle",
+  "robot.state.homing": "Homing",
+  "robot.state.ready": "Ready",
+  "robot.state.running": "Running",
+  "robot.state.fault": "Fault",
+  "robot.estop": "Emergency stop",
+  "safety.rejected.joint_limit": "Command rejected: motor {motor} at {angle}° is out of limits.",
+  "safety.rejected.workspace": "Command rejected: point ({x}, {y}, {z}) is outside the workspace.",
+  "session.remaining": "Time left: {minutes} min"
+}
