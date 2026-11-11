@@ -23,6 +23,22 @@
 
 - Çakışma yok.
 
+### Eklem istifi
+
+- Kısa kol ucu: saplama aralığı 30.00 mm (hedef 30), pim boyu 58.0 mm, iç burç 10 mm, dış burç 5 mm
+- Platform kulağı: saplama aralığı 30.00 mm (hedef 30), pim boyu 58.0 mm, iç burç 5 mm, dış burç 5 mm
+- Rot başı eğilme boşluğu: gövde yan yüzünün iç yarıçapı 4.68 mm > burcun en geniş yarıçapı 4.50 mm, gövde burca değmez; eğilme sınırı rot başının kendi sınırıdır (13°, kinematik limit 14°).
+
+### Radyuslar
+
+- POM taban: dikdörtgen uç köşeleri: R20, 2 kenar
+- kısa kol: artı delik iç köşeleri: R0.8, 4 kenar
+- motor kutusu: dış kenarlar: R2, 8 kenar
+- platform: kulak kökleri ve kesik köşeleri: R1.5, 12/24 kenar (tek tek)
+- tavan: boyun geçişleri: R8, 4 kenar
+- çıkış mili: artı kesit iç köşeleri: R0.5, 4 kenar
+- üst plaka: açıklık köşeleri: R3, 15 kenar
+
 ### Uç işlevci
 
 - P'den mıknatıs ucuna 15.00 mm (kısıt: ee_offset = 15.0 mm). P plakanın orta düzleminde; mıknatıs cebi alt yüzden 2.5 mm derin (varsayım).
@@ -55,16 +71,16 @@
 
 | Bağ | Kütle (g) |
 |---|---|
-| base | 2541.9 |
-| bicep_1 | 29.4 |
-| bicep_2 | 29.4 |
-| bicep_3 | 29.4 |
+| base | 2599.6 |
+| bicep_1 | 30.7 |
+| bicep_2 | 30.7 |
+| bicep_3 | 30.7 |
 | forearm_1_a | 35.0 |
 | forearm_1_b | 35.0 |
 | forearm_2_a | 35.0 |
 | forearm_2_b | 35.0 |
 | forearm_3_a | 35.0 |
 | forearm_3_b | 35.0 |
-| platform | 99.5 |
+| platform | 104.3 |
 
-Hareketli toplam: 397.7 g
+Hareketli toplam: 406.5 g

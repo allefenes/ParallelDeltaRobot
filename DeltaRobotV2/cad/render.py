@@ -115,6 +115,27 @@ def render_assembly() -> None:
     focus(doc, elbow)
     view.zoomOut()
     save(view, IMG_DIR / "eklem.png", SIZE)
+    # Motor kutuları: alttan bakış; kutular altı açık olduğundan motorlar yuvalarında görünür
+    for o in doc.Objects:
+        if hasattr(o, "Malzeme"):
+            o.ViewObject.Visibility = o.Name.startswith("base_") and o.Malzeme not in (
+                "al7075",
+                "pom",
+            )
+    view.viewBottom()
+    view.fitAll()
+    save(view, IMG_DIR / "motor_kutulari_alttan.png", SIZE)
+    near = [
+        o.Name
+        for o in doc.Objects
+        if o.Name.startswith(
+            ("base_motor_1", "base_bearing_1", "base_bearing_cap_1", "base_cap_screw_1")
+        )
+    ]
+    view.viewIsometric()
+    focus(doc, near)
+    view.zoomOut()
+    save(view, IMG_DIR / "motor_kutusu_yakin.png", SIZE)
     App.closeDocument(doc.Name)
 
 
@@ -140,21 +161,22 @@ def render_raised() -> None:
     App.closeDocument(doc.Name)
 
 
-def part_groups(p: dict) -> list[tuple[str, list[tuple[Part.Shape, str]]]]:  # noqa: F821
+def part_groups(p: dict) -> list:
     """Önizleme grupları: (dosya adı, [(şekil, malzeme)]). Şekiller yerel çerçevelerindedir."""
-    lower, cap = P.bearing_block(p, 1)
     lay = P.shaft_layout(p)
-    fl = [s for n, s in P.forearm_link(p)]
-    stack = {n: s for n, s in P.joint_stack(p, p["bicep"]["thickness"], 2) if n != "_ball_center"}
+    fl = [s for _, s in P.forearm_link(p)]
+    stack = {}
+    for n, s in P.joint_stack(p, p["bicep"]["thickness"], p["joint_stack"]["inner_bushing_length"]):
+        stack.setdefault(n, s)
     plat = dict(P.platform_parts(p))
     return [
         ("01_pom_taban.png", [(P.pom_base(p), "pom")]),
         ("02_sutun_tavan.png", [(P.column(p), "al7075"), (P.ceiling(p), "al7075")]),
+        ("03_motor_govdesi.png", [(P.motor_housing(p), "pla_infill20")]),
         (
-            "03_motor_govdesi_ust_plaka.png",
-            [(P.housing_top(p), "pla_infill20"), (P.motor_pad(p), "pla_infill20")],
+            "04_rulman_kapagi_vida.png",
+            [(P.bearing_cap(p, 1), "pla_infill20"), (P.cap_screw(p), "steel")],
         ),
-        ("04_rulman_yatagi_kapak.png", [(lower, "pla_infill20"), (cap, "pla_infill20")]),
         (
             "05_motor_rulman_mil.png",
             [
@@ -168,7 +190,8 @@ def part_groups(p: dict) -> list[tuple[str, list[tuple[Part.Shape, str]]]]:  # n
             "07_eklem_pim_burc_somun_kure.png",
             [
                 (stack["pin"], "steel"),
-                (stack["bushing"], "pla_solid"),
+                (stack["bushing_inner"], "pla_solid"),
+                (stack["bushing_outer"], "pla_solid"),
                 (stack["nut"], "steel"),
                 (stack["rod_end_ball"], "steel"),
             ],

@@ -106,16 +106,13 @@ def arm_placement(p: dict, i: int) -> App.Placement:
     return App.Placement(pos, App.Rotation(V(0, 0, 1), a))
 
 
-def stack_into(link: Link, p: dict, core_width: float, n_bush: int, pl: App.Placement) -> list:
+def stack_into(link: Link, p: dict, core_width: float, inner: float, pl: App.Placement) -> list:
     """Eklem istifini bağa ekler; rot başı küre merkezlerini (bağ yerel çerçevesinde) döndürür."""
     centers = []
-    mat = {
-        "pin": "steel",
-        "nut": "steel",
-        "rod_end_ball": "steel",
-        "bushing": p["joint_stack"]["bushing_material"],
-    }
-    for name, s in P.joint_stack(p, core_width, n_bush):
+    bm = p["joint_stack"]["bushing_material"]
+    mat = {"pin": "steel", "nut": "steel", "rod_end_ball": "steel"}
+    mat |= {"bushing_inner": bm, "bushing_outer": bm}
+    for name, s in P.joint_stack(p, core_width, inner):
         if name == "_ball_center":
             centers.append(pl.multVec(s.Point))
             continue
@@ -124,23 +121,23 @@ def stack_into(link: Link, p: dict, core_width: float, n_bush: int, pl: App.Plac
 
 
 def build_base(p: dict) -> Link:
+    """Sabit bağ: taban, sütun, tavan, tek parça motor gövdesi, motorlar, rulmanlar, kapaklar."""
     base = Link("base", App.Placement())
     base.add("pom_base", P.pom_base(p), "pom")
     base.add("column", P.column(p), "al7075")
     base.add("ceiling", P.ceiling(p), "al7075")
-    base.add("housing_top", P.housing_top(p), "pla_infill20")
-    lay = P.shaft_layout(p)
+    base.add("motor_housing", P.motor_housing(p), "pla_infill20")
+    cs_head = p["housing"]["cap_height"]
     for i in range(3):
         pl = arm_placement(p, i)
         base.add_at(f"motor_{i + 1}", P.motor_body(p), "motor", pl, mass=p["motor"]["mass"])
-        base.add_at(f"motor_pad_{i + 1}", P.motor_pad(p), "pla_infill20", pl)
         for side in (1, -1):
-            lower, cap = P.bearing_block(p, side)
-            base.add_at(f"bearing_block_{i + 1}", lower, "pla_infill20", pl)
-            base.add_at(f"bearing_cap_{i + 1}", cap, "pla_infill20", pl)
+            base.add_at(f"bearing_cap_{i + 1}", P.bearing_cap(p, side), "pla_infill20", pl)
             yc = side * p["output_shaft"]["bearing_offset"]
             base.add_at(f"bearing_{i + 1}", P.bearing(p, yc), "bearing", pl, p["bearing"]["mass"])
-    base.layout = lay
+            for q in P.cap_screw_points(p, side):
+                spl = pl.multiply(App.Placement(q + V(0, 0, cs_head), App.Rotation()))
+                base.add_at(f"cap_screw_{i + 1}", P.cap_screw(p), "steel", spl)
     return base
 
 
@@ -150,9 +147,9 @@ def build_bicep(p: dict, i: int, theta: float) -> tuple[Link, list]:
     link.add("output_shaft", P.output_shaft(p), "pla_solid")
     link.add("bicep_plate", P.bicep_plate(p), "al7075")
     L1 = p["kinematics"]["bicep_length"]
-    centers = stack_into(
-        link, p, p["bicep"]["thickness"], 2, App.Placement(V(L1, 0, 0), App.Rotation())
-    )
+    inner = p["joint_stack"]["inner_bushing_length"]
+    elbow = App.Placement(V(L1, 0, 0), App.Rotation())
+    centers = stack_into(link, p, p["bicep"]["thickness"], inner, elbow)
     return link, [pl.multVec(c) for c in centers]
 
 
@@ -164,15 +161,48 @@ def build_platform(p: dict, pos: kin.Vec) -> tuple[Link, list]:
         else:
             link.add(name, s, "pla_infill20")
     r = p["kinematics"]["platform_radius"]
+    pl_ = p["platform"]
     centers = []
     for a in p["kinematics"]["arm_angles"]:
         u = V(math.cos(math.radians(a)), math.sin(math.radians(a)), 0)
         pl = App.Placement(u * r, App.Rotation(V(0, 0, 1), a))
-        c = stack_into(
-            link, p, p["platform"]["ear_thickness"], p["platform"]["bushings_per_side"], pl
-        )
+        c = stack_into(link, p, pl_["ear_thickness"], pl_["inner_bushing_length"], pl)
         centers.append([link.placement.multVec(x) for x in c])
     return link, centers
+
+
+def joint_report(p: dict) -> list[str]:
+    """Eklem istifi ölçüleri ve rot başı eğilme boşluğu (analitik)."""
+    js, re = p["joint_stack"], p["rod_end"]
+    rows = ["### Eklem istifi", ""]
+    for name, core, inner in [
+        ("Kısa kol ucu", p["bicep"]["thickness"], js["inner_bushing_length"]),
+        ("Platform kulağı", p["platform"]["ear_thickness"], p["platform"]["inner_bushing_length"]),
+    ]:
+        stack = P.joint_stack(p, core, inner)
+        pin_len = stack[0][1].BoundBox.YLength
+        centers = [s.Point.y for n, s in stack if n == "_ball_center"]
+        spacing = abs(centers[0] - centers[1])
+        rows.append(
+            f"- {name}: saplama aralığı {spacing:.2f} mm (hedef {js['rod_spacing']:g}), "
+            f"pim boyu {pin_len:.1f} mm, iç burç {inner:g} mm, "
+            f"dış burç {js['outer_bushing_length']:g} mm"
+        )
+        if abs(spacing - js["rod_spacing"]) > 1e-6:
+            raise RuntimeError(f"{name}: saplama aralığı {spacing} != {js['rod_spacing']}")
+    # Rot başı gövdesinin yan yüzü küreden içeride kalır; yüzün iç kenarı (küre ile kesişim)
+    # burcun en geniş yarıçapından büyükse gövde, eğilirken burca hiç değemez.
+    rb, hh = re["ball_diameter"] / 2, re["housing_width"] / 2
+    face_inner = math.sqrt(rb**2 - hh**2)
+    bushing_max = js["bushing_outer"] / 2
+    ok = "değmez" if face_inner > bushing_max else "DEĞEBİLİR"
+    rows.append(
+        f"- Rot başı eğilme boşluğu: gövde yan yüzünün iç yarıçapı {face_inner:.2f} mm > burcun en "
+        f"geniş yarıçapı {bushing_max:.2f} mm, gövde burca {ok}; eğilme sınırı rot başının kendi "
+        f"sınırıdır ({re['tilt_limit']:g}°, "
+        f"kinematik limit {p['kinematics']['spherical_joint_limit']:g}°)."
+    )
+    return rows
 
 
 def forearm_placement(top: App.Vector, bottom: App.Vector, pin_axis: App.Vector) -> App.Placement:
@@ -317,6 +347,8 @@ def main() -> None:
     pose = (ap["x"], ap["y"], ap["z"])
 
     links, rows, thetas = assemble(p, d, pose)
+    rows += [""] + joint_report(p)
+    rows += ["", "### Radyuslar", ""] + [f"- {k_}: {v_}" for k_, v_ in sorted(P.FILLET_LOG.items())]
     report = [
         "# CAD kontrol raporu",
         "",

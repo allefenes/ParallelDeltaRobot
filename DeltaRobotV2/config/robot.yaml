@@ -45,9 +45,9 @@ motor: # Dynamixel AX-12A, sadeleştirilmiş zarf
   stall_torque_nm: 1.5 # katalog, 12 V
   no_load_rpm: 59.0 # katalog, 12 V
 
-output_shaft: # PLA %100, artı kesitli; 2 rulmanla yataklı
-  journal_diameter: 8.0 # turetilmis: 608ZZ iç çapı
-  cross_size: 8.0 # varsayim: artı kesitin uçtan uca ölçüsü
+output_shaft: # PLA %100; tüm boyu artı kesitli (kullanici), 2 rulmanla yataklı
+  journal_diameter: 8.0 # turetilmis: 608ZZ iç çapı; artı kesitin uçları bu dairenin üzerinde
+  cross_size: 8.0 # turetilmis: artı kesitin uçtan uca ölçüsü = journal_diameter
   cross_arm_width: 3.0 # varsayim
   bearing_offset: 9.0 # varsayim: rulman merkezlerinin kol düzleminden uzaklığı (±)
   length_beyond_bearing: 4.0 # varsayim
@@ -74,13 +74,13 @@ rod_end: # dişi M5 rot başı (DIN ISO 12240-4 K serisi, SI5 benzeri)
   tilt_limit: 13.0 # katalog; kinematik limit 14° ile uyumlu
   mass: 12.0 # katalog (yaklaşık); katı model içi dolu olduğundan kütle bu değere sabitlenir
 
-joint_stack: # pim boyunca: somun | rot başı | burç x2 | kol | burç x2 | rot başı | somun
-  rod_spacing: 30.0 # turetilmis: 2 + 2*10 + 2*(8/2)
-  bushing_length: 5.0 # kullanici
-  bushings_per_side: 2 # kullanici (kısa kol tarafı)
-  bushing_outer: 9.0 # varsayim
-  bushing_cone_outer: 6.5 # varsayim: rot başına bakan yüzdeki küçük çap (14° boşluk için)
-  pin_length: 48.0 # turetilmis
+# Pim boyunca sıra (kullanici): somun | dış burç | rot başı | iç burç | kol | iç burç | rot başı | dış burç | somun
+joint_stack:
+  rod_spacing: 30.0 # kullanici: paralel kol arası değişmez = kol + 2 x iç burç + küre genişliği
+  inner_bushing_length: 10.0 # turetilmis: (30 - 2 - 8) / 2; kısa kol tarafı
+  outer_bushing_length: 5.0 # kullanici
+  bushing_outer: 9.0 # varsayim: burcun geniş ucu
+  bushing_cone_outer: 6.5 # varsayim: rot başına bakan dar uç; burç boydan boya konik (kullanici)
   nut: { width_af: 8.0, height: 5.0, kaynak: katalog } # M5 fiber somun
   bushing_material: pla_solid # varsayim: burç malzemesi bilinmiyor
 
@@ -90,11 +90,13 @@ platform: # PLA %20
   radius: 35.0 # kullanici (R35)
   thickness: 5.0 # kullanici
   # Eklem düzlemi (P) platform plakasının orta düzlemindedir; böylece P -> mıknatıs ucu = ee_offset sağlanır.
-  ear_thickness: 12.0 # varsayim: 30 mm aralık = kulak + 2 x 5 mm burç + 8 mm küre
-  bushings_per_side: 1 # varsayim (platform tarafı)
+  ear_thickness: 12.0 # varsayim: 30 mm aralık = kulak + 2 x iç burç + 8 mm küre
+  inner_bushing_length: 5.0 # turetilmis: (30 - 12 - 8) / 2; dış burç joint_stack'teki gibi
   ear_length: 16.0 # varsayim: kulak gövdesinin radyal boyu (eklem ekseni kenarda, r = radius)
   ear_lug_radius: 6.0 # varsayim: pim çevresindeki kulak göbeği yarıçapı
   rod_end_notch_clearance: 1.5 # varsayim: rot başı / burç / somun için plakadaki kesik boşluğu
+  # Süs delikleri (kullanici: 3 adet, işlevsiz). Kulakların arasında; mıknatıs cebine ve kesiklere değmez.
+  deco_holes: { count: 3, diameter: 8.0, radius: 17.0, angle_offset: 60.0, kaynak: varsayim }
 
 # Mıknatıs platformdaki cebe oturur; cep derinliği ee_offset'ten türetilir (üst yüzü P düzleminde).
 electromagnet: { diameter: 20.0, height: 15.0, mass: 35.0, kaynak: varsayim } # yükseklik kullanici
@@ -111,15 +113,36 @@ frame:
   pom_extra_behind_column: 60.0 # varsayim
 
 housing: # PLA motor gövdesi, tavanın altına asılı
-  top_radius: 90.0 # varsayim: motor gövdelerini ve yatakları örtecek en küçük yuvarlak değer
+  top_radius: 96.0 # turetilmis: motor kutularının dış köşesi R95'e uzanıyor
+  motor_box_wall: 2.5 # varsayim: motorun oturduğu kutunun et kalınlığı (altı açık, motor alttan girer)
+  horn_hole_diameter: 24.0 # varsayim: kutu duvarında göbeğin döndüğü delik
   top_thickness: 5.0 # varsayim
   clearance_above_motor: 2.0 # varsayim
-  bearing_block_width: 30.0 # varsayim: radyal
+  bearing_block_width: 32.0 # varsayim: radyal; kapak vidaları rulmana ve askıya değmesin
   bearing_block_below_axis: 16.0 # varsayim
   cap_height: 13.0 # varsayim
+  cap_screw:
+    {
+      diameter: 3.0,
+      head_diameter: 5.5,
+      head_height: 3.0,
+      depth_into_block: 8.0,
+      offset: 13.0,
+      kaynak: varsayim,
+    }
   mount_holes: { count: 3, diameter: 5.5, pcd: 36.0, kaynak: varsayim } # motor halkasının içinde, kollar arasında (60/180/300°)
   # Kısa kol açıklıkları (kullanici: dikdörtgen). Kol çerçevesinde: x radyal (motor ekseninden), y teğet.
   arm_slot: { x_from: -8.0, x_to: 40.0, half_width: 26.0, kaynak: varsayim }
+
+# Radyuslar (kullanici: çentik etkisi ve görünüm için mümkün olan her yerde). Satın alınan parçalara uygulanmaz.
+fillets:
+  ceiling: 8.0 # varsayim: boyun geçişleri
+  pom_corner: 20.0 # varsayim: dikdörtgen uç köşeleri
+  housing_slot: 3.0 # varsayim: üst plaka açıklık köşeleri
+  motor_box: 2.0 # varsayim: kutu dış kenarları
+  platform: 1.5 # varsayim: kulak kökleri ve kesik köşeleri
+  bicep_hole: 0.8 # varsayim: artı deliğin iç köşeleri (milin radyusundan büyük)
+  shaft_inner: 0.5 # varsayim: artı kesitin iç köşeleri
 
 assembly_pose: # montaj ve render pozu: platform eklem düzlemi merkezi (V2 çerçevesi)
   x: 0.0
