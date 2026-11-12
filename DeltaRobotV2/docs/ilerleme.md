@@ -6,18 +6,20 @@ Son güncelleme: 2026-11-12
 
 ## Özet
 
-| Faz                         | Durum                                                          | Sayaç                                                                                                                                                                    |
-| --------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| F0 İskele                   | Tamamlandı                                                     | 6 / 6 teslim                                                                                                                                                             |
-| F0.5 CAD                    | Tamamlandı (revizyon 6 onaylandı, `95358ba`)                   | 20 / 20 parça çizildi, 123 / 123 bileşen montajlandı                                                                                                                     |
-| F1 Kinematik                | Tamamlandı                                                     | 8 / 8 teslim; 532 test geçti; 4 / 12 güvenlik gereksinimi kanıtlandı (çekirdek)                                                                                          |
-| F2 Datasheet                | Tamamlandı                                                     | 1 / 1 etkileşimli HTML; 6 grafik, 10 bölüm; 25 / 25 test                                                                                                                 |
-| F3 ROS2 + kenar + uçtan uca | Tamamlandı                                                     | Kenar 111 / 111; ROS 79 birim + 3 launch; uçtan uca 16 / 16; mutasyon 130 / 131; fuzz ~175 bin girdi, bulgu yok; 10 / 13 gereksinim tüm yazılım katmanlarında kanıtlandı |
-| F4 Uzaktan erişim           | Kod tamam; uçtan uca koşu Docker yeniden başlatmasını bekliyor | API 45, istemci 99, web 16, sandbox birim 81, G11 55 / 59 (düzeltme sonrası yeniden koşu bekliyor), ROS 97 + 3; G14 eklendi                                              |
-| F4.5 Tic-tac-toe (sim)      | Kod tamam; gerçek yığında senaryo koşusu bekliyor              | Tabla ikizi + kurallar 15 test; API üzerinden tam oyun regresyonu ✔                                                                                                     |
-| Malzeme listesi             | Her fazda güncellenir                                          | 32 kalem (G13 donanım bekçisi dahil), [hardware/bom.md](../hardware/bom.md)                                                                                              |
+| Faz                         | Durum                                        | Sayaç                                                                                                                                                                          |
+| --------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| F0 İskele                   | Tamamlandı                                   | 6 / 6 teslim                                                                                                                                                                   |
+| F0.5 CAD                    | Tamamlandı (revizyon 6 onaylandı, `95358ba`) | 20 / 20 parça çizildi, 123 / 123 bileşen montajlandı                                                                                                                           |
+| F1 Kinematik                | Tamamlandı                                   | 8 / 8 teslim; 532 test geçti; 4 / 12 güvenlik gereksinimi kanıtlandı (çekirdek)                                                                                                |
+| F2 Datasheet                | Tamamlandı                                   | 1 / 1 etkileşimli HTML; 6 grafik, 10 bölüm; 25 / 25 test                                                                                                                       |
+| F3 ROS2 + kenar + uçtan uca | Tamamlandı                                   | Kenar 111 / 111 (F5 sonunda 190); ROS 79 + 3 (son 98 + 3); uçtan uca 16 / 16; mutasyon 130 / 131; fuzz ~175 bin girdi, bulgu yok; 10 / 13 gereksinim tüm yazılım katmanlarında |
+| F4 Uzaktan erişim           | Tamamlandı (F4 uçtan uca koşusu bekliyor\*)  | API 67, istemci 99, sandbox birim 90, G11 konteyner testleri 55 / 59 → düzeltme (yeniden koşu bekliyor\*); G14 eklendi                                                         |
+| F4.5 Tic-tac-toe (sim)      | Tamamlandı                                   | Tabla ikizi + kurallar 16 test; API ve simülasyon üzerinden tam oyun regresyonu ✔; ROS yığınında senaryo koşusu bekliyor\*                                                    |
+| F5 Yeniden kurulum          | Askıda (kısmen tamamlandı)                   | Yazılım yarısı ✔ (AX-12A arka ucu, servo aracı, prosedürler; kenar 190 / 190, %99.0); donanım yarısı askıda                                                                   |
+| F6 Deneyim arayüzü          | Tamamlandı                                   | API 67 (sim modu dahil), web 31, Playwright 11 / 11 (gerçek simülasyona karşı), iki modun ekran görüntüsü                                                                      |
+| Malzeme listesi             | F5 ile askıda                                | 32 kalem, hiçbiri alınmadı; [hardware/bom.md](../hardware/bom.md)                                                                                                              |
 
-Sıradaki: F6 tek sayfalık deneyim arayüzü (tahmin ~5–7 saat; arka uç tamam, arayüz ve Playwright sürüyor), F5 yazılım yarısı (AX-12A arka ucu sürüyor) ve askıya alma. Docker Desktop yeniden başlatılınca: G11 yeniden koşusu, F4/F4.5 uçtan uca koşusu. Son güncelleme: 2026-11-12.
+**Proje rafta (2026-11-12).** \* Docker Desktop yeniden başlatması (takılı G11 konteyneri) kullanıcı onayı bekliyor; sonra G11 yeniden koşusu ve F4/F4.5 uçtan uca koşusu yapılır (aşağıda). Son güncelleme: 2026-11-12, kapanış.
 
 ## F0 İskele
 
@@ -248,7 +250,7 @@ Kullanıcı kararı (2026-11-12): elektronik ve mekanik geliştirmeler bekler; y
 | ---------------------------------------------- | --------------------- | ------- |
 | delta_edge (GoogleTest; AX-12A arka ucu dahil) | 190 / 190             | 99.0    |
 
-## F6 Tek sayfalık deneyim arayüzü (sürüyor)
+## F6 Tek sayfalık deneyim arayüzü
 
 Kapsam iki kez değişti (kullanıcı, 2026-11-12): önce simülasyon kiralama sitesi, sonra üyeliksiz tek sayfa. Kiralama sitesi için başlanan `site/` kodu kaydedilmeden kaldırıldı; API'deki site doğrulaması, kota ve kullanım kaydı da kaldırıldı. Tasarım: [f6-deneyim-arayuzu.md](f6-deneyim-arayuzu.md).
 
@@ -268,9 +270,34 @@ Kapsam iki kez değişti (kullanıcı, 2026-11-12): önce simülasyon kiralama s
 | ROS2 (pytest + launch_testing) | 98 + 3                | —       |
 | Sandbox birim                  | 90 / 90               | —       |
 
-## Kullanıcıdan beklenen kararlar
+## Projeyi yeniden başlatma
 
-| Konu                              | Neden gerekli                                              | Şimdilik                       |
-| --------------------------------- | ---------------------------------------------------------- | ------------------------------ |
-| Docker Desktop yeniden başlatması | Takılı G11 konteyneri; G11 ve uçtan uca koşular buna bağlı | Kök oturum kullanıcıya soruyor |
-| Sunucu ve alan adı                | Deneyim arayüzünün yayına alınması                         | Yalnız yerel konteyner         |
+Gerekenler: Docker Desktop (WSL 2), Git Bash. Komutlar `DeltaRobotV2/` içinde.
+
+| Ne                                         | Komut                                                                                                                                                                                                                                            |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Deneyim arayüzü (F6, simülasyon)           | `docker compose --profile demo up -d --build` → https://localhost:8080; durdurma `docker compose --profile demo down`                                                                                                                            |
+| Tüm denetimler (CI ile aynı)               | `docker compose run --rm dev ./tools/ci.sh` ve `docker build -f docker/ros/Dockerfile --target base -t deltarobotv2-ros:base .` sonra `docker run --rm --user root -v "$PWD":/workspace -w /workspace deltarobotv2-ros:base ./tools/ros_test.sh` |
+| Tam yığın (ROS2 + sanal Pi + API + koşucu) | `docker build -f docker/sandbox/Dockerfile -t deltarobotv2-sandbox .` sonra `docker compose --profile sim up -d --build` → https://localhost:8000                                                                                                |
+| Uçtan uca testler                          | `./tools/e2e.sh` (F3, hata enjeksiyonu), `./tools/e2e_f4.sh` (F4/F4.5, gerçek istemci)                                                                                                                                                           |
+| Sandbox G11 testleri                       | `./sandbox/run_tests.sh`                                                                                                                                                                                                                         |
+| Arayüz testleri                            | `./tests/ui/run.sh` (sahte API) ya da `demo` açıkken `UI_DOCKER_NETWORK=container:deltarobotv2-demo-1 UI_BASE_URL=https://localhost:8000 ./tests/ui/run.sh` (oturum sınırı için `DELTA_SIM_SESSIONS_PER_IP_MIN=200` ile başlatın)                |
+| CAD                                        | `./tools/cad.sh build`, `./tools/cad.sh render` (FreeCAD 1.1, ana makinede)                                                                                                                                                                      |
+| Datasheet                                  | `docker compose run --rm dev python3 tools/datasheet/build_datasheet.py`                                                                                                                                                                         |
+
+Bekleyen işler:
+
+| İş                                                                                                                                                          | Neden                                                                                                                                | Ne zaman                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| G11 yeniden koşusu, F4/F4.5 uçtan uca koşusu (`./sandbox/run_tests.sh`, `./tools/e2e_f4.sh`)                                                                | Takılı `deltarobotv2-job-job-g11-f811554d` konteyneri yalnız Docker Desktop yeniden başlatmasıyla silinir; test temizliği buna bağlı | Kullanıcı onayıyla Docker yeniden başlatılınca                        |
+| F5 donanım yarısı: elektronik (donanım bekçisi, mıknatıs sürücüsü, acil stop, Pi beslemesi), kutu ve kamera, üretim, montaj, kabul testleri S1–S8 ve H1–H13 | Kullanıcı kararıyla askıda                                                                                                           | Proje yeniden başlatılınca; sıra [kurulum-plani.md](kurulum-plani.md) |
+| Kamera (WebRTC)                                                                                                                                             | F5 donanımına bağlı                                                                                                                  | F5 ile                                                                |
+
+Açık kararlar:
+
+| Konu                              | Not                                                                                                                |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Sunucu ve alan adı                | Deneyim arayüzü şimdilik yalnız yerel; gerçek sertifika ve dağıtım bu kararla                                      |
+| Motor seçimi                      | Yeniden kurulumda Dynamixel dışı motor mümkün; `edge/config/motor_ax12.yaml` biçimi yeni `model` için genişletilir |
+| Rot başı modeli                   | 13° yanal açı limiti varsayım; çalışma alanını en çok bu sınırlıyor (F2 bulgusu)                                   |
+| Docker Desktop yeniden başlatması | Kullanıcı onayı bekleniyor (yukarıda)                                                                              |

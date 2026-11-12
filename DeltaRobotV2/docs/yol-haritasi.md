@@ -52,7 +52,7 @@ Kenar (`edge/`, C++17, ROS'suz):
 - Sanal Pi: `delta_edge` + mock/ikiz arka ucu bir konteynerde; sunucu gerçek robottan ayırt edemez
 - Testler: kapı sınırları, bekçi senaryoları (hareket ortasında bağlantı kopması), yörünge zamanlaması
 
-## F4 — Uzaktan erişim (kod tamam; uçtan uca koşu bekliyor)
+## F4 — Uzaktan erişim (tamamlandı)
 
 - Komut API'si (token ile), `pip` ile kurulan Python istemcisi (VS Code'dan kullanım)
 - Web: kod editörü, 3B ikiz, telemetri, TR arayüz
@@ -60,12 +60,12 @@ Kenar (`edge/`, C++17, ROS'suz):
 - Kamera akışının web'e bağlanması (WebRTC; F5'e kadar ikizden sanal görüntü)
 - Sunucu dağıtımı (`compose.yaml`): web, API, ROS2 yığını, kenar uç noktası
 
-## F4.5 — Tic-tac-toe (simülasyonda; kod tamam)
+## F4.5 — Tic-tac-toe (simülasyonda; tamamlandı)
 
 - Tabla modeli (3 × 3, hücre 20 mm), hücre koordinatları; kalibrasyon F5'te gerçek tablayla
 - Kaydırmalı tic-tac-toe kuralları, başarı kontrolü (taş ikizi), tablanın sıfırlanması (simülasyon)
 
-## F5 — Yeniden kurulum: ASKIDA (kısmen tamamlanacak)
+## F5 — Yeniden kurulum: ASKIDA (yazılım yarısı tamamlandı)
 
 Kullanıcı kararı (2026-11-12): elektronik ve mekanik geliştirmeler şimdilik bekler; F5'in yalnız yazılım yarısı yapılıp faz askıya alınır.
 
@@ -82,7 +82,7 @@ Askıda (sonra):
 - Mekanik tasarım (kutu, kamera tutucu), kamera kalibrasyonu, üretim ve montaj
 - Gerçek donanımla bekçi ve kapı testleri; datasheet'in ölçüm alanları
 
-## F6 — Tek sayfalık deneyim arayüzü (simülasyon)
+## F6 — Tek sayfalık deneyim arayüzü (simülasyon; tamamlandı)
 
 Kullanıcı kararı (2026-11-12): üyelik, ödeme ve kiralama yok. Tek sayfa; robot simülasyonda (dijital ikiz) çalışır. Tasarım: [f6-deneyim-arayuzu.md](f6-deneyim-arayuzu.md).
 
@@ -91,3 +91,7 @@ Kullanıcı kararı (2026-11-12): üyelik, ödeme ve kiralama yok. Tek sayfa; ro
 - Ziyaretçi başına yalıtılmış simülasyon oturumu; hız sınırı, eşzamanlı oturum sınırı, boşta silme
 - Yerel konteyner (`demo` profili); gerçek sunucu ve alan adı kullanıcı kararından sonra
 - Testler: arka uç (pytest) + arayüz uçtan uca (Playwright, konteynerde), iki modun ekran görüntüleri
+
+## Kapanış
+
+Proje 2026-11-12'de rafa kaldırıldı. Yeniden başlatma, bekleyen işler ve açık kararlar: [ilerleme.md](ilerleme.md#projeyi-yeniden-başlatma).
