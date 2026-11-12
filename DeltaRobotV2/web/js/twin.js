@@ -41,12 +41,12 @@ export class Twin {
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(40, 1, 1, 5000);
     this.camera.up.set(0, 0, 1);
-    this.camera.position.set(260, -470, -60);
+    this.camera.position.set(240, -410, -70);
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(this.renderer.domElement);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(0, 0, -175);
+    this.controls.target.set(0, 0, -180);
     this.controls.update();
 
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.4));

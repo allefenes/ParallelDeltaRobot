@@ -13,6 +13,7 @@ Ortam değişkenleri:
   DELTA_SIM_TIME_SCALE simülasyon oynatma hızı çarpanı (varsayılan 1 = gerçek zaman)
   DELTA_SIM_MAX_SESSIONS   eşzamanlı ziyaretçi oturumu üst sınırı (varsayılan 50)
   DELTA_SIM_IDLE_TIMEOUT_S boşta oturumun silinme süresi (varsayılan 600 s)
+  DELTA_SIM_SESSIONS_PER_IP_MIN IP başına dakikada yeni oturum (varsayılan 10; testte artırılır)
   DELTA_RUNNER_MAX_JOBS koşucunun eşzamanlı iş kapasitesi (koşucudaki değerle aynı)
 """
 
@@ -60,6 +61,7 @@ def build():
             limits=Limits(
                 max_sessions=int(env.get("DELTA_SIM_MAX_SESSIONS", "50")),
                 idle_timeout_s=float(env.get("DELTA_SIM_IDLE_TIMEOUT_S", "600")),
+                sessions_per_ip_per_min=int(env.get("DELTA_SIM_SESSIONS_PER_IP_MIN", "10")),
             ),
         )
         backend = None

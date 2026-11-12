@@ -119,6 +119,8 @@ services:
       DELTA_API_TOKENS: ""
       DELTA_SIM_MAX_SESSIONS: "50"
       DELTA_SIM_IDLE_TIMEOUT_S: "600"
+      DELTA_SIM_SESSIONS_PER_IP_MIN: ${DELTA_SIM_SESSIONS_PER_IP_MIN:-10}
+      DELTA_SIM_TIME_SCALE: ${DELTA_SIM_TIME_SCALE:-1}
       DELTA_TLS_CERT: /certs/server.crt
       DELTA_TLS_KEY: /certs/server.key
     volumes:
