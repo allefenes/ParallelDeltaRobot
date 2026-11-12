@@ -21,3 +21,6 @@ Thumbs.db
 # Test önbellekleri
 .hypothesis/
 .coverage
+
+# Kök .gitignore'daki genel "lib/" kuralı CAD parça kütüphanesini dışlamasın
+!cad/lib/
