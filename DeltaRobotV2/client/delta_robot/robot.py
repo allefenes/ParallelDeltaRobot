@@ -156,6 +156,40 @@ class Robot:
         """Robotu o anki konumda durdurur ve tutar (HOLD). Her zaman kabul edilir."""
         self._transport.call("stop", {})
 
+    # Tic-tac-toe tablası (F4.5)
+    def board(self) -> dict[str, Any]:
+        """Tabla ikizi: hücreler ("XXX...OOO"), kazanan, taşlar, metrikler, geometri."""
+        return self._transport.call("board")
+
+    def reset_board(self) -> None:
+        """Taşları başlangıç dizilişine alır (yalnız simülasyon)."""
+        self._transport.call("board_reset", {})
+
+    def cell_xy(self, cell: int, board: dict[str, Any] | None = None) -> tuple[float, float]:
+        """Hücre merkezi (x, y) mm; hücre = satır * 3 + sütun, satır 0 = +Y, sütun 0 = -X."""
+        if isinstance(cell, bool) or not isinstance(cell, int) or not 0 <= cell <= 8:
+            raise ValueError("hücre 0..8 arası tam sayı olmalı")
+        g = (board or self.board())["geometry"]
+        row, col = divmod(cell, 3)
+        cx, cy = g["center_mm"]
+        return (cx + (col - 1) * g["cell_mm"], cy + (1 - row) * g["cell_mm"])
+
+    def pick_place(self, src: int, dst: int) -> None:
+        """Bir taşı src hücresinden dst hücresine taşır (taşıma yüksekliği, al, bırak)."""
+        board = self.board()
+        g = board["geometry"]
+        sx, sy = self.cell_xy(src, board)
+        dx, dy = self.cell_xy(dst, board)
+        up, down = g["travel_P_mm"], g["pick_P_mm"]
+        self.move_to(sx, sy, up)
+        self.move_to(sx, sy, down)
+        self.magnet(True)
+        self.move_to(sx, sy, up)
+        self.move_to(dx, dy, up)
+        self.move_to(dx, dy, down)
+        self.magnet(False)
+        self.move_to(dx, dy, up)
+
     # Telemetri
     def _telemetry_uri(self) -> str:
         parts = urlsplit(self.url)

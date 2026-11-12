@@ -8,6 +8,7 @@ servisleridir. Bekleme: kenar telemetrisi aynı yörünge kimliğiyle IDLE'a dö
 from __future__ import annotations
 
 import asyncio
+import json
 import math
 import threading
 import time
@@ -20,7 +21,7 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 from std_srvs.srv import SetBool, Trigger
 
 from delta_api.backend import (
@@ -68,10 +69,13 @@ class RosBackend(Backend):
         n.create_subscription(EdgeStatus, "/edge/status", self._on_status, QOS_STATE)
         n.create_subscription(SupervisorEvent, "/supervisor/events", self._on_event, QOS_EVENTS)
         n.create_subscription(Bool, "/edge/connected", self._on_connected, QOS_LATCHED)
+        n.create_subscription(String, "/board/state", self._on_board, QOS_LATCHED)
+        self._board: dict | None = None
         self.cli_move = n.create_client(MoveTo, "/move_to", callback_group=group)
         self.cli_magnet = n.create_client(SetBool, "/edge_bridge/magnet", callback_group=group)
         self.cli_torque = n.create_client(SetBool, "/edge_bridge/torque", callback_group=group)
         self.cli_stop = n.create_client(Trigger, "/edge_bridge/stop", callback_group=group)
+        self.cli_board_reset = n.create_client(Trigger, "/board/reset", callback_group=group)
         self.executor = MultiThreadedExecutor(num_threads=4)
         self.executor.add_node(n)
         self.thread = threading.Thread(target=self.executor.spin, daemon=True)
@@ -110,6 +114,22 @@ class RosBackend(Backend):
                 "trajectory_id": msg.trajectory_id,
             }
         )
+
+    def _on_board(self, msg: String) -> None:
+        try:
+            board = json.loads(msg.data)
+        except json.JSONDecodeError:
+            return
+        with self._lock:
+            self._board = board
+
+    def board(self) -> dict | None:
+        with self._lock:
+            return self._board
+
+    async def board_reset(self) -> bool:
+        res = await self._call(self.cli_board_reset, Trigger.Request())
+        return bool(res and res.success)
 
     def _on_connected(self, msg: Bool) -> None:
         with self._lock:

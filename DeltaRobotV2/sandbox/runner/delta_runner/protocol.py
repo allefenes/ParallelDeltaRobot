@@ -12,7 +12,9 @@ from dataclasses import dataclass
 from typing import Any
 
 RPC_PREFIX = b"\x1eDELTA "
-RPC_METHODS = frozenset({"robot", "state", "move", "magnet", "torque", "stop"})
+RPC_METHODS = frozenset(
+    {"robot", "state", "move", "magnet", "torque", "stop", "board", "board_reset"}
+)
 EXIT_REASONS = frozenset({"ok", "timeout", "output_limit", "cancelled", "error"})
 MAX_LINE_BYTES = 64 * 1024
 MAX_ID_LEN = 64

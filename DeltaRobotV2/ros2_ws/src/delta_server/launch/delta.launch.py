@@ -1,8 +1,9 @@
 """Delta Robotics V2 sunucu yığını.
 
 Başlatılanlar: robot_state_publisher (URDF), delta_state_publisher (TF + marker),
-trajectory_planner (/move_to), supervisor (1. kapı), sim_executor (GEÇİCİ sanal Pi; sim:=false
-ile kapatılır), edge_bridge (edge:=true; Pi ya da sanal Pi bağlanır) ve isteğe bağlı rviz2.
+trajectory_planner (/move_to), supervisor (1. kapı), board_twin (tabla ikizi),
+sim_executor (GEÇİCİ sanal Pi; sim:=false ile kapatılır), edge_bridge (edge:=true; Pi ya da
+sanal Pi bağlanır) ve isteğe bağlı rviz2.
 
 Kullanım:
   ros2 launch delta_server delta.launch.py                 # başsız
@@ -70,6 +71,12 @@ def generate_launch_description() -> LaunchDescription:
         Node(
             package="delta_server",
             executable="trajectory_planner",
+            parameters=common,
+            output="screen",
+        ),
+        Node(
+            package="delta_server",
+            executable="board_twin",
             parameters=common,
             output="screen",
         ),

@@ -66,7 +66,22 @@ def run_job(code: str, timeout: float = 90.0) -> dict:
     return job
 
 
+def wait_api(timeout: float = 120.0) -> bool:
+    """API ayağa kalkana kadar /health yoklanır (uvicorn + ROS düğümü birkaç saniye sürer)."""
+    end = time.monotonic() + timeout
+    while time.monotonic() < end:
+        try:
+            if http("GET", "/api/v1/health")[0] == 200:
+                return True
+        except (urllib.error.URLError, ConnectionError, OSError):
+            pass
+        time.sleep(1.0)
+    return False
+
+
 def main() -> int:
+    if not check("API ayakta (TLS)", wait_api(), URL):
+        return 1
     robot = Robot(URL, token=TOKEN, verify=CA)
 
     # Bağlantı ve kimlik

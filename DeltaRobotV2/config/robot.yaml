@@ -52,11 +52,16 @@ motor: # Dynamixel AX-12A, sadeleştirilmiş zarf
   position_range_deg: 300.0 # katalog: 0-1023 adım
   protocol: "Dynamixel Protocol 1.0, 1 Mbps, yarım-dupleks TTL" # katalog
 
-# Görev (F4.5 tic-tac-toe) yükseklikleri; tasarım F4.5'te kesinleşir.
+# Görev (F4.5 kaydırmalı tic-tac-toe). Tabla boyutu F2 çalışma alanı hesabından: taş alma
+# yüksekliğinde en büyük kare 60 mm -> 3x3, hücre 20 mm, merkez robot ekseninde.
 task:
   board_thickness: 4.0 # varsayim: 3B baskı tabla, POM üstünde
   piece_height: 8.0 # varsayim: çelik pullu PLA taş
   lift_height: 20.0 # varsayim: taşıma sırasında taş altı ile diğer taşların üstü arası
+  board:
+    center_mm: [0.0, 0.0] # turetilmis: çalışma alanı eksenel simetrik
+    cell_mm: 20.0 # turetilmis: 60 mm / 3 (F2 datasheet)
+    piece_diameter_mm: 16.0 # varsayim: hücrede 2 mm pay; mıknatıs Ø20'den küçük, tek taş tutar
 
 output_shaft: # PLA %100; tüm boyu artı kesitli (kullanici), 2 rulmanla yataklı
   journal_diameter: 8.0 # turetilmis: 608ZZ iç çapı; artı kesitin uçları bu dairenin üzerinde

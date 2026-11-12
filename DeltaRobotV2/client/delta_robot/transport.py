@@ -22,6 +22,8 @@ ROUTES: dict[str, tuple[str, str]] = {
     "magnet": ("POST", "/magnet"),
     "torque": ("POST", "/torque"),
     "stop": ("POST", "/stop"),
+    "board": ("GET", "/board"),
+    "board_reset": ("POST", "/board/reset"),
 }
 
 

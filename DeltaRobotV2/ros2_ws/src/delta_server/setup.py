@@ -30,6 +30,7 @@ setup(
             "supervisor = delta_server.supervisor_node:main",
             "sim_executor = delta_server.sim_executor_node:main",
             "edge_bridge = delta_server.edge_bridge_node:main",
+            "board_twin = delta_server.board_twin_node:main",
         ],
     },
 )

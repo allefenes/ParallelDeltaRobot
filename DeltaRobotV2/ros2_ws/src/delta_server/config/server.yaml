@@ -43,8 +43,8 @@ delta_state_publisher:
     board_size_mm: 60.0
     board_cells: 3
     piece_diameter_mm: 16.0 # varsayim
-    # Taşlar: satır satır 9 karakter, "X", "O" ya da "." (boş). Satır 0 = +Y tarafı.
-    pieces: "X.O.X...O"
+    # Sabit taşlar (boş): F4.5'ten beri taşları board_twin düğümü ikizden çizer.
+    pieces: ""
     # Uç yolu izi: tutulacak en çok nokta (100 Hz'de 10 s).
     trail_length: 1000
     marker_rate_hz: 2.0
@@ -53,3 +53,8 @@ sim_executor:
   ros__parameters:
     # Sanal Pi: telemetri yayın hızı (Hz); eklem durumu her zaman sample_rate_hz ile yayımlanır.
     status_rate_hz: 10.0
+
+board_twin:
+  ros__parameters:
+    # Tabla durumu (taşlar, oyun, metrikler) yayın hızı (Hz). Geometri robot.yaml task.board'dan.
+    publish_rate_hz: 10.0

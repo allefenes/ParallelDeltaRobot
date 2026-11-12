@@ -17,7 +17,7 @@ cleanup() {
   [[ "${KEEP_UP:-0}" == "1" ]] || $DC down >/dev/null 2>&1 || true
   ids="$(docker ps -aq --filter label=deltarobotv2.sandbox=job)"
   # shellcheck disable=SC2086
-  [[ -z "$ids" ]] || docker rm -f $ids >/dev/null
+  [[ -z "$ids" ]] || timeout 60 docker rm -f $ids >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
 

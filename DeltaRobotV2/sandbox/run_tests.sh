@@ -31,7 +31,7 @@ cleanup() {
   ids="$(docker ps -aq --filter label=deltarobotv2.sandbox=job)"
   if [[ -n "$ids" ]]; then
     # shellcheck disable=SC2086
-    docker rm -f $ids >/dev/null
+    timeout 60 docker rm -f $ids >/dev/null 2>&1 || true  # takılı konteyner betiği kilitlemesin
   fi
 }
 trap cleanup EXIT

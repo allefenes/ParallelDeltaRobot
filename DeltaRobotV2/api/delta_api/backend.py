@@ -129,6 +129,13 @@ class Backend:
     async def stop(self) -> bool:
         raise NotImplementedError
 
+    def board(self) -> dict | None:
+        """Tabla ikizi durumu (F4.5); ikiz yoksa None."""
+        return None
+
+    async def board_reset(self) -> bool:
+        return False
+
     def close(self) -> None:
         """Kaynakları bırakır (ROS düğümü vb.)."""
 
@@ -187,6 +194,34 @@ class FakeBackend(Backend):
         )
         self._n = 0
         self.commands: list[tuple] = []  # testler için komut kaydı
+        self.twin = None
+        if spec is not None:
+            try:  # ROS paketindeki saf modül (ROS gerektirmez); yoksa tabla ikizi kapalı
+                from delta_server.board_game import BoardTwin, Geometry
+
+                self.twin = BoardTwin(Geometry.from_spec(spec))
+            except ImportError:
+                self.twin = None
+
+    def _tip(self) -> tuple[float, float, float] | None:
+        p = self._s.position_mm
+        if p is None or self.spec is None:
+            return None
+        return (p[0], p[1], p[2] - float(self.spec["kinematics"]["ee_offset"]))
+
+    def _twin_step(self) -> None:
+        if self.twin is not None:
+            self.twin.update(self._tip(), self._s.magnet)
+
+    def board(self) -> dict | None:
+        return self.twin.to_dict() if self.twin is not None else None
+
+    async def board_reset(self) -> bool:
+        self.commands.append(("board_reset",))
+        if self.twin is None:
+            return False
+        self.twin.reset()
+        return True
 
     def info(self) -> dict:
         if self.spec is None:
@@ -242,6 +277,7 @@ class FakeBackend(Backend):
             u = min((time.monotonic() - t0) / dur, 1.0)
             self._s.position_mm = [a[i] + (b[i] - a[i]) * u for i in range(3)]
             self._s.angles_deg = [round(-self._s.position_mm[2] / 4 - 30, 2)] * 3
+            self._twin_step()
             if u >= 1.0:
                 self._s.state = "IDLE"
                 return
@@ -252,6 +288,7 @@ class FakeBackend(Backend):
         if on and self._s.state not in ("IDLE", "RUNNING", "HOLDING"):
             return False
         self._s.magnet = bool(on)
+        self._twin_step()
         return True
 
     async def torque(self, on: bool) -> bool:
@@ -259,6 +296,7 @@ class FakeBackend(Backend):
         self._s.state = "IDLE" if on else "TORQUE_OFF"
         if not on:
             self._s.magnet = False
+            self._twin_step()
         return True
 
     async def stop(self) -> bool:

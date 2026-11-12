@@ -36,18 +36,20 @@ Statik dosyalar (`/`, `/assets/meshes/*`, `/i18n/*`) belirteç gerektirmez; robo
 
 Tüm gövdeler JSON. Uzunluk mm, açı derece, süre saniye. Hata gövdesi: `{"error": <kod>, "message": <Türkçe metin>}`; kodlar `bad_request` (400), `unauthorized` (401), `not_found` (404), `busy` (409), `robot_unavailable` (503).
 
-| Yöntem | Yol                 | Gövde                                                                | Yanıt                                                                       |
-| ------ | ------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| GET    | `/health`           | —                                                                    | `{"ok": true, "edge_connected": bool, "version": "v1"}` (belirteç gerekmez) |
-| GET    | `/robot`            | —                                                                    | Robot tanımı (aşağıda)                                                      |
-| GET    | `/state`            | —                                                                    | Durum (aşağıda)                                                             |
-| POST   | `/move`             | `{"x", "y", "z", "duration_s": number \| null, "wait": bool = true}` | Hareket sonucu (aşağıda)                                                    |
-| POST   | `/magnet`           | `{"on": bool}`                                                       | `{"ok": true, "magnet": bool}`                                              |
-| POST   | `/torque`           | `{"on": bool}`                                                       | `{"ok": true}`                                                              |
-| POST   | `/stop`             | `{}`                                                                 | `{"ok": true}`; robot o anki konumda durur ve tutar (HOLD)                  |
-| POST   | `/jobs`             | `{"code": str, "name": str?}`                                        | `202 {"job_id": str, "status": "queued"}`; kod ≤ 64 KB                      |
-| GET    | `/jobs/{id}`        | —                                                                    | İş (aşağıda)                                                                |
-| POST   | `/jobs/{id}/cancel` | `{}`                                                                 | `{"ok": true}`                                                              |
+| Yöntem | Yol                 | Gövde                                                                | Yanıt                                                                                      |
+| ------ | ------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| GET    | `/health`           | —                                                                    | `{"ok": true, "edge_connected": bool, "version": "v1"}` (belirteç gerekmez)                |
+| GET    | `/robot`            | —                                                                    | Robot tanımı (aşağıda)                                                                     |
+| GET    | `/state`            | —                                                                    | Durum (aşağıda)                                                                            |
+| POST   | `/move`             | `{"x", "y", "z", "duration_s": number \| null, "wait": bool = true}` | Hareket sonucu (aşağıda)                                                                   |
+| POST   | `/magnet`           | `{"on": bool}`                                                       | `{"ok": true, "magnet": bool}`                                                             |
+| POST   | `/torque`           | `{"on": bool}`                                                       | `{"ok": true}`                                                                             |
+| POST   | `/stop`             | `{}`                                                                 | `{"ok": true}`; robot o anki konumda durur ve tutar (HOLD)                                 |
+| GET    | `/board`            | —                                                                    | Tabla ikizi (F4.5, aşağıda)                                                                |
+| POST   | `/board/reset`      | `{}`                                                                 | `{"ok": true}`; taşlar başlangıç dizilişine (yalnız simülasyon); robot hareket ederken 409 |
+| POST   | `/jobs`             | `{"code": str, "name": str?}`                                        | `202 {"job_id": str, "status": "queued"}`; kod ≤ 64 KB                                     |
+| GET    | `/jobs/{id}`        | —                                                                    | İş (aşağıda)                                                                               |
+| POST   | `/jobs/{id}/cancel` | `{}`                                                                 | `{"ok": true}`                                                                             |
 
 ### Robot tanımı (`GET /robot`)
 
@@ -83,6 +85,38 @@ Tüm gövdeler JSON. Uzunluk mm, açı derece, süre saniye. Hata gövdesi: `{"e
 ```
 
 Değerler `config/robot.yaml` ve datasheet hesaplarından gelir; istemciler sabit değer gömmez, buradan okur. Çalışma alanı z değerleri P içindir. `z_bottom_mm` kinematik alt sınır (−250) ile G14 sınırının (mıknatıs ucu tabla üstü −236'nın altına inemez: P ≥ −236 + 15 = −221) büyüğüdür.
+
+### Tabla ikizi (`GET /board`, F4.5)
+
+Kaydırmalı tic-tac-toe tablası; kurallar ve geometri `ros2_ws/src/delta_server/delta_server/board_game.py`.
+
+```json
+{
+  "cells": "XXX...OOO",
+  "winner": null,
+  "pieces": [{ "id": "X1", "kind": "X", "pos_mm": [-20, 20, -236], "held": false }],
+  "metrics": {
+    "picks": 0,
+    "places": 0,
+    "dropped": 0,
+    "off_board": 0,
+    "missed_picks": 0,
+    "placement_error_mean_mm": null,
+    "placement_error_max_mm": null
+  },
+  "geometry": {
+    "center_mm": [0, 0],
+    "cell_mm": 20,
+    "board_top_mm": -236,
+    "piece_height_mm": 8,
+    "piece_diameter_mm": 16,
+    "pick_P_mm": -213,
+    "travel_P_mm": -185
+  }
+}
+```
+
+Hücre sırası `satır * 3 + sütun`; satır 0 = +Y tarafı, sütun 0 = −X tarafı. İstemci: `robot.board()`, `robot.reset_board()`, `robot.cell_xy(i)`, `robot.pick_place(src, dst)`.
 
 ### Durum (`GET /state`, telemetri akışı)
 
@@ -165,7 +199,7 @@ for s in robot.telemetry():          # WS akışı (yalnız ağ taşımasında)
 
 - İstek (konteyner `stdout`'una, tek satır): `\x1eDELTA {"id": 1, "method": "move", "params": {...}}`
 - Yanıt (konteyner `stdin`'ine, tek satır JSON): `{"id": 1, "result": {...}}` ya da `{"id": 1, "error": {"code": "busy", "message": "..."}}`
-- `\x1eDELTA ` önekiyle başlamayan `stdout` satırları kullanıcı çıktısıdır. `method`: `robot`, `state`, `move`, `magnet`, `torque`, `stop`; `params` ve `result` REST gövdeleriyle aynıdır.
+- `\x1eDELTA ` önekiyle başlamayan `stdout` satırları kullanıcı çıktısıdır. `method`: `robot`, `state`, `move`, `magnet`, `torque`, `stop`, `board`, `board_reset`; `params` ve `result` REST gövdeleriyle aynıdır.
 
 ### Koşucu ↔ API (`ws://runner:8100/run`, iç ağ, paylaşılan gizli anahtar `DELTA_RUNNER_SECRET`)
 

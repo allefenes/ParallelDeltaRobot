@@ -129,6 +129,15 @@ def create_app(
     async def torque(request: Request):
         return await command(request, "torque")
 
+    @app.get(f"{api}/board")
+    async def board(request: Request):
+        user(request)
+        return await execute(backend, "board", {})
+
+    @app.post(f"{api}/board/reset")
+    async def board_reset(request: Request):
+        return await command(request, "board_reset")
+
     @app.post(f"{api}/stop")
     async def stop(request: Request):
         # Güvenlik: dur komutu kilitten bağımsız, her zaman kabul edilir.

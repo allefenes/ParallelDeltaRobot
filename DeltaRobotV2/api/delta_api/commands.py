@@ -10,7 +10,7 @@ import math
 
 from delta_api.backend import Backend
 
-METHODS = ("robot", "state", "move", "magnet", "torque", "stop")
+METHODS = ("robot", "state", "move", "magnet", "torque", "stop", "board", "board_reset")
 MAX_DURATION_S = 60.0  # süpervizörün max_duration_s değeriyle aynı
 
 
@@ -84,6 +84,17 @@ async def execute(backend: Backend, method: str, params: dict | None, job_id: st
     if method == "stop":
         if not await backend.stop():
             raise ApiError("robot_unavailable", "dur komutu iletilemedi (kenar bağlı değil)")
+        return {"ok": True}
+    if method == "board":
+        board = backend.board()
+        if board is None:
+            raise ApiError("robot_unavailable", "tabla ikizi yok")
+        return board
+    if method == "board_reset":
+        if backend.state().state == "RUNNING":
+            raise ApiError("busy", "robot hareket ederken tabla sıfırlanamaz")
+        if not await backend.board_reset():
+            raise ApiError("robot_unavailable", "tabla sıfırlanamadı")
         return {"ok": True}
     raise ApiError("bad_request", f"bilinmeyen komut: {method}")
 

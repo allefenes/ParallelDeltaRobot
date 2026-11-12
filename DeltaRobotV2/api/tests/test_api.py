@@ -412,3 +412,71 @@ def test_move_outcome_dict():
     }
     d = MoveOutcome(True, "t", False, None, reason="yörünge tamamlanmadı").to_dict()
     assert d["reason"] == "yörünge tamamlanmadı" and d["done"] is False
+
+
+# --- tic-tac-toe tablası (F4.5) -----------------------------------------------------------------
+
+
+def _pick_place(c, src, dst, board):
+    g = board["geometry"]
+    cell = g["cell_mm"]
+
+    def xy(i):
+        row, col = divmod(i, 3)
+        return ((col - 1) * cell, (1 - row) * cell)
+
+    (sx, sy), (dx, dy) = xy(src), xy(dst)
+    up, down = g["travel_P_mm"], g["pick_P_mm"]
+    for x, y, z, mag in (
+        (sx, sy, up, None),
+        (sx, sy, down, True),
+        (sx, sy, up, None),
+        (dx, dy, up, None),
+        (dx, dy, down, False),
+        (dx, dy, up, None),
+    ):
+        r = c.post("/api/v1/move", headers=H, json={"x": x, "y": y, "z": z})
+        assert r.json()["accepted"], r.json()
+        if mag is not None:
+            assert c.post("/api/v1/magnet", headers=H, json={"on": mag}).status_code == 200
+
+
+def test_board_twin_via_api(spec):
+    c, _ = make_client(spec)
+    with c:
+        b = c.get("/api/v1/board", headers=H).json()
+        assert b["cells"] == "XXX...OOO" and b["winner"] is None
+        assert b["geometry"]["pick_P_mm"] == -213.0
+        _pick_place(c, 1, 4, b)
+        b2 = c.get("/api/v1/board", headers=H).json()
+        assert b2["cells"] == "X.X.X.OOO"
+        assert b2["metrics"]["picks"] == 1 and b2["metrics"]["dropped"] == 0
+        assert c.post("/api/v1/board/reset", headers=H).json() == {"ok": True}
+        assert c.get("/api/v1/board", headers=H).json()["cells"] == "XXX...OOO"
+
+
+def test_board_requires_token_and_twin(spec):
+    c, b = make_client(spec)
+    b.twin = None
+    with c:
+        assert c.get("/api/v1/board").status_code == 401
+        assert c.get("/api/v1/board", headers=H).status_code == 503
+        assert c.post("/api/v1/board/reset", headers=H).status_code == 503
+
+
+def test_board_reset_refused_while_moving(spec):
+    c, b = make_client(spec)
+    with c:
+        b.state().state = "RUNNING"
+        r = c.post("/api/v1/board/reset", headers=H)
+    assert r.status_code == 409
+
+
+def test_job_board_rpc(spec):
+    runner = FakeRunner([("rpc", 1, "board", {}), ("rpc", 2, "board_reset", {}), ("exit", 0, "ok")])
+    c, _ = make_client(spec, runner.url)
+    with c:
+        jid = c.post("/api/v1/jobs", headers=H, json={"code": "x"}).json()["job_id"]
+        assert wait_job(c, jid)["status"] == "done"
+    assert runner.received[1]["result"]["cells"] == "XXX...OOO"
+    assert runner.received[2]["result"] == {"ok": True}
