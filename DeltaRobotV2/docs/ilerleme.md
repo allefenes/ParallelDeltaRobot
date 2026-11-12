@@ -6,16 +6,18 @@ Son güncelleme: 2026-11-12
 
 ## Özet
 
-| Faz                         | Durum                                        | Sayaç                                                                                                                                                                    |
-| --------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| F0 İskele                   | Tamamlandı                                   | 6 / 6 teslim                                                                                                                                                             |
-| F0.5 CAD                    | Tamamlandı (revizyon 6 onaylandı, `95358ba`) | 20 / 20 parça çizildi, 123 / 123 bileşen montajlandı                                                                                                                     |
-| F1 Kinematik                | Tamamlandı                                   | 8 / 8 teslim; 532 test geçti; 4 / 12 güvenlik gereksinimi kanıtlandı (çekirdek)                                                                                          |
-| F2 Datasheet                | Tamamlandı                                   | 1 / 1 etkileşimli HTML; 6 grafik, 10 bölüm; 25 / 25 test                                                                                                                 |
-| F3 ROS2 + kenar + uçtan uca | Tamamlandı                                   | Kenar 111 / 111; ROS 79 birim + 3 launch; uçtan uca 16 / 16; mutasyon 130 / 131; fuzz ~175 bin girdi, bulgu yok; 10 / 13 gereksinim tüm yazılım katmanlarında kanıtlandı |
-| Malzeme listesi             | Her fazda güncellenir                        | 32 kalem (G13 donanım bekçisi dahil), [hardware/bom.md](../hardware/bom.md)                                                                                              |
+| Faz                         | Durum                                                          | Sayaç                                                                                                                                                                    |
+| --------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| F0 İskele                   | Tamamlandı                                                     | 6 / 6 teslim                                                                                                                                                             |
+| F0.5 CAD                    | Tamamlandı (revizyon 6 onaylandı, `95358ba`)                   | 20 / 20 parça çizildi, 123 / 123 bileşen montajlandı                                                                                                                     |
+| F1 Kinematik                | Tamamlandı                                                     | 8 / 8 teslim; 532 test geçti; 4 / 12 güvenlik gereksinimi kanıtlandı (çekirdek)                                                                                          |
+| F2 Datasheet                | Tamamlandı                                                     | 1 / 1 etkileşimli HTML; 6 grafik, 10 bölüm; 25 / 25 test                                                                                                                 |
+| F3 ROS2 + kenar + uçtan uca | Tamamlandı                                                     | Kenar 111 / 111; ROS 79 birim + 3 launch; uçtan uca 16 / 16; mutasyon 130 / 131; fuzz ~175 bin girdi, bulgu yok; 10 / 13 gereksinim tüm yazılım katmanlarında kanıtlandı |
+| F4 Uzaktan erişim           | Kod tamam; uçtan uca koşu Docker yeniden başlatmasını bekliyor | API 49, istemci 102, web 16, sandbox birim 81, G11 55 / 59 (düzeltme sonrası yeniden koşu bekliyor), ROS 97 + 3; G14 eklendi                                             |
+| F4.5 Tic-tac-toe (sim)      | Kod tamam; gerçek yığında senaryo koşusu bekliyor              | Tabla ikizi + kurallar 15 test; API üzerinden tam oyun regresyonu ✔                                                                                                     |
+| Malzeme listesi             | Her fazda güncellenir                                          | 32 kalem (G13 donanım bekçisi dahil), [hardware/bom.md](../hardware/bom.md)                                                                                              |
 
-Sıradaki: F4 uzaktan erişim (tahmin ~6–8 saat), ardından F4.5 tic-tac-toe simülasyonda (~3–4 saat). Son güncelleme: 2026-11-12, F3 tamamlandı.
+Sıradaki: Docker Desktop yeniden başlatılınca G11 yeniden koşusu ve F4/F4.5 uçtan uca koşusu; ardından F5 yazılım yarısı (tahmin ~3–4 saat) ve askıya alma, F6 simülasyon kiralama sitesi (tahmin ~10–14 saat). Son güncelleme: 2026-11-12, F4/F4.5 kodu tamam.
 
 ## F0 İskele
 
@@ -183,3 +185,56 @@ Uçtan uca senaryolar: TLS bağlantısı; yörünge yürütme; 1. kapı reddi (G
 **Bulgu ve karar:** Pi çökerse (SIGKILL / donma / elektrik kesintisi) yazılım torku kapatamaz; gerçek servolar son hedefte torklu kalır. Karar: G13 donanım bekçisi; yaşam darbesi kesilince 74HC123 monostable servo gücünü ≤ 0.5 s (varsayım) içinde keser. Mimari, BOM (47–49), kurulum planı ve kabul testi H13 güncellendi.
 
 **Güvenlik gereksinimleri:** 10 / 13 tüm yazılım katmanlarında kanıtlandı (G1–G10); G13'ün yazılım tarafı kanıtlandı, donanım tarafı F5'te; G11 (sandbox) F4'te; G12 (acil stop) F5'te. Ayrıntı: [guvenlik-gereksinimleri.md](guvenlik-gereksinimleri.md).
+
+## F4 Uzaktan erişim
+
+Sözleşme: [api.md](api.md). Bilgisayarın ikinci çökmesinden (11:07) sonra diskteki iş denetlendi: kayıp yok; 14 dosyadaki CRLF satır sonları LF'ye çevrildi, `6324f1d` ara kayıt.
+
+| Teslim                                                                                                          | Durum                                                        |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Komut API'si (`api/`, FastAPI): REST + WebSocket, belirteç, kontrol kilidi, iş kuyruğu; ROS2 ve sahte arka uç   | ✔                                                           |
+| Python istemcisi (`client/`, pip paketi `delta-robot-client`): HTTPS + sandbox stdio taşıması                   | ✔                                                           |
+| Web arayüzü (`web/`, Türkçe): kod editörü, 3B ikiz (CAD mesh'leri), telemetri, elle sürme, DUR                  | ✔                                                           |
+| Sandbox (`sandbox/`): koşucu + ağsız, salt okunur, kaynak sınırlı kullanıcı kodu konteyneri                     | ✔                                                           |
+| Compose `sim` profili: api (server ağ ad alanında, https://localhost:8000) + runner; ROS keşfi yalnız localhost | ✔                                                           |
+| Kenar telemetrisinde mıknatıs durumu; edge_bridge magnet/stop servisleri                                        | ✔                                                           |
+| Uçtan uca test (`tools/e2e_f4.sh`, gerçek istemciyle 18 senaryo + F4.5 oyunu)                                   | Docker yeniden başlatmasını bekliyor                         |
+| Kamera (WebRTC)                                                                                                 | F5'e ertelendi; web'de "Kamera F5'te; şimdilik dijital ikiz" |
+
+### F4 test özeti
+
+| Bileşen                                          | Test (geçen / toplam)         | Satır % | Not                                                                |
+| ------------------------------------------------ | ----------------------------- | ------- | ------------------------------------------------------------------ |
+| API (pytest, sahte arka uç + sahte koşucu)       | 49 / 49                       | 93      | Kimlik, kilit, iş akışı, tabla, tam oyun regresyonu                |
+| Python istemcisi                                 | 102 / 102                     | 100     | Python 3.10 (en düşük sürümler) ve 3.12                            |
+| Web (JS çalıştırmadan denetimler + sahte sunucu) | 16 / 16                       | —       | Tarayıcıda elle doğrulandı (1280 px ve 375 px)                     |
+| Sandbox birim                                    | 81 / 81                       | —       | Docker'sız; G11 tıkanma regresyonu dahil                           |
+| Sandbox G11 (gerçek konteyner)                   | 55 / 59 (+14 temizlik hatası) | —       | Hatalar aşağıdaki bulgudan; düzeltme sonrası yeniden koşu bekliyor |
+| ROS2 (pytest + launch_testing)                   | 97 + 3                        | —       | G14 ve tabla ikizi dahil                                           |
+| Kenar (C++)                                      | 112 / 112                     | 99.0    | Telemetride mıknatıs                                               |
+
+**G11 bulgusu (düzeltildi):** RPC seli testinde kullanıcı kodu stdin'i okumayınca koşucunun stdout okuyucusu yanıt yazarken bekledi; docker istemcisi ve Docker daemon'ının akış kopyası tıkandı, konteyner `kill`/`rm -f` ile bile silinemez kaldı (`deltarobotv2-job-job-g11-f811554d`; Docker Desktop yeniden başlatılınca temizlenecek). Düzeltme: stdin'e bloklamadan yazma (256 KB sınır), bekleyen istek sınırını aşan sel işi durdurur, durdurmada stdin kapanır + SIGKILL + `rm -f`. Docker'sız regresyon testi eski kodda takılıyor, yenide 1 s'de geçiyor.
+
+**G14 (yeni gereksinim):** API sözleşmesi yazılırken bulundu: çalışma alanının kinematik alt sınırı mıknatıs ucunu zemine indirebiliyordu ve 1. kapıda zemin denetimi yoktu. Süpervizöre eklendi (3 test); API çalışma alanını P ≥ −221 mm olarak bildirir.
+
+## F4.5 Tic-tac-toe (simülasyon)
+
+| Teslim                                                                                                                       | Durum                               |
+| ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| Tabla tasarımı: 3 × 3, hücre 20 mm (F2'deki 60 mm kare), taş Ø16 × 8 mm; `robot.yaml task.board`                             | ✔                                  |
+| Oyun: kaydırmalı tic-tac-toe (Üç Taş ailesi). Çalışma alanı tablayı doldurduğu için taş deposu yok; taşlar baştan tabladadır | ✔                                  |
+| Taş ikizi (`board_game.py`, `board_twin` düğümü): mıknatısla al/bırak, yerleştirme hatası, düşürme, kaçırma metrikleri       | ✔                                  |
+| API `GET /board`, `POST /board/reset`; istemci `board()`, `reset_board()`, `cell_xy()`, `pick_place()`                       | ✔                                  |
+| Web ikizinde tabla ve taşlar, tabla durumu, sıfırlama düğmesi                                                                | ✔                                  |
+| Senaryo regresyonu: iki minimaks oyuncu; API üzerinden (sahte arka uç) ✔, gerçek yığında `tools/e2e_f4.sh`                  | kısmen                              |
+| Datasheet "Senaryo metrikleri (simülasyon)" bölümü                                                                           | ✔ (veri uçtan uca koşudan gelecek) |
+
+## Kullanıcıdan beklenen kararlar
+
+| Konu                                                                | Neden gerekli                                              | Şimdilik                        |
+| ------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------- |
+| Docker Desktop yeniden başlatması                                   | Takılı G11 konteyneri; G11 ve uçtan uca koşular buna bağlı | Kök oturum kullanıcıya soruyor  |
+| Fiyatlandırma (F6)                                                  | Simülasyon kiralama planları                               | Öneri belgede; yer tutucular    |
+| Ödeme sağlayıcısı (F6): iyzico ya da PayTR                          | Stripe Türk satıcı kabul etmiyor                           | Soyutlama + test modu           |
+| Alan adı ve sunucu (F6)                                             | Gerçek dağıtım                                             | Yalnız yerel konteyner          |
+| Hukuki metinler (F6): Kullanım Koşulları, KVKK aydınlatma, Gizlilik | Hukuk incelemesi                                           | "Taslak" işaretli yer tutucular |

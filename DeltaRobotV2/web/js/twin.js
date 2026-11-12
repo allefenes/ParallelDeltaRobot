@@ -237,6 +237,54 @@ export class Twin {
     this.magnet.scale.setScalar(on ? 1.4 : 1);
   }
 
+  // Tic-tac-toe tablası ve taşlar (F4.5): /board yanıtından. Tabla bir kez kurulur, taşlar her
+  // çağrıda konumlanır (alt yüz merkezi -> silindir merkezi).
+  updateBoard(board) {
+    const g = board.geometry;
+    if (!this.board) {
+      const size = 3 * g.cell_mm;
+      const thick = 4;
+      this.board = new THREE.Group();
+      const slab = new THREE.Mesh(
+        new THREE.BoxGeometry(size, size, thick),
+        new THREE.MeshStandardMaterial({ color: 0x33373f }),
+      );
+      slab.position.set(g.center_mm[0], g.center_mm[1], g.board_top_mm - thick / 2);
+      this.board.add(slab);
+      const pts = [];
+      const half = size / 2;
+      for (let n = 0; n <= 3; n++) {
+        const d = -half + n * g.cell_mm;
+        pts.push(-half, d, 0, half, d, 0, d, -half, 0, d, half, 0);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+      const grid = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0xeeeeee }));
+      grid.position.set(g.center_mm[0], g.center_mm[1], g.board_top_mm + 0.3);
+      this.board.add(grid);
+      this.pieceMeshes = new Map();
+      this.scene.add(this.board);
+    }
+    for (const p of board.pieces) {
+      let m = this.pieceMeshes.get(p.id);
+      if (!m) {
+        m = new THREE.Mesh(
+          new THREE.CylinderGeometry(
+            g.piece_diameter_mm / 2,
+            g.piece_diameter_mm / 2,
+            g.piece_height_mm,
+            28,
+          ),
+          new THREE.MeshStandardMaterial({ color: p.kind === "X" ? 0x1a73e6 : 0xf2cc1a }),
+        );
+        m.rotation.x = Math.PI / 2; // three.js silindiri Y ekseninde; robot çerçevesi +Z yukarı
+        this.board.add(m);
+        this.pieceMeshes.set(p.id, m);
+      }
+      m.position.set(p.pos_mm[0], p.pos_mm[1], p.pos_mm[2] + g.piece_height_mm / 2);
+    }
+  }
+
   // Bağlantı yoksa ikiz soluk gösterilir.
   setStale(stale) {
     this.renderer.domElement.style.opacity = stale ? "0.45" : "1";

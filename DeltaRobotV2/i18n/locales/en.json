@@ -83,5 +83,10 @@
   "web.error.unauthorized": "Token is invalid or missing.",
   "web.error.busy": "Robot busy: {message}",
   "web.error.http": "Server error (HTTP {status}).",
-  "web.camera.placeholder": "Camera comes in F5; digital twin for now."
+  "web.camera.placeholder": "Camera comes in F5; digital twin for now.",
+  "web.board.status": "Board: {cells} · {winner}",
+  "web.board.winner": "Winner: {kind}",
+  "web.board.no_winner": "No winner",
+  "web.board.unavailable": "Board twin unavailable",
+  "web.board.reset": "Reset board"
 }

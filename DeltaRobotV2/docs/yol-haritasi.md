@@ -52,7 +52,7 @@ Kenar (`edge/`, C++17, ROS'suz):
 - Sanal Pi: `delta_edge` + mock/ikiz arka ucu bir konteynerde; sunucu gerçek robottan ayırt edemez
 - Testler: kapı sınırları, bekçi senaryoları (hareket ortasında bağlantı kopması), yörünge zamanlaması
 
-## F4 — Uzaktan erişim
+## F4 — Uzaktan erişim (kod tamam; uçtan uca koşu bekliyor)
 
 - Komut API'si (token ile), `pip` ile kurulan Python istemcisi (VS Code'dan kullanım)
 - Web: kod editörü, 3B ikiz, telemetri, TR arayüz
@@ -60,19 +60,34 @@ Kenar (`edge/`, C++17, ROS'suz):
 - Kamera akışının web'e bağlanması (WebRTC; F5'e kadar ikizden sanal görüntü)
 - Sunucu dağıtımı (`compose.yaml`): web, API, ROS2 yığını, kenar uç noktası
 
-## F4.5 — Tic-tac-toe
+## F4.5 — Tic-tac-toe (simülasyonda; kod tamam)
 
-- Tabla modeli, hücre koordinatları, kalibrasyon
-- Görev tanımı, başarı kontrolü, robotun kendi kendine sıfırlaması
+- Tabla modeli (3 × 3, hücre 20 mm), hücre koordinatları; kalibrasyon F5'te gerçek tablayla
+- Kaydırmalı tic-tac-toe kuralları, başarı kontrolü (taş ikizi), tablanın sıfırlanması (simülasyon)
 
-## F5 — Yeniden kurulum
+## F5 — Yeniden kurulum: ASKIDA (kısmen tamamlanacak)
 
-- Motor seçimi, havalandırmalı kutu, kamera, elektromıknatıs sürücüsü
-- Raspberry Pi kurulumu: `delta_edge` servisi (systemd), TLS kimliği, dışarı bağlantı
-- Fiziksel acil stop: güç yolunu keser ve Pi'ye bildirir (ağdan bağımsız)
-- Kamera: Pi'den doğrudan WebRTC yayını
+Kullanıcı kararı (2026-11-12): elektronik ve mekanik geliştirmeler şimdilik bekler; F5'in yalnız yazılım yarısı yapılıp faz askıya alınır.
+
+Yapılacak (yazılım):
+
+- AX-12A arka ucu (Dynamixel Protocol 1.0) motordan bağımsız sürücü arayüzünün arkasında; protokol düzeyi sahte servo / seri geri döngüyle test, donanımsız
+- Motor parametre yapılandırması (başka motor sonradan takılabilsin)
+- Donanım kabul testi prosedürlerinin güncel tutulması ([kabul-testleri.md](kabul-testleri.md))
+- [kurulum-plani.md](kurulum-plani.md) yazılım adımları: Pi OS, kenar servisi kurulumu, servo kimlik/baud ayar prosedürü
+
+Askıda (sonra):
+
+- Elektronik tasarım (şema, kablolama, donanım bekçisi devresi, mıknatıs sürücüsü, acil stop ayrıntıları)
+- Mekanik tasarım (kutu, kamera tutucu), kamera kalibrasyonu, üretim ve montaj
 - Gerçek donanımla bekçi ve kapı testleri; datasheet'in ölçüm alanları
 
-## F6 — Kiralama
+## F6 — Simülasyon kiralama sitesi
 
-- Hesaplar, saatlik rezervasyon, ödeme, izleme, otomatik toparlanma, görev döngüsü yönetimi
+Kullanıcı kararı (2026-11-12): site şimdilik yalnız simülasyon hizmetini (dijital ikiz üzerinde uzaktan kinematik laboratuvarı) kiralar; canlı robot "Yakında" olarak gösterilir.
+
+- Hesaplar ve kimlik doğrulama, planlar ve kotalar, kullanım ölçümü
+- Ödeme soyutlaması, yalnız test modu (iyzico / PayTR adayı; sağlayıcı seçilmedi)
+- Türkçe tanıtım sayfaları (İngilizceye hazır): ürün, nasıl çalışır, belgeler, fiyatlar, "Canlı robot: yakında"
+- Yönetici kullanım görünümü; hukuki sayfalar için "taslak" yer tutucular
+- Yalnız yerel konteyner dağıtımı; gerçek sunucu ve alan adı kullanıcı kararından sonra

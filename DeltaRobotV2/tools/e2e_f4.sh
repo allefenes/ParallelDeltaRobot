@@ -34,9 +34,16 @@ set +e
 docker run --rm --network "container:${server}" \
   -v "${src}:/w:ro" -v deltarobotv2_certs:/certs:ro \
   -e DELTA_TOKEN="$TOKEN" -e DELTA_CA_FILE=/certs/ca.crt -e PYTHONDONTWRITEBYTECODE=1 \
+  -e PYTHONPATH=/w/ros2_ws/src/delta_server \
   --entrypoint python deltarobotv2-sandbox:latest /w/tests/e2e/f4_check.py | tee build/e2e_f4.log
 rc=${PIPESTATUS[0]}
 set -e
+# F4.5 senaryo metrikleri datasheet'e (docs/datasheet/scenario_metrics.json) yazılır.
+grep -E "^SCENARIO_METRICS " build/e2e_f4.log | tail -1 | sed 's/^SCENARIO_METRICS //' \
+  >build/scenario_metrics.json || true
+if [[ -s build/scenario_metrics.json ]]; then
+  cp build/scenario_metrics.json docs/datasheet/scenario_metrics.json
+fi
 {
   echo "# F4 uçtan uca test sonucu ($(date -u +%Y-%m-%dT%H:%MZ))"
   echo

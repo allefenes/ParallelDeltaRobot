@@ -277,6 +277,42 @@ def cell(v) -> str:
     return esc(v)
 
 
+SCENARIO = V2 / "docs" / "datasheet" / "scenario_metrics.json"
+
+
+def scenario_section() -> str:
+    """F4.5 senaryo metrikleri (simülasyon): tools/e2e_f4.sh çıktısı; yoksa bekliyor notu."""
+    if not SCENARIO.is_file():
+        return '<p class="muted">Senaryo metrikleri: F4.5 uçtan uca koşusu bekliyor (tools/e2e_f4.sh).</p>'
+    m = json.loads(SCENARIO.read_text(encoding="utf-8"))
+    s, o = TAG["S"], TAG["Ö"]
+    rows = [
+        ["Oyun", f"{m['moves']} hamle, kazanan {m['winner'] or 'yok'}", s],
+        [
+            "Hamle (al-taşı-bırak) süresi",
+            f"ort. {m['cycle_mean_s']} s, en çok {m['cycle_max_s']} s",
+            s,
+        ],
+        [
+            "Yerleştirme hatası (ikiz)",
+            f"ort. {m['placement_error_mean_mm']} mm, en çok {m['placement_error_max_mm']} mm",
+            s,
+        ],
+        [
+            "Kaçırılan / düşürülen / tabla dışı taş",
+            f"{m['missed_picks']} / {m['dropped']} / {m['off_board']}",
+            s,
+        ],
+        ["Gerçek robotta aynı metrikler", "F5 kabul testi H12", o],
+    ]
+    return (
+        "<h3>Senaryo metrikleri (simülasyon)</h3>"
+        + table(["Ölçüt", "Değer", ""], rows)
+        + '<p class="muted">Kaynak: docs/datasheet/scenario_metrics.json (uçtan uca test, sanal Pi). '
+        "Yerleştirme hatası ikizin hesabıdır; gerçek hata kalibrasyon ve boşluğa bağlıdır (H5–H7).</p>"
+    )
+
+
 def ros_section() -> str:
     """ROS2 ağı bölümü. F3'ten sonra docs/datasheet/ros_graph.json çalışan sistemden üretilir."""
     graph = V2 / "docs" / "datasheet" / "ros_graph.json"
@@ -587,6 +623,7 @@ def main() -> None:
         assum=assum_tbl,
         reasons=reason_tbl,
         ros=ros_section(),
+        scenario=scenario_section(),
         h_pick=f(h["pick_P"], 0),
         h_travel=f(h["travel_P"], 0),
         board_top=f(h["board_top"], 0),
@@ -640,8 +677,8 @@ pre.mermaid {{ background:#fff; border:1px solid var(--line); border-radius:8px;
 <p>Çözünürlük: üç motor birden ±1 adım (0.29°) oynadığında uç noktanın en büyük yer değiştirmesi. Garanti hız ≈ σ<sub>min</sub>(J)·ω<sub>max</sub>, garanti kuvvet ≈ τ<sub>sürekli</sub>/σ<sub>max</sub>(J). Koşul sayısı 1'e yakın = izotropik; büyüdükçe tekil konuma yaklaşılır. Menüden metrik ve yükseklik seçilir.</p>
 {maps}</section>
 <section id="tabla"><h2>Görev: tic-tac-toe tablası</h2>
-<p>Tabla üst yüzü z = {board_top} mm, taş alma yüksekliği P z = {h_pick} mm, taşıma yüksekliği P z = {h_travel} mm (varsayımlar: tabla 4 mm, taş 8 mm, kaldırma 20 mm). Bu yükseklikte merkezli en büyük kare {square} mm → hücre {cell} mm. Tabla ve taş tasarımı F4.5'te bu sınıra göre yapılır.</p>
-{board}</section>
+<p>Tabla üst yüzü z = {board_top} mm, taş alma yüksekliği P z = {h_pick} mm, taşıma yüksekliği P z = {h_travel} mm (varsayımlar: tabla 4 mm, taş 8 mm, kaldırma 20 mm). Bu yükseklikte merkezli en büyük kare {square} mm → hücre {cell} mm. F4.5 tasarımı: 3 × 3 tabla, hücre {cell} mm, taş Ø16 × 8 mm (çelik pullu PLA). Çalışma alanı tablayı doldurduğu için taş deposu yoktur; oyun kaydırmalı tic-tac-toe'dur (Üç Taş ailesi): taşlar baştan tabladadır, komşu boş hücreye taşınır.</p>
+{board}{scenario}</section>
 <section id="geo"><h2>Geometri ve limitler</h2>{geometry}</section>
 <section id="motor"><h2>Motor ve elektrik</h2>{motor}</section>
 <section id="kutle"><h2>Kütle ve atalet (CAD)</h2><p class="muted">Bağ yerel çerçevelerinde; kaynak cad/out/mass_properties.json.</p>{mass}</section>

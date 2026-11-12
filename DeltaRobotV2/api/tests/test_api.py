@@ -480,3 +480,27 @@ def test_job_board_rpc(spec):
         assert wait_job(c, jid)["status"] == "done"
     assert runner.received[1]["result"]["cells"] == "XXX...OOO"
     assert runner.received[2]["result"] == {"ok": True}
+
+
+def test_scenario_full_game_regression(spec):
+    """Senaryo regresyonu: iki minimaks oyuncu API üzerinden oynar; ikiz kurallarla birebir uyar."""
+    from delta_server.board_game import apply_move, best_move, initial_cells, winner
+
+    c, _ = make_client(spec)
+    with c:
+        board = c.get("/api/v1/board", headers=H).json()
+        cells, turn, moves = initial_cells(), "X", 0
+        while winner(cells) is None and moves < 12:
+            m = best_move(cells, turn, depth=4)
+            if m is None:
+                break
+            _pick_place(c, m[0], m[1], board)
+            cells = apply_move(cells, m)
+            got = c.get("/api/v1/board", headers=H).json()
+            assert got["cells"] == cells, (moves, m)
+            turn, moves = ("O" if turn == "X" else "X"), moves + 1
+        metrics = c.get("/api/v1/board", headers=H).json()["metrics"]
+    assert moves >= 3
+    assert metrics["picks"] == metrics["places"] == moves
+    assert metrics["dropped"] == metrics["missed_picks"] == metrics["off_board"] == 0
+    assert metrics["placement_error_max_mm"] < 0.5

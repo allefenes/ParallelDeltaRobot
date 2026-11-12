@@ -101,11 +101,42 @@ async function onRobotInfo() {
     twin = new Twin($("twin"), robotInfo);
     $("twin-msg").hidden = true;
     if (lastState) twin.update(lastState);
+    startBoardPolling();
   } catch (e) {
     console.error(e);
     $("twin-msg").textContent = t("web.twin.load_failed");
   }
 }
+
+// --- Tic-tac-toe tablası (F4.5) -----------------------------------------------------------------
+
+let boardTimer = null;
+
+async function refreshBoard() {
+  try {
+    const b = await api.board();
+    const winner = b.winner ? t("web.board.winner", { kind: b.winner }) : t("web.board.no_winner");
+    $("board-status").textContent = t("web.board.status", { cells: b.cells, winner });
+    if (twin) twin.updateBoard(b);
+  } catch (e) {
+    $("board-status").textContent = t("web.board.unavailable");
+  }
+}
+
+function startBoardPolling() {
+  if (boardTimer) clearInterval(boardTimer);
+  refreshBoard();
+  boardTimer = setInterval(refreshBoard, 500);
+}
+
+$("btn-board-reset").addEventListener("click", async () => {
+  try {
+    await api.resetBoard();
+  } catch (e) {
+    $("board-status").textContent = e.message;
+  }
+  refreshBoard();
+});
 
 // --- Telemetri ----------------------------------------------------------------------------------
 

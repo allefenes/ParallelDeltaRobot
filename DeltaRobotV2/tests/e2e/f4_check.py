@@ -79,6 +79,53 @@ def wait_api(timeout: float = 120.0) -> bool:
     return False
 
 
+def scenario_tictactoe(robot: Robot, max_moves: int = 12) -> None:
+    """F4.5 senaryo regresyonu: iki minimaks oyuncu gerçek yığında (ROS + sanal Pi) oynar.
+
+    Metrikler SCENARIO_METRICS satırıyla basılır; e2e_f4.sh datasheet için dosyaya yazar.
+    """
+    from delta_server.board_game import apply_move, best_move, initial_cells, winner
+
+    robot.torque(True)
+    robot.move_to(0, 0, -185)
+    robot.reset_board()
+    cells, turn, moves, t0 = initial_cells(), "X", 0, time.monotonic()
+    consistent = True
+    cycle_s: list[float] = []
+    while winner(cells) is None and moves < max_moves:
+        m = best_move(cells, turn, depth=4)
+        if m is None:
+            break
+        t_move = time.monotonic()
+        robot.pick_place(*m)
+        cycle_s.append(time.monotonic() - t_move)
+        cells = apply_move(cells, m)
+        if robot.board()["cells"] != cells:
+            consistent = False
+            break
+        turn, moves = ("O" if turn == "X" else "X"), moves + 1
+    board = robot.board()
+    met = board["metrics"]
+    check("F4.5 oyun: ikiz kurallarla uyumlu", consistent, f"{moves} hamle, tabla {board['cells']}")
+    check(
+        "F4.5 al/bırak hatasız",
+        met["dropped"] == met["missed_picks"] == met["off_board"] == 0
+        and met["picks"] == met["places"] == moves,
+        f"{met}",
+    )
+    err = met["placement_error_max_mm"]
+    check("F4.5 yerleştirme hatası < 1 mm", err is not None and err < 1.0, f"en çok {err} mm")
+    summary = {
+        "moves": moves,
+        "winner": board["winner"],
+        "total_s": round(time.monotonic() - t0, 2),
+        "cycle_mean_s": round(sum(cycle_s) / len(cycle_s), 2) if cycle_s else None,
+        "cycle_max_s": round(max(cycle_s), 2) if cycle_s else None,
+        **met,
+    }
+    print("SCENARIO_METRICS " + json.dumps(summary), flush=True)
+
+
 def main() -> int:
     if not check("API ayakta (TLS)", wait_api(), URL):
         return 1
@@ -188,6 +235,8 @@ def main() -> int:
         if time.monotonic() - t0 > 1.0:
             break
     check("Telemetri akışı (WS)", n >= 10, f"1 s'de {n} durum")
+
+    scenario_tictactoe(robot)
 
     failed = [r for r in results if not r[1]]
     print(f"\n== Sonuç: {len(results) - len(failed)} geçti, {len(failed)} başarısız ==")

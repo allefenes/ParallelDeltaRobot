@@ -17,10 +17,10 @@ V2 sıfırdan yazılır. Repodaki eski klasörler (`LikeSoup/`, `KilavuzDeltaRob
 | F1   | C++ kinematik çekirdeği + testler + Python bağlaması      | Tamamlandı |
 | F2   | Datasheet (etkileşimli HTML)                              | Tamamlandı |
 | F3   | ROS2 + güvenlik süpervizörü + dijital ikiz                | Tamamlandı |
-| F4   | Uzaktan erişim: API, Python istemcisi, web, sandbox       | —          |
-| F4.5 | Tic-tac-toe senaryosu                                     | —          |
-| F5   | Robotun yeniden kurulumu                                  | —          |
-| F6   | Saatlik kiralama                                          | —          |
+| F4   | Uzaktan erişim: API, Python istemcisi, web, sandbox       | Kod tamam  |
+| F4.5 | Tic-tac-toe senaryosu (simülasyon)                        | Kod tamam  |
+| F5   | Yeniden kurulum (yazılım yarısı, sonra askıda)            | —          |
+| F6   | Simülasyon kiralama sitesi (canlı robot: yakında)         | —          |
 
 Ayrıntı: [docs/yol-haritasi.md](docs/yol-haritasi.md)
 
@@ -37,7 +37,11 @@ DeltaRobotV2/
   cad/                FreeCAD betikleri, montaj, mesh ve kütle çıktıları
   core/               delta_core: ROS'tan bağımsız C++ kinematik çekirdeği + Python bağlaması
   edge/               delta_edge: Pi kenar servisi (C++17, ROS'suz): son kapı, bekçi, oynatıcı
-  ros2_ws/            ROS2 paketleri: arayüzler, URDF, sunucu düğümleri, edge_bridge
+  ros2_ws/            ROS2 paketleri: arayüzler, URDF, sunucu düğümleri, edge_bridge, tabla ikizi
+  api/                Komut API'si (FastAPI): REST + WebSocket, iş kuyruğu; sözleşme docs/api.md
+  client/             Python istemcisi (pip: delta-robot-client), VS Code'dan kullanım
+  web/                Türkçe web arayüzü: editör, 3B ikiz, telemetri
+  sandbox/            Kullanıcı kodu koşucusu ve G11 güvenlik testleri
   i18n/locales/       Arayüz metinleri; tr.json kaynak, en.json çeviri
   hardware/           Malzeme listesi: bom.yaml (kaynak) -> bom.csv, bom.md (CAD ile senkron)
   tools/              ci.sh, format.sh, cad.sh, bom.py, i18n denetimi, git kancaları
@@ -45,7 +49,7 @@ DeltaRobotV2/
   docs/               Mimari, yol haritası, robot girdileri, geliştirme ortamı
 ```
 
-Alt klasörler yalnız gerektiği fazda açılır (`api/` ve `web/` F4'te).
+Alt klasörler yalnız gerektiği fazda açılır.
 
 ## Hızlı başlangıç
 

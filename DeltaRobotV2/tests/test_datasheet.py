@@ -123,3 +123,31 @@ def test_build_datasheet(tmp_path, monkeypatch):
         assert f'id="{anchor}"' in page
     assert page.count('class="plotly-graph-div"') == 6
     assert 'pre class="mermaid"' in page
+
+
+def test_scenario_section_both_states(tmp_path, monkeypatch):
+    import json
+
+    import build_datasheet as B
+
+    monkeypatch.setattr(B, "SCENARIO", tmp_path / "yok.json")
+    assert "bekliyor" in B.scenario_section()
+    f = tmp_path / "m.json"
+    f.write_text(
+        json.dumps(
+            {
+                "moves": 7,
+                "winner": "X",
+                "cycle_mean_s": 4.2,
+                "cycle_max_s": 5.0,
+                "placement_error_mean_mm": 0.1,
+                "placement_error_max_mm": 0.3,
+                "missed_picks": 0,
+                "dropped": 0,
+                "off_board": 0,
+            }
+        )
+    )
+    monkeypatch.setattr(B, "SCENARIO", f)
+    html = B.scenario_section()
+    assert "7 hamle, kazanan X" in html and "0 / 0 / 0" in html

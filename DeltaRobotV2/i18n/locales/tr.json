@@ -83,5 +83,10 @@
   "web.error.unauthorized": "Belirteç geçersiz ya da eksik.",
   "web.error.busy": "Robot meşgul: {message}",
   "web.error.http": "Sunucu hatası (HTTP {status}).",
-  "web.camera.placeholder": "Kamera F5'te; şimdilik dijital ikiz."
+  "web.camera.placeholder": "Kamera F5'te; şimdilik dijital ikiz.",
+  "web.board.status": "Tabla: {cells} · {winner}",
+  "web.board.winner": "Kazanan: {kind}",
+  "web.board.no_winner": "Kazanan yok",
+  "web.board.unavailable": "Tabla ikizi yok",
+  "web.board.reset": "Tablayı sıfırla"
 }
