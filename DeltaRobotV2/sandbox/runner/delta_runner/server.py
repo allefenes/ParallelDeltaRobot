@@ -29,14 +29,14 @@ CLOSE_TRY_AGAIN = 1013
 
 
 class Runner:
-    """Bağlantı başına bir iş; meşgulken gelen iş `exit/error` ile reddedilir."""
+    """Bağlantı başına bir iş; `max_jobs` doluyken gelen iş `exit/error` ile reddedilir."""
 
     def __init__(self, config: Config, secret: str) -> None:
         if not secret:
             raise ValueError("DELTA_RUNNER_SECRET boş olamaz")
         self.config = config
         self._secret = secret.encode()
-        self._busy = False
+        self._active = 0
 
     def process_request(self, connection: ServerConnection, request: Request) -> Response | None:
         if request.path.split("?", 1)[0] != RUN_PATH:
@@ -57,20 +57,29 @@ class Runner:
             log.warning("yetkisiz ya da geçersiz başlangıç: %s", ws.remote_address)
             await ws.close(CLOSE_POLICY, "unauthorized")
             return
-        if self._busy:
+        if self._active >= self.config.max_jobs:
             await _send(ws, stream_message("stderr", "sandbox: koşucu meşgul\n"))
             await _send(ws, exit_message(-1, "error"))
             await ws.close(CLOSE_TRY_AGAIN, "busy")
             return
-        self._busy = True
+        self._active += 1
         try:
             await self._run_job(ws, start)
         finally:
-            self._busy = False
+            self._active -= 1
 
     async def _run_job(self, ws: ServerConnection, start: dict[str, Any]) -> None:
-        await remove_stale_jobs(self.config)
-        job = Job(start["job_id"], start["code"], self.config, lambda m: _send(ws, m))
+        if self.config.max_jobs == 1:
+            # Tek iş kuralı: çalışan iş yokken etiketli konteynerlerin hepsi artıktır.
+            # Eşzamanlı modda yalnız açılışta temizlenir (diğer işler çalışıyor olabilir).
+            await remove_stale_jobs(self.config)
+        job = Job(
+            start["job_id"],
+            start["code"],
+            self.config,
+            lambda m: _send(ws, m),
+            timeout_s=start.get("timeout_s"),
+        )
         run = asyncio.create_task(job.run())
         recv = asyncio.create_task(_receive(ws, job))
         try:

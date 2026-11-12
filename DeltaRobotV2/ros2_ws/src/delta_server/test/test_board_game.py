@@ -159,3 +159,13 @@ def test_best_move_blocks_opponent():
 def test_best_move_none_when_blocked():
     assert legal_moves("XXXOOO...", "X") == []
     assert best_move("XXXOOO...", "X") is None
+
+
+def test_best_move_rng_picks_among_equal_best():
+    import random
+
+    first = best_move(initial_cells(), "X")
+    seen = {best_move(initial_cells(), "X", rng=random.Random(i)) for i in range(30)}
+    assert first in seen and all(m in legal_moves(initial_cells(), "X") for m in seen)
+    pos = "X..X.XOO."  # tek kazandıran hamle: rastgelelik onu değiştirmez
+    assert {best_move(pos, "X", rng=random.Random(i)) for i in range(10)} == {best_move(pos, "X")}

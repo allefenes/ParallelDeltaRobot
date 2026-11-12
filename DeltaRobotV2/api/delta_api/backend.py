@@ -136,6 +136,29 @@ class Backend:
     async def board_reset(self) -> bool:
         return False
 
+    # F6 deneyim arayüzü (yalnız simülasyon arka ucunda; diğerlerinde NotImplementedError)
+    async def move_joints(self, angles_deg, duration_s, wait) -> MoveOutcome:
+        raise NotImplementedError
+
+    def fk(self, angles_deg) -> dict:
+        raise NotImplementedError
+
+    def ik(self, x: float, y: float, z: float) -> dict:
+        raise NotImplementedError
+
+    async def auto_start(self) -> None:
+        raise NotImplementedError
+
+    async def auto_stop(self) -> None:
+        raise NotImplementedError
+
+    @property
+    def auto_running(self) -> bool:
+        return False
+
+    async def shutdown(self) -> None:
+        """Oturum kapanırken arka plan görevlerini durdurur."""
+
     def close(self) -> None:
         """Kaynakları bırakır (ROS düğümü vb.)."""
 
@@ -246,8 +269,15 @@ class FakeBackend(Backend):
             )
         if not self._reachable(x, y, z):
             reason = f"G3: hedef ({x:.1f}, {y:.1f}, {z:.1f}) erişilemez"
-            self.emit({"type": "event", "accepted": False, "requirement": "G3", "reason": reason,
-                       "trajectory_id": ""})  # fmt: skip
+            self.emit(
+                {
+                    "type": "event",
+                    "accepted": False,
+                    "requirement": "G3",
+                    "reason": reason,
+                    "trajectory_id": "",
+                }
+            )
             return MoveOutcome(False, requirement="G3", reason=reason)
         self._n += 1
         tid = f"traj-{self._n:04d}-fake"

@@ -42,6 +42,13 @@ gcovr -r edge build/edge --filter edge/src --filter edge/include \
   --xml "$COV/edge.xml" --html-details "$COV/edge.html" \
   --fail-under-line 80 | tail -4
 
+echo "== API (F4 + F6 simülasyon modu) + kapsama =="
+# FastAPI dev imajında yok: konteyner içinde geçici kullanıcı kurulumu (çalışma ağacına yazmaz).
+pip install -q --user --break-system-packages fastapi 'uvicorn[standard]' websockets httpx \
+  >/dev/null 2>&1
+(cd api && PYTHONPATH=.:../build/core:../ros2_ws/src/delta_server python3 -m pytest -q \
+  -p no:cacheprovider --cov=delta_api --cov-report=xml:"../$COV/api.xml" --cov-fail-under=80)
+
 echo "== Python araç ve datasheet testleri + kapsama =="
 python3 -m pytest -q -p no:cacheprovider tests \
   --cov=tools --cov-report=term --cov-report=xml:"$COV/python-tools.xml" \

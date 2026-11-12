@@ -189,9 +189,12 @@ class RosBackend(Backend):
                 ev = q.get_nowait()
                 if not ev.get("accepted", True) and ev.get("trajectory_id") in ("", tid):
                     return MoveOutcome(
-                        True, trajectory_id=tid, done=False, reason=f"{ev['requirement']}: "
-                        f"{ev['reason']}", position_mm=self.state().position_mm
-                    )  # fmt: skip
+                        True,
+                        trajectory_id=tid,
+                        done=False,
+                        reason=f"{ev['requirement']}: " f"{ev['reason']}",
+                        position_mm=self.state().position_mm,
+                    )
             s = self.state()
             if s.trajectory_id == tid:
                 seen = True

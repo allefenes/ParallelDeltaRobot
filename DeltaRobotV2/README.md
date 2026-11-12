@@ -20,7 +20,7 @@ V2 sıfırdan yazılır. Repodaki eski klasörler (`LikeSoup/`, `KilavuzDeltaRob
 | F4   | Uzaktan erişim: API, Python istemcisi, web, sandbox       | Kod tamam  |
 | F4.5 | Tic-tac-toe senaryosu (simülasyon)                        | Kod tamam  |
 | F5   | Yeniden kurulum (yazılım yarısı, sonra askıda)            | —          |
-| F6   | Simülasyon kiralama sitesi (canlı robot: yakında)         | —          |
+| F6   | Tek sayfalık deneyim arayüzü (simülasyon)                 | Sürüyor    |
 
 Ayrıntı: [docs/yol-haritasi.md](docs/yol-haritasi.md)
 

@@ -3,7 +3,6 @@
 
 #include <cmath>
 
-#include "delta_edge/ax12_driver.hpp"
 #include "delta_edge/mock_driver.hpp"
 
 namespace delta_edge {
@@ -93,17 +92,6 @@ TEST(MockDriver, ClockGoingBackwardsIsIgnored) {
   d.set_goal({10, 0, 0});
   now = 0;
   EXPECT_DOUBLE_EQ(d.read_state().angles[0], 0.0);
-}
-
-TEST(Ax12Driver, StubReportsNotOk) {
-  // TODO(F5) arka ucu: okuma başarısız -> EdgeCore torku açmaz.
-  Ax12Driver d("/dev/ttyAMA0", 1000000);
-  EXPECT_FALSE(d.read_state().ok);
-  d.set_goal({0, 0, 0});
-  d.set_torque(true);
-  d.set_magnet(true);
-  EXPECT_EQ(d.device(), "/dev/ttyAMA0");
-  EXPECT_EQ(d.baud(), 1000000);
 }
 
 }  // namespace

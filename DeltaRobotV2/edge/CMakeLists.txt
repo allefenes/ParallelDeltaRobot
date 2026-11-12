@@ -42,6 +42,12 @@ add_library(edge_core STATIC
   src/state.cpp
   src/mock_driver.cpp
   src/ax12_driver.cpp
+  src/dynamixel_protocol.cpp
+  src/dynamixel_bus.cpp
+  src/motor_config.cpp
+  src/magnet_output.cpp
+  src/posix_serial.cpp
+  src/servo_tool.cpp
   src/edge.cpp
   src/url.cpp)
 target_include_directories(edge_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -57,7 +63,11 @@ if(DELTA_EDGE_BUILD_APP AND NOT DELTA_EDGE_FUZZ)
                                            Threads::Threads)
   target_compile_options(delta_edge PRIVATE ${DELTA_EDGE_WARNINGS})
   target_compile_definitions(delta_edge PRIVATE DELTA_EDGE_VERSION="${PROJECT_VERSION}")
-  install(TARGETS delta_edge RUNTIME DESTINATION bin)
+  # Kurulum aracı: servo ID/baud atama, tarama, okuma (bkz. README).
+  add_executable(delta_servo_tool app/delta_servo_tool.cpp)
+  target_link_libraries(delta_servo_tool PRIVATE edge_core)
+  target_compile_options(delta_servo_tool PRIVATE ${DELTA_EDGE_WARNINGS})
+  install(TARGETS delta_edge delta_servo_tool RUNTIME DESTINATION bin)
 endif()
 
 if(DELTA_EDGE_BUILD_TESTS)
@@ -74,13 +84,19 @@ if(DELTA_EDGE_BUILD_TESTS)
     tests/test_url.cpp
     tests/test_architecture.cpp
     tests/test_fuzz_regressions.cpp
-    tests/test_life_pulse.cpp)
+    tests/test_life_pulse.cpp
+    tests/test_dynamixel_protocol.cpp
+    tests/test_motor_config.cpp
+    tests/test_ax12_driver.cpp
+    tests/test_posix_serial.cpp
+    tests/test_servo_tool.cpp)
   target_link_libraries(edge_core_tests PRIVATE edge_core nlohmann_json::nlohmann_json
                                                 GTest::gtest_main)
   target_compile_options(edge_core_tests PRIVATE ${DELTA_EDGE_WARNINGS})
   target_compile_definitions(edge_core_tests PRIVATE
     DELTA_ROBOT_YAML="${CMAKE_CURRENT_SOURCE_DIR}/../config/robot.yaml"
     DELTA_EDGE_YAML="${CMAKE_CURRENT_SOURCE_DIR}/config/edge.yaml"
+    DELTA_MOTOR_YAML="${CMAKE_CURRENT_SOURCE_DIR}/config/motor_ax12.yaml"
     DELTA_EDGE_SRC="${CMAKE_CURRENT_SOURCE_DIR}")
   include(GoogleTest)
   gtest_discover_tests(edge_core_tests)

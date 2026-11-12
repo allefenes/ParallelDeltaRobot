@@ -98,3 +98,10 @@ def test_G11_unread_replies_do_not_block_reader(fake_docker, monkeypatch):
     res, dt, _ = run_job(fake_docker("burst", burst=8), api_reply=True)
     assert res["reason"] == "output_limit"
     assert dt < 10
+
+
+def test_job_timeout_clamped_to_runner_limit():
+    cfg = Config(limits=Limits(timeout_s=20.0))
+    assert Job("a", "x", cfg, None).timeout_s == 20.0
+    assert Job("a", "x", cfg, None, timeout_s=5).timeout_s == 5.0
+    assert Job("a", "x", cfg, None, timeout_s=999).timeout_s == 20.0

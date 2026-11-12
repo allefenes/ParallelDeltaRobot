@@ -277,8 +277,9 @@ def apply_move(cells: str, move: tuple[int, int]) -> str:
     return "".join(s)
 
 
-def best_move(cells: str, kind: str, depth: int = 6) -> tuple[int, int] | None:
-    """Sınırlı derinlikte minimaks (rakip yapay zekâ ve senaryo testleri için); deterministik."""
+def best_move(cells: str, kind: str, depth: int = 6, rng=None) -> tuple[int, int] | None:
+    """Sınırlı derinlikte minimaks. rng yoksa deterministik (testler); varsa eşit puanlı en iyi
+    hamleler arasından rastgele seçer (otomatik modda oyunlar çeşitlensin)."""
     other = "O" if kind == "X" else "X"
 
     def score(c: str, turn: str, d: int) -> int:
@@ -295,4 +296,8 @@ def best_move(cells: str, kind: str, depth: int = 6) -> tuple[int, int] | None:
     moves = legal_moves(cells, kind)
     if not moves:
         return None
-    return max(moves, key=lambda m: score(apply_move(cells, m), other, depth - 1))
+    scored = [(score(apply_move(cells, m), other, depth - 1), m) for m in moves]
+    best = max(v for v, _ in scored)
+    if rng is None:
+        return next(m for v, m in scored if v == best)
+    return rng.choice([m for v, m in scored if v == best])

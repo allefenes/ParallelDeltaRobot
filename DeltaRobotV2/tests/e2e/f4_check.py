@@ -152,15 +152,15 @@ def main() -> int:
     ok = r.done and all(abs(a - b) < 0.5 for a, b in zip(p, (20, 10, -200), strict=True))
     check("Hareket (istemci -> API -> ROS -> Pi)", ok, f"{r}")
     for name, target, req in (
-        ("G3 erişilemez hedef reddi", (0, 0, -320), "G3"),
-        ("G2 rot başı limiti reddi", (60, 0, -140), "G2"),
-        ("G14 mıknatıs ucu tabla altına reddi", (0, 0, -228), "G14"),
+        ("G1/G3 erişim dışı hedef reddi", (0, 0, -100), ("G1", "G3")),
+        ("G2 rot başı limiti reddi", (60, 0, -140), ("G2",)),
+        ("G14 mıknatıs ucu tabla altına reddi", (0, 0, -228), ("G14",)),
     ):
         try:
             robot.move_to(*target)
             check(name, False, "kabul edildi")
         except CommandRejected as e:
-            check(name, e.requirement == req, f"{e.requirement}: {e.reason}")
+            check(name, e.requirement in req, f"{e.requirement}: {e.reason}")
     st, body = http("POST", "/api/v1/move", {"x": 0, "y": 0, "z": -200, "duration_s": -1})
     check("G4 biçim reddi (API)", st == 400, f"{st} {body}")
 

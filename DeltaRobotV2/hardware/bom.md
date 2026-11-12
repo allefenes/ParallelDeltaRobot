@@ -4,6 +4,8 @@ Bu dosya üretilir; elle düzenlemeyin. Kaynak: [bom.yaml](bom.yaml) (elle tutul
 
 Üretmek: `docker compose run --rm dev python3 tools/bom.py`
 
+**Durum: F5 askıda (2026-11-12).** Hiçbir kalem satın alınmadı ya da üretilmedi. Elektronik kalemler (donanım bekçisi, mıknatıs sürücüsü, acil stop, Pi beslemesi) ve kutu/kamera tasarımı kesinleşmedi; fiyat ve tedarikçi alanları boştur.
+
 | No  | Ad                         | Kategori         | Malzeme / özellik                                                            | Adet | Birim kütle (g) | Toplam kütle (g) | Üretim                                    | Tedarikçi    | Birim fiyat (TL) | Durum            | Kaynak | Not                                                          |
 | --- | -------------------------- | ---------------- | ---------------------------------------------------------------------------- | ---- | --------------- | ---------------- | ----------------------------------------- | ------------ | ---------------- | ---------------- | ------ | ------------------------------------------------------------ |
 | 1   | POM taban                  | Gövde            | POM, 5 mm levha                                                              | 1    | 1004.2          | 1004.2           | CNC / lazer kesim, köşeler R20            | TBD          |                  | V1 (olduğu gibi) | CAD    | Dış ölçüler varsayım                                         |

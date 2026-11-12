@@ -28,7 +28,10 @@
 #include "delta_edge/config.hpp"
 #include "delta_edge/edge.hpp"
 #include "delta_edge/life_pulse.hpp"
+#include "delta_edge/magnet_output.hpp"
 #include "delta_edge/mock_driver.hpp"
+#include "delta_edge/motor_config.hpp"
+#include "delta_edge/posix_serial.hpp"
 #include "delta_edge/url.hpp"
 
 namespace {
@@ -73,13 +76,18 @@ Seçenekler:
                        varsayılan: config/robot.yaml
   --edge-config PATH   edge.yaml (kenar sınırları); ortam: DELTA_EDGE_YAML
                        varsayılan: edge/config/edge.yaml
+  --motor-config PATH  motor parametreleri (yalnız ax12); ortam: DELTA_MOTOR_CONFIG
+                       varsayılan: edge/config/motor_ax12.yaml
   --max-retries N      art arda N başarısız bağlantıdan sonra 3 koduyla çık (0 = sınırsız);
                        ortam: DELTA_MAX_RETRIES
   --version            sürümü yaz
   -h, --help           bu yardım
 
 Ortam değişkenleri:
-  DELTA_DRIVER=mock|ax12  motor sürücüsü (ax12: F5'te; şimdilik desteklenmez)
+  DELTA_DRIVER=mock|ax12  motor sürücüsü: mock = sanal Pi, ax12 = Dynamixel AX-12A
+  DELTA_SERIAL_DEVICE=PATH  ax12 seri aygıtı (varsayılan aşağıda; özel kilitle açılır)
+  DELTA_MAGNET_FILE=PATH  ax12: mıknatıs durumu bu dosyaya "1"/"0" yazılır (GPIO F5'te;
+                          yoksa mıknatıs çıkışı sürülmez)
   DELTA_CA_FILE=PATH      sunucu sertifikasını doğrulayan CA dosyası (yoksa sistem CA'ları)
   DELTA_INSECURE=1        YALNIZ GELİŞTİRME: sertifika doğrulaması kapalı
   DELTA_EDGE_TOKEN=...    WebSocket el sıkışmasında "Authorization: Bearer" belirteci
@@ -88,6 +96,7 @@ Ortam değişkenleri:
 
 Çıkış kodları: 0 normal (SIGINT/SIGTERM), 2 kullanım/yapılandırma hatası, 3 sunucuya ulaşılamadı.
 )";
+  std::cout << "Varsayılan seri aygıt: " << delta_edge::default_serial_device() << '\n';
 }
 
 // Sanal Pi acil stop girişi: dosyanın varlığı = buton basılı.
@@ -125,6 +134,9 @@ struct Options {
   std::string ca_file;
   std::string token;
   std::string driver;
+  std::string motor_yaml;
+  std::string serial_device;
+  std::string magnet_file;
   std::string estop_file;
   std::string life_file;
   bool insecure{false};
@@ -383,6 +395,9 @@ int main(int argc, char** argv) {
     opt.ca_file = env_or("DELTA_CA_FILE", "");
     opt.token = env_or("DELTA_EDGE_TOKEN", "");
     opt.driver = env_or("DELTA_DRIVER", "mock");
+    opt.motor_yaml = env_or("DELTA_MOTOR_CONFIG", "edge/config/motor_ax12.yaml");
+    opt.serial_device = env_or("DELTA_SERIAL_DEVICE", delta_edge::default_serial_device());
+    opt.magnet_file = env_or("DELTA_MAGNET_FILE", "");
     opt.estop_file = env_or("DELTA_ESTOP_FILE", "");
     opt.life_file = env_or("DELTA_LIFE_FILE", "");
     opt.insecure = env_or("DELTA_INSECURE", "0") == "1";
@@ -406,6 +421,8 @@ int main(int argc, char** argv) {
         opt.robot_yaml = next();
       } else if (a == "--edge-config") {
         opt.edge_yaml = next();
+      } else if (a == "--motor-config") {
+        opt.motor_yaml = next();
       } else if (a == "--max-retries") {
         opt.max_retries = parse_int(next(), "--max-retries");
       } else {
@@ -436,12 +453,43 @@ int main(int argc, char** argv) {
     return kExitUsage;
   }
 
+  // Sıra önemli: port ve mıknatıs çıkışı sürücüden uzun yaşar.
+  std::unique_ptr<delta_edge::SerialPort> port;
+  std::unique_ptr<delta_edge::MagnetOutput> magnet;
   std::unique_ptr<delta_edge::Driver> driver;
   if (opt.driver == "mock") {
     driver = std::make_unique<delta_edge::MockDriver>(mono_now);
   } else if (opt.driver == "ax12") {
-    log_line("hata: DELTA_DRIVER=ax12 henüz yok (F5); şimdilik yalnız mock");
-    return kExitUsage;
+    delta_edge::MotorConfig mcfg;
+    try {
+      mcfg = delta_edge::load_motor_config(opt.motor_yaml, opt.robot_yaml);
+    } catch (const std::exception& e) {
+      log_line(std::string("motor yapılandırma hatası: ") + e.what());
+      return kExitUsage;
+    }
+    if (mcfg.model != "AX-12A") {
+      log_line("hata: motor.model '" + mcfg.model + "' ax12 arka ucuyla uyumsuz");
+      return kExitUsage;
+    }
+    try {
+      port = delta_edge::open_posix_serial({opt.serial_device, mcfg.baud});
+    } catch (const std::exception& e) {
+      log_line(std::string("hata: seri hat: ") + e.what());
+      return kExitUsage;
+    }
+    if (opt.magnet_file.empty()) {
+      magnet = std::make_unique<delta_edge::NullMagnetOutput>();
+    } else {
+      magnet = std::make_unique<delta_edge::FileMagnetOutput>(opt.magnet_file);
+    }
+    auto ax = std::make_unique<delta_edge::Ax12Driver>(*port, mcfg, *magnet);
+    const std::string init_error = ax->initialize();
+    // Servolar yanıt vermese de servis başlar: okuma ok=false olduğundan tork açılmaz;
+    // torque on komutu ilklendirmeyi yeniden dener.
+    if (!init_error.empty()) log_line("UYARI: servo ilklendirme: " + init_error);
+    log_line("ax12: " + opt.serial_device + " @ " + std::to_string(mcfg.baud) + " baud, " +
+             opt.motor_yaml);
+    driver = std::move(ax);
   } else {
     log_line("hata: bilinmeyen DELTA_DRIVER='" + opt.driver + "' (mock|ax12)");
     return kExitUsage;

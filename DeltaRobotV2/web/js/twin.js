@@ -36,16 +36,17 @@ export class Twin {
     this.container = container;
     this.links = {};
     this.lastState = null;
+    this.updates = 0;
 
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(40, 1, 1, 5000);
     this.camera.up.set(0, 0, 1);
-    this.camera.position.set(300, -380, -40);
+    this.camera.position.set(260, -470, -60);
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(this.renderer.domElement);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.target.set(0, 0, -140);
+    this.controls.target.set(0, 0, -175);
     this.controls.update();
 
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.4));
@@ -231,6 +232,7 @@ export class Twin {
       // Göstergenin üst ucu mıknatıs ucuna değer; mesh içinde kaybolmasın
       this.magnet.position.set(P[0], P[1], P[2] - tool - 4);
     }
+    this.updates += 1;
     const on = !!state.magnet;
     this.magnet.material.color.setHex(on ? COLORS.magnetOn : COLORS.magnetOff);
     this.magnet.material.emissive.setHex(on ? 0x660000 : 0x000000);
@@ -262,6 +264,13 @@ export class Twin {
       const grid = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: 0xeeeeee }));
       grid.position.set(g.center_mm[0], g.center_mm[1], g.board_top_mm + 0.3);
       this.board.add(grid);
+      // Hücre adları (A–C sütun −X→+X, 1–3 satır +Y→−Y): hamle listesindeki adlarla aynı
+      const z = g.board_top_mm + 1;
+      for (let n = 0; n < 3; n++) {
+        const d = (n - 1) * g.cell_mm;
+        this.board.add(this.label("ABC"[n], g.center_mm[0] + d, g.center_mm[1] + half + 9, z));
+        this.board.add(this.label(String(n + 1), g.center_mm[0] - half - 9, g.center_mm[1] - d, z));
+      }
       this.pieceMeshes = new Map();
       this.scene.add(this.board);
     }
@@ -283,6 +292,45 @@ export class Twin {
       }
       m.position.set(p.pos_mm[0], p.pos_mm[1], p.pos_mm[2] + g.piece_height_mm / 2);
     }
+  }
+
+  // Küçük metin etiketi (tuval dokulu sprite)
+  label(text, x, y, z) {
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#e0a040";
+    ctx.font = "bold 44px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, 32, 34);
+    const sprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthWrite: false }),
+    );
+    sprite.scale.set(10, 10, 1);
+    sprite.position.set(x, y, z);
+    return sprite;
+  }
+
+  // Test ve hata ayıklama için salt okunur poz: sahnedeki bağ matrislerinden geri okunur.
+  pose() {
+    const thetas = [1, 2, 3].map((i) => {
+      const e = this.links[`bicep_${i}`].matrix.elements; // sütun öncelikli; 1. sütun = kol ekseni
+      return Math.round(Math.atan2(-e[2], Math.hypot(e[0], e[1])) * (1800 / Math.PI)) / 10;
+    });
+    const plat = this.links.platform;
+    const pe = plat.matrix.elements;
+    const s = this.lastState;
+    return Object.freeze({
+      angles_deg: thetas,
+      position_mm: plat.visible
+        ? [pe[12], pe[13], pe[14]].map((v) => Math.round(v * 10) / 10)
+        : null,
+      magnet: !!s?.magnet,
+      state_angles_deg: s?.angles_deg ? [...s.angles_deg] : null,
+      updates: this.updates,
+      meshes: this.meshStatus(),
+    });
   }
 
   // Bağlantı yoksa ikiz soluk gösterilir.

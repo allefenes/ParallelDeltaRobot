@@ -82,12 +82,12 @@ Askıda (sonra):
 - Mekanik tasarım (kutu, kamera tutucu), kamera kalibrasyonu, üretim ve montaj
 - Gerçek donanımla bekçi ve kapı testleri; datasheet'in ölçüm alanları
 
-## F6 — Simülasyon kiralama sitesi
+## F6 — Tek sayfalık deneyim arayüzü (simülasyon)
 
-Kullanıcı kararı (2026-11-12): site şimdilik yalnız simülasyon hizmetini (dijital ikiz üzerinde uzaktan kinematik laboratuvarı) kiralar; canlı robot "Yakında" olarak gösterilir.
+Kullanıcı kararı (2026-11-12): üyelik, ödeme ve kiralama yok. Tek sayfa; robot simülasyonda (dijital ikiz) çalışır. Tasarım: [f6-deneyim-arayuzu.md](f6-deneyim-arayuzu.md).
 
-- Hesaplar ve kimlik doğrulama, planlar ve kotalar, kullanım ölçümü
-- Ödeme soyutlaması, yalnız test modu (iyzico / PayTR adayı; sağlayıcı seçilmedi)
-- Türkçe tanıtım sayfaları (İngilizceye hazır): ürün, nasıl çalışır, belgeler, fiyatlar, "Canlı robot: yakında"
-- Yönetici kullanım görünümü; hukuki sayfalar için "taslak" yer tutucular
-- Yalnız yerel konteyner dağıtımı; gerçek sunucu ve alan adı kullanıcı kararından sonra
+- Otomatik mod: robot kendi kendine tic-tac-toe oynar (başlat, durdur, sıfırla; oyun durumu ve hamleler)
+- Manuel mod: motor açısı kaydırıcıları (ileri kinematik), XYZ girişleri (ters kinematik), yumuşak hareket, aynı güvenlik kapılarıyla ret
+- Ziyaretçi başına yalıtılmış simülasyon oturumu; hız sınırı, eşzamanlı oturum sınırı, boşta silme
+- Yerel konteyner (`demo` profili); gerçek sunucu ve alan adı kullanıcı kararından sonra
+- Testler: arka uç (pytest) + arayüz uçtan uca (Playwright, konteynerde), iki modun ekran görüntüleri

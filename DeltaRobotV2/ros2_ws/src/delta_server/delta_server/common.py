@@ -7,7 +7,7 @@ from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
 
 from delta_server.robot import Robot
-from delta_server.safety import Limits
+from delta_server.safety import Limits, min_tool_z_mm  # noqa: F401 - dışa açık
 
 # Konu adları
 TOPIC_JOINT_STATES = "/joint_states"
@@ -51,15 +51,6 @@ def declare_common(node: Node) -> tuple[Robot, Limits]:
         tool_offset_mm=float(robot.spec["kinematics"]["ee_offset"]),
     )
     return robot, limits
-
-
-def min_tool_z_mm(spec: dict) -> float:
-    """G14: mıknatıs ucunun en alçak z'si = tabla üst yüzü (zemin + tabla), robot.yaml'dan.
-
-    Tabla yalnız ortada olsa da sınır her yerde uygulanır (ihtiyatlı taraf).
-    """
-    k, task = spec["kinematics"], spec.get("task", {})
-    return -float(k["base_to_floor"]) + float(task.get("board_thickness", 0.0))
 
 
 def duration_msg(t_s: float) -> Duration:

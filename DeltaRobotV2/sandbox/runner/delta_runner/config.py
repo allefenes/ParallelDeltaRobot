@@ -53,10 +53,13 @@ class Config:
     max_code_bytes: int = 64 * 1024
     max_pending_rpc: int = 16
     kill_grace_s: float = 10.0  # rm -f sonrası docker run istemcisinin çıkması için bekleme
+    max_jobs: int = 1  # eşzamanlı iş (F6 simülasyon kiralama: kullanıcılar paralel)
 
     def __post_init__(self) -> None:
         if not _IMAGE_RE.match(self.image):
             raise ValueError(f"geçersiz imaj adı: {self.image!r}")
+        if not 1 <= self.max_jobs <= 32:
+            raise ValueError(f"geçersiz eşzamanlı iş sayısı: {self.max_jobs!r}")
 
 
 def config_from_env(env: Mapping[str, str] | None = None) -> Config:
@@ -76,4 +79,5 @@ def config_from_env(env: Mapping[str, str] | None = None) -> Config:
         timeout_s=float(get("TIMEOUT_S") or base.timeout_s),
         output_bytes=int(get("OUTPUT_LIMIT") or base.output_bytes),
     )
-    return Config(image=get("IMAGE") or Config.image, limits=limits)
+    max_jobs = int(get("MAX_JOBS") or Config.max_jobs)
+    return Config(image=get("IMAGE") or Config.image, limits=limits, max_jobs=max_jobs)

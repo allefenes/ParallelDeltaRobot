@@ -1,6 +1,8 @@
-// Delta Robotics tarayıcı arayüzü: giriş, kod editörü + iş konsolu, dijital ikiz, telemetri, elle sürme.
-import { applyI18n, loadCatalog, t } from "./i18n.js";
-import { api, getToken, setToken, wsUrl } from "./api.js";
+// Delta Robotics deneyim arayüzü (F6): üyeliksiz tek sayfa. Ziyaretçi anonim simülasyon oturumu
+// alır; dijital ikiz telemetriyle pozlanır. Otomatik mod: robot kendi kendine tic-tac-toe oynar.
+// Manuel mod: eklem kaydırıcıları (FK önizleme) ve XYZ girişleri (IK önizleme).
+import { applyI18n, has, loadCatalog, t } from "./i18n.js";
+import { api, createSession, onSession, wsUrl } from "./api.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -13,129 +15,116 @@ const STATE_KEYS = {
   ESTOP: "robot.state.estop",
   DISCONNECTED: "robot.state.disconnected",
 };
-const JOB_KEYS = {
-  none: "web.job.status.none",
-  queued: "web.job.status.queued",
-  running: "web.job.status.running",
-  done: "web.job.status.done",
-  failed: "web.job.status.failed",
-  timeout: "web.job.status.timeout",
-  cancelled: "web.job.status.cancelled",
+const AUTO_KEYS = {
+  idle: "web.auto.status.idle",
+  playing: "web.auto.status.playing",
+  finished: "web.auto.status.finished",
+  stopped: "web.auto.status.stopped",
+  error: "web.auto.status.error",
 };
-const JOB_FINAL = new Set(["done", "failed", "timeout", "cancelled"]);
-const CONSOLE_MAX_LINES = 5000;
+const BOARD_POLL_MS = 250; // ~4 Hz
+const PREVIEW_DELAY_MS = 150;
+const AXES = ["x", "y", "z"];
 
 let robotInfo = null;
 let twin = null;
 let lastState = null;
-let editor = null;
+let lastBoard = null;
+let autoPlaying = false;
+let lastAutoStatus = null;
 
 // --- Yardımcılar -------------------------------------------------------------------------------
+
+const fmt = (v, d = 1) => (typeof v === "number" && isFinite(v) ? v.toFixed(d) : "—");
+const fmtVec = (a, d = 1) => (Array.isArray(a) ? a.map((v) => fmt(v, d)).join(", ") : "—");
+
+// Hücre adı: sütun A–C (−X → +X), satır 1–3 (+Y → −Y); idx = satır * 3 + sütun (docs/api.md).
+export const cellName = (i) => "ABC"[i % 3] + (Math.floor(i / 3) + 1);
 
 function errorText(e) {
   if (e?.status === 0) return t("web.error.network");
   if (e?.status === 401) return t("web.error.unauthorized");
   if (e?.status === 409) return t("web.error.busy", { message: e.message });
+  if (e?.status === 429) return t("web.exp.rate_limited");
+  if (e?.status === 503 && e.code === "capacity") return t("web.exp.capacity");
   return e?.body?.message || t("web.error.http", { status: e?.status ?? "?" });
 }
 
-const fmt = (v, d = 1) => (typeof v === "number" && isFinite(v) ? v.toFixed(d) : "—");
-const fmtVec = (a, d = 1) => (Array.isArray(a) ? a.map((v) => fmt(v, d)).join(", ") : "—");
+// Ret metni: gereksinim kodu + katalogdaki kısa açıklama + sunucunun ayrıntısı.
+function rejectText(requirement, reason) {
+  const req = requirement || "—";
+  const key = `web.req.${String(req).toLowerCase()}`;
+  const detail = String(reason || "").replace(new RegExp(`^${req}:\\s*`), "");
+  return t("web.req.format", { requirement: req, title: has(key) ? t(key) : "", detail });
+}
 
 function setResult(el, kind, text) {
   el.dataset.kind = kind;
   el.textContent = text;
 }
 
-// --- Giriş --------------------------------------------------------------------------------------
-
-function initLogin() {
-  $("token").value = getToken();
-  $("login").addEventListener("submit", (ev) => {
-    ev.preventDefault();
-    setToken($("token").value);
-    connectAll();
-  });
-  $("token-clear").addEventListener("click", () => {
-    setToken("");
-    $("token").value = "";
-    telemetry.close();
-    $("login-status").textContent = t("web.login.need_token");
-  });
+function showNotice(text) {
+  const n = $("notice");
+  n.textContent = text || "";
+  n.hidden = !text;
 }
 
-async function connectAll() {
-  if (!getToken()) {
-    $("login-status").textContent = t("web.login.need_token");
-    return;
+// --- Oturum ve başlangıç ----------------------------------------------------------------------
+
+let sessionRetry = null;
+
+async function openSession() {
+  clearTimeout(sessionRetry);
+  try {
+    await createSession();
+    showNotice("");
+    return true;
+  } catch (e) {
+    const wait = e.status === 429 ? 15 : 10;
+    showNotice(t("web.exp.session_retry", { message: errorText(e), seconds: wait }));
+    sessionRetry = setTimeout(start, wait * 1000);
+    return false;
   }
-  $("login-status").textContent = t("web.login.connecting");
+}
+
+async function start() {
+  if (!(await openSession())) return;
   try {
     robotInfo = await api.robot();
-    $("login-status").textContent = t("web.login.ok", { name: robotInfo.name });
-    onRobotInfo();
   } catch (e) {
-    $("login-status").textContent = errorText(e);
+    showNotice(errorText(e));
+    sessionRetry = setTimeout(start, 10000);
     return;
   }
+  initManualLimits();
   telemetry.open();
+  startBoardPolling();
+  await initTwin();
 }
 
-// --- Dijital ikiz -------------------------------------------------------------------------------
+// Yeni oturum (ör. boşta zaman aşımından sonra): telemetri yeni belirteçle yeniden bağlanır.
+onSession(() => {
+  if (telemetry.wanted) telemetry.open();
+});
 
-async function onRobotInfo() {
-  const ws = robotInfo.workspace;
-  const home = robotInfo.home_mm || [0, 0, -200];
-  for (const [i, k] of ["x", "y", "z"].entries()) {
-    const el = $(`jog-${k}`);
-    if (el.value === "") el.value = home[i];
-  }
-  $("jog-range").textContent = t("web.jog.range", {
-    d: ws.cylinder_diameter_mm,
-    top: ws.z_top_mm,
-    bottom: ws.z_bottom_mm,
-  });
+async function initTwin() {
   if (twin) return;
   try {
     const { Twin } = await import("./twin.js");
     twin = new Twin($("twin"), robotInfo);
     $("twin-msg").hidden = true;
     if (lastState) twin.update(lastState);
-    startBoardPolling();
+    if (lastBoard) twin.updateBoard(lastBoard);
   } catch (e) {
     console.error(e);
     $("twin-msg").textContent = t("web.twin.load_failed");
   }
 }
 
-// --- Tic-tac-toe tablası (F4.5) -----------------------------------------------------------------
-
-let boardTimer = null;
-
-async function refreshBoard() {
-  try {
-    const b = await api.board();
-    const winner = b.winner ? t("web.board.winner", { kind: b.winner }) : t("web.board.no_winner");
-    $("board-status").textContent = t("web.board.status", { cells: b.cells, winner });
-    if (twin) twin.updateBoard(b);
-  } catch (e) {
-    $("board-status").textContent = t("web.board.unavailable");
-  }
-}
-
-function startBoardPolling() {
-  if (boardTimer) clearInterval(boardTimer);
-  refreshBoard();
-  boardTimer = setInterval(refreshBoard, 500);
-}
-
-$("btn-board-reset").addEventListener("click", async () => {
-  try {
-    await api.resetBoard();
-  } catch (e) {
-    $("board-status").textContent = e.message;
-  }
-  refreshBoard();
+// Test ve hata ayıklama için salt okunur kanca: ikizin sahnedeki pozu.
+Object.defineProperty(window, "__twinPose", {
+  get: () => (twin ? twin.pose() : null),
+  configurable: true,
 });
 
 // --- Telemetri ----------------------------------------------------------------------------------
@@ -168,10 +157,19 @@ const telemetry = {
       this.ws = null;
       renderDisconnected();
       if (this.wanted) {
-        this.timer = setTimeout(() => this.open(), this.retry);
+        this.timer = setTimeout(() => this.reconnect(), this.retry);
         this.retry = Math.min(this.retry * 2, 10000);
       }
     };
+  },
+  // WS 401 göremez: önce REST ile oturum doğrulanır (401 ise yeni oturum açılır, onSession açar).
+  async reconnect() {
+    try {
+      await api.state();
+    } catch {
+      // ağ yoksa yine de denenir; sıradaki kapanışta geri çekilme sürer
+    }
+    if (this.wanted && !this.ws) this.open();
   },
   close(keepWanted = false) {
     if (!keepWanted) this.wanted = false;
@@ -181,7 +179,6 @@ const telemetry = {
       this.ws = null;
       ws.close();
     }
-    if (!keepWanted) renderDisconnected();
   },
 };
 
@@ -194,246 +191,487 @@ function renderBadge(state) {
 function renderState(s) {
   lastState = s;
   renderBadge(s.state);
-  $("tele-edge").textContent = s.edge_connected
-    ? t("web.telemetry.edge_ok")
-    : t("web.telemetry.edge_lost");
-  $("tele-edge").dataset.ok = String(!!s.edge_connected);
   $("tele-angles").textContent = fmtVec(s.angles_deg) + " °";
   $("tele-pos").textContent = Array.isArray(s.position_mm)
     ? fmtVec(s.position_mm) + " mm"
     : t("web.telemetry.no_solution");
-  $("tele-magnet").textContent = s.magnet ? t("web.magnet.on") : t("web.magnet.off");
-  $("tele-job").textContent = s.job_id || "—";
-  for (let i = 0; i < 3; i++) {
-    $(`temp-${i}`).textContent = fmt(s.temps_c?.[i], 0) + " °C";
-    $(`load-${i}`).textContent = fmt(s.loads?.[i], 0);
-    $(`volt-${i}`).textContent = fmt(s.voltages?.[i], 1) + " V";
-  }
   const mb = $("magnet-badge");
   mb.dataset.on = String(!!s.magnet);
   mb.textContent = s.magnet ? t("web.magnet.on") : t("web.magnet.off");
   $("magnet-toggle").textContent = s.magnet ? t("web.jog.magnet_off") : t("web.jog.magnet_on");
+  $("magnet-toggle").setAttribute("aria-pressed", String(!!s.magnet));
+  $("torque-on").disabled = !["HOLDING", "TORQUE_OFF"].includes(s.state) || autoPlaying;
   if (twin) {
     twin.setStale(s.state === "DISCONNECTED" || !s.edge_connected);
     twin.update(s);
   }
+  manual.follow(s);
 }
 
 function renderDisconnected() {
   renderBadge("DISCONNECTED");
-  $("tele-edge").textContent = t("web.telemetry.no_stream");
-  $("tele-edge").dataset.ok = "false";
   if (twin) twin.setStale(true);
 }
 
 function renderEvent(ev) {
+  if (ev.accepted) return; // kabuller sık; yalnız retler gösterilir
   const el = $("tele-event");
-  const time = new Date().toLocaleTimeString("tr-TR");
-  if (ev.accepted) {
-    el.dataset.kind = "ok";
-    el.textContent = t("web.event.accepted", { time, trajectory: ev.trajectory_id || "—" });
-  } else {
-    el.dataset.kind = "error";
-    el.textContent = t("web.event.rejected", {
-      time,
-      requirement: ev.requirement || "—",
-      reason: ev.reason || "",
-    });
+  const time = new Date().toLocaleTimeString(document.documentElement.lang || "tr");
+  el.dataset.kind = "error";
+  el.textContent = t("web.exp.event_rejected", {
+    time,
+    text: rejectText(ev.requirement, ev.reason),
+  });
+}
+
+// --- Tabla ve otomatik mod ---------------------------------------------------------------------
+
+let boardTimer = null;
+let boardBusy = false;
+
+async function refreshBoard() {
+  if (boardBusy || document.hidden) return;
+  boardBusy = true;
+  try {
+    const b = await api.board();
+    if (b) {
+      lastBoard = b;
+      if (twin) twin.updateBoard(b);
+      renderGame(b);
+    }
+  } catch (e) {
+    if (e.status === 429) return;
+    setResult($("auto-result"), "error", t("web.board.unavailable"));
+  } finally {
+    boardBusy = false;
   }
 }
 
-// --- Elle sürme ---------------------------------------------------------------------------------
+function startBoardPolling() {
+  clearInterval(boardTimer);
+  refreshBoard();
+  boardTimer = setInterval(refreshBoard, BOARD_POLL_MS);
+}
 
-function initJog() {
-  $("jog").addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    const [x, y, z] = ["x", "y", "z"].map((k) => Number($(`jog-${k}`).value));
-    await doMove(x, y, z);
+function buildBoardDiagram() {
+  const el = $("board-diagram");
+  el.textContent = "";
+  const add = (cls, text = "") => {
+    const d = document.createElement("div");
+    d.className = cls;
+    d.textContent = text;
+    el.appendChild(d);
+    return d;
+  };
+  add("corner");
+  for (const c of "ABC") add("head", c);
+  for (let r = 0; r < 3; r++) {
+    add("head", String(r + 1));
+    for (let c = 0; c < 3; c++) {
+      const cell = add("cell");
+      cell.dataset.idx = String(r * 3 + c);
+      cell.dataset.kind = ".";
+    }
+  }
+}
+
+function renderGame(b) {
+  const a = b.auto || { status: "idle", turn: "X", moves: [] };
+  const changed = lastAutoStatus !== null && lastAutoStatus !== a.status;
+  lastAutoStatus = a.status;
+  autoPlaying = a.status === "playing";
+  document.body.dataset.auto = a.status;
+  const st = $("auto-status");
+  st.dataset.status = a.status;
+  st.textContent = t(AUTO_KEYS[a.status] || "web.auto.status.idle");
+  $("auto-turn").textContent = autoPlaying ? pieceName(a.turn) : "—";
+  const w = a.winner ?? b.winner ?? null;
+  const moves = a.moves || [];
+  $("auto-winner").textContent = w
+    ? t("web.auto.winner_is", { piece: pieceName(w) })
+    : a.status === "finished"
+      ? t("web.auto.draw", { n: moves.length })
+      : "—";
+  $("auto-start").disabled = autoPlaying;
+  $("auto-stop").disabled = !autoPlaying;
+  $("auto-reset").disabled = autoPlaying;
+  const res = $("auto-result");
+  if (a.status === "error")
+    setResult(res, "error", t("web.auto.error", { reason: a.reason || "" }));
+  else if (changed && a.status !== "playing") setResult(res, "", ""); // eski "başladı" iletisi
+
+  // Diyagram
+  const last = moves[moves.length - 1];
+  const cells = b.cells || ".........";
+  const labels = [];
+  for (const el of $("board-diagram").querySelectorAll(".cell")) {
+    const i = Number(el.dataset.idx);
+    const k = cells[i] || ".";
+    el.dataset.kind = k;
+    el.textContent = k === "." ? "" : k;
+    el.classList.toggle("from", !!last && last.from === i);
+    el.classList.toggle("to", !!last && last.to === i);
+    labels.push(`${cellName(i)} ${k === "." ? t("web.auto.empty") : k}`);
+  }
+  $("board-diagram").setAttribute(
+    "aria-label",
+    t("web.auto.board_aria", { cells: labels.join(", ") }),
+  );
+
+  // Hamle listesi (yalnız değişince yeniden çizilir)
+  const body = $("moves-body");
+  if (body.childElementCount !== moves.length) {
+    body.textContent = "";
+    for (const m of moves) {
+      const tr = document.createElement("tr");
+      tr.dataset.kind = m.kind;
+      for (const text of [String(m.n), m.kind, `${cellName(m.from)}→${cellName(m.to)}`]) {
+        const td = document.createElement("td");
+        td.textContent = text;
+        tr.appendChild(td);
+      }
+      body.appendChild(tr);
+    }
+    $("moves-empty").hidden = moves.length > 0;
+    const scroll = body.closest(".moves-scroll");
+    scroll.scrollTop = scroll.scrollHeight;
+  }
+  manual.setLocked(autoPlaying);
+}
+
+const pieceName = (k) => t(k === "X" ? "web.auto.piece_x" : "web.auto.piece_o");
+
+function initAuto() {
+  buildBoardDiagram();
+  const res = $("auto-result");
+  const run = async (fn, okKey) => {
+    try {
+      await fn();
+      setResult(res, "ok", t(okKey));
+    } catch (e) {
+      setResult(res, "error", errorText(e));
+    }
+    refreshBoard();
+  };
+  $("auto-start").addEventListener("click", () => run(api.autoStart, "web.auto.started"));
+  $("auto-stop").addEventListener("click", () => run(api.autoStop, "web.auto.stopped"));
+  $("auto-reset").addEventListener("click", () => run(api.resetBoard, "web.auto.reset_ok"));
+}
+
+// --- Manuel mod ---------------------------------------------------------------------------------
+
+// İki giriş grubu (eklem, kartezyen). Kullanıcı bir grubu düzenleyince o grup "kirli" olur ve
+// telemetriyi izlemeyi bırakır; hareket bitince ya da "Şu anki pozu al" ile yeniden izler.
+const manual = {
+  dirty: { joints: false, cart: false },
+  seq: { joints: 0, cart: 0 },
+  timers: {},
+  locked: false,
+
+  values(group) {
+    const ids =
+      group === "joints"
+        ? [0, 1, 2].map((i) => `joint-num-${i}`)
+        : AXES.map((k) => `cart-num-${k}`);
+    return ids.map((id) => Number($(id).value));
+  },
+
+  setValues(group, vals) {
+    vals.forEach((v, i) => {
+      const k = group === "joints" ? i : AXES[i];
+      const num = $(`${group === "joints" ? "joint" : "cart"}-num-${k}`);
+      const rng = $(`${group === "joints" ? "joint" : "cart"}-range-${k}`);
+      const s = (Math.round(v * 10) / 10).toString();
+      if (document.activeElement !== num && num.value !== s) num.value = s;
+      if (document.activeElement !== rng && rng.value !== s) rng.value = s;
+    });
+  },
+
+  follow(s) {
+    if (!robotInfo) return;
+    if (!this.dirty.joints && Array.isArray(s.angles_deg)) {
+      this.setValues("joints", s.angles_deg);
+      setResult($("fk-preview"), "info", t("web.manual.live_pos", { pos: fmtVec(s.position_mm) }));
+    }
+    if (!this.dirty.cart && Array.isArray(s.position_mm)) {
+      this.setValues("cart", s.position_mm);
+      setResult(
+        $("ik-preview"),
+        "info",
+        t("web.manual.live_angles", { angles: fmtVec(s.angles_deg) }),
+      );
+    }
+  },
+
+  edited(group) {
+    this.dirty[group] = true;
+    clearTimeout(this.timers[group]);
+    this.timers[group] = setTimeout(() => this.preview(group), PREVIEW_DELAY_MS);
+  },
+
+  release() {
+    this.dirty.joints = this.dirty.cart = false;
+    if (lastState) this.follow(lastState);
+  },
+
+  async preview(group) {
+    const vals = this.values(group);
+    const out = $(group === "joints" ? "fk-preview" : "ik-preview");
+    if (!vals.every(Number.isFinite)) {
+      setResult(out, "error", t("web.manual.invalid"));
+      return null;
+    }
+    const n = ++this.seq[group];
+    try {
+      const r = group === "joints" ? await api.fk(vals) : await api.ik(...vals);
+      if (n !== this.seq[group] || !this.dirty[group]) return r; // eski yanıt
+      if (group === "joints") {
+        const pos = Array.isArray(r.position_mm) ? fmtVec(r.position_mm) : "—";
+        if (r.ok) setResult(out, "ok", t("web.manual.fk_ok", { pos }));
+        else
+          setResult(
+            out,
+            "error",
+            t("web.manual.fk_bad", { pos, text: rejectText(r.requirement, r.reason) }),
+          );
+      } else {
+        const angles = Array.isArray(r.angles_deg) ? fmtVec(r.angles_deg) : "—";
+        if (r.ok) setResult(out, "ok", t("web.manual.ik_ok", { angles }));
+        else
+          setResult(
+            out,
+            "error",
+            t("web.manual.ik_bad", { angles, text: rejectText(r.requirement, r.reason) }),
+          );
+      }
+      return r;
+    } catch (e) {
+      if (n === this.seq[group]) setResult(out, "error", errorText(e));
+      return null;
+    }
+  },
+
+  async go(group) {
+    const out = $("manual-result");
+    const vals = this.values(group);
+    if (!vals.every(Number.isFinite)) {
+      setResult(out, "error", t("web.manual.invalid"));
+      return;
+    }
+    clearTimeout(this.timers[group]);
+    setResult(
+      out,
+      "info",
+      t(group === "joints" ? "web.manual.moving_joints" : "web.manual.moving_cart", {
+        v: fmtVec(vals),
+      }),
+    );
+    try {
+      const r = group === "joints" ? await api.moveJoints(vals) : await api.move(...vals);
+      if (!r.accepted) {
+        setResult(
+          out,
+          "error",
+          t("web.move.rejected_text", { text: rejectText(r.requirement, r.reason) }),
+        );
+        return;
+      }
+      if (r.done === false)
+        setResult(out, "warn", t("web.move.not_done", { reason: r.reason || "" }));
+      else setResult(out, "ok", t("web.move.done", { pos: fmtVec(r.position_mm) }));
+      this.release();
+    } catch (e) {
+      setResult(out, "error", errorText(e));
+    }
+  },
+
+  setLocked(locked) {
+    if (this.locked === locked) return;
+    this.locked = locked;
+    for (const id of ["joints-go", "cart-go", "cart-home", "magnet-toggle"])
+      $(id).disabled = locked;
+    $("manual-result").dataset.kind = locked ? "warn" : "";
+    $("manual-result").textContent = locked ? t("web.manual.locked") : "";
+  },
+};
+
+function makeRow(host, { id, label, min, max, step, unit, onInput }) {
+  const row = document.createElement("div");
+  row.className = "slider-row";
+  const lab = document.createElement("label");
+  lab.htmlFor = `${id.replace("{}", "num")}`;
+  lab.textContent = label;
+  const rng = document.createElement("input");
+  Object.assign(rng, { type: "range", id: id.replace("{}", "range"), min, max, step });
+  rng.setAttribute("aria-label", label);
+  const num = document.createElement("input");
+  Object.assign(num, { type: "number", id: id.replace("{}", "num"), step, inputMode: "decimal" });
+  const u = document.createElement("span");
+  u.className = "muted unit";
+  u.textContent = unit;
+  // Kaydırıcı sürüklerken sayı alanı izler; bırakınca (change) önizleme.
+  rng.addEventListener("input", () => {
+    num.value = rng.value;
+    onInput(false);
   });
-  $("jog-home").addEventListener("click", async () => {
+  rng.addEventListener("change", () => onInput(true));
+  num.addEventListener("input", () => {
+    if (num.value !== "" && Number.isFinite(Number(num.value))) rng.value = num.value;
+    onInput(true);
+  });
+  num.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") onInput("go");
+  });
+  row.append(lab, rng, num, u);
+  host.appendChild(row);
+}
+
+function initManualLimits() {
+  if ($("joint-rows").childElementCount) return;
+  const lim = robotInfo.limits;
+  const ws = robotInfo.workspace;
+  const handler = (group) => (mode) => {
+    if (mode === "go") return manual.go(group);
+    manual.dirty[group] = true;
+    if (mode) manual.edited(group);
+  };
+  for (let i = 0; i < 3; i++) {
+    makeRow($("joint-rows"), {
+      id: `joint-{}-${i}`,
+      label: t("web.manual.joint_label", { n: i + 1 }),
+      min: lim.motor_min_deg,
+      max: lim.motor_max_deg,
+      step: 0.5,
+      unit: "°",
+      onInput: handler("joints"),
+    });
+  }
+  const rad = ws.cylinder_diameter_mm / 2;
+  const ranges = { x: [-rad, rad], y: [-rad, rad], z: [ws.z_bottom_mm, ws.z_top_mm] };
+  for (const k of AXES) {
+    makeRow($("cart-rows"), {
+      id: `cart-{}-${k}`,
+      label: k.toUpperCase(),
+      min: ranges[k][0],
+      max: ranges[k][1],
+      step: 0.5,
+      unit: "mm",
+      onInput: handler("cart"),
+    });
+  }
+  $("joints-hint-range").textContent = t("web.manual.joint_range", {
+    min: lim.motor_min_deg,
+    max: lim.motor_max_deg,
+  });
+  $("cart-range").textContent = t("web.jog.range", {
+    d: ws.cylinder_diameter_mm,
+    top: ws.z_top_mm,
+    bottom: ws.z_bottom_mm,
+  });
+  manual.setValues("joints", lastState?.angles_deg || [0, 0, 0]);
+  manual.setValues("cart", lastState?.position_mm || robotInfo.home_mm || [0, 0, -200]);
+}
+
+function initManual() {
+  $("joints-go").addEventListener("click", () => manual.go("joints"));
+  $("cart-go").addEventListener("click", () => manual.go("cart"));
+  $("joints-sync").addEventListener("click", () => manual.release());
+  $("cart-sync").addEventListener("click", () => manual.release());
+  $("cart-home").addEventListener("click", () => {
     const home = robotInfo?.home_mm;
     if (!home) return;
-    ["x", "y", "z"].forEach((k, i) => ($(`jog-${k}`).value = home[i]));
-    await doMove(...home);
+    manual.dirty.cart = true;
+    manual.setValues("cart", home);
+    manual.go("cart");
   });
   $("magnet-toggle").addEventListener("click", async () => {
-    const on = !lastState?.magnet;
     try {
-      const r = await api.magnet(on);
-      setResult($("jog-result"), "ok", r.magnet ? t("web.magnet.on") : t("web.magnet.off"));
+      const r = await api.magnet(!lastState?.magnet);
+      setResult($("manual-result"), "ok", r.magnet ? t("web.magnet.on") : t("web.magnet.off"));
     } catch (e) {
-      setResult($("jog-result"), "error", errorText(e));
+      setResult($("manual-result"), "error", errorText(e));
     }
   });
   $("torque-on").addEventListener("click", async () => {
     try {
       await api.torque(true);
-      setResult($("jog-result"), "ok", t("web.jog.torque_ok"));
+      setResult($("manual-result"), "ok", t("web.manual.ready_ok"));
     } catch (e) {
-      setResult($("jog-result"), "error", errorText(e));
+      setResult($("manual-result"), "error", errorText(e));
     }
   });
-  // Dur: her zaman etkin; iş çalışırken de kabul edilir (sözleşme).
+}
+
+// Dur: her zaman etkin; otomatik oyunu da keser (sözleşme).
+function initStop() {
   for (const b of document.querySelectorAll('[data-action="stop"]')) {
     b.addEventListener("click", async () => {
+      const out = $("panel-manual").hidden ? $("auto-result") : $("manual-result");
       try {
         await api.stop();
-        setResult($("jog-result"), "warn", t("web.jog.stopped"));
+        setResult(out, "warn", t("web.manual.stopped"));
       } catch (e) {
-        setResult($("jog-result"), "error", errorText(e));
+        setResult(out, "error", errorText(e));
       }
+      refreshBoard();
     });
   }
 }
 
-async function doMove(x, y, z) {
-  const out = $("jog-result");
-  if (![x, y, z].every(Number.isFinite)) {
-    setResult(out, "error", t("web.jog.invalid"));
-    return;
-  }
-  setResult(out, "info", t("web.jog.moving", { x, y, z }));
-  try {
-    const r = await api.move(x, y, z);
-    if (!r.accepted) {
-      setResult(
-        out,
-        "error",
-        t("web.move.rejected", { requirement: r.requirement || "—", reason: r.reason || "" }),
-      );
-    } else if (r.done === false) {
-      setResult(out, "warn", t("web.move.not_done", { reason: r.reason || "" }));
-    } else {
-      setResult(out, "ok", t("web.move.done", { pos: fmtVec(r.position_mm) }));
-    }
-  } catch (e) {
-    setResult(out, "error", errorText(e));
-  }
+// --- Sekmeler -----------------------------------------------------------------------------------
+
+const TABS = [
+  { tab: "tab-auto", panel: "panel-auto", hash: "#otomatik" },
+  { tab: "tab-manual", panel: "panel-manual", hash: "#manuel" },
+];
+
+function selectTab(idx, focus = false) {
+  TABS.forEach((x, i) => {
+    const on = i === idx;
+    const tab = $(x.tab);
+    tab.setAttribute("aria-selected", String(on));
+    tab.tabIndex = on ? 0 : -1;
+    $(x.panel).hidden = !on;
+    if (on && focus) tab.focus();
+  });
+  document.body.dataset.mode = idx === 0 ? "auto" : "manual";
+  if (location.hash !== TABS[idx].hash) history.replaceState(null, "", TABS[idx].hash);
 }
 
-// --- Kod editörü ve işler -----------------------------------------------------------------------
-
-async function initEditor() {
-  let starter = "";
-  try {
-    const res = await fetch("examples/baslangic.py");
-    if (res.ok) starter = await res.text();
-  } catch {
-    starter = "";
-  }
-  const host = $("editor");
-  if (window.CodeMirror) {
-    editor = window.CodeMirror(host, {
-      value: starter,
-      mode: "python",
-      lineNumbers: true,
-      indentUnit: 4,
-      extraKeys: { "Ctrl-Enter": runJob, "Cmd-Enter": runJob, Tab: "indentMore" },
+function initTabs() {
+  TABS.forEach((x, i) => {
+    $(x.tab).addEventListener("click", () => selectTab(i));
+    $(x.tab).addEventListener("keydown", (ev) => {
+      const n = { ArrowRight: 1, ArrowLeft: -1, Home: -i, End: TABS.length - 1 - i }[ev.key];
+      if (n === undefined) return;
+      ev.preventDefault();
+      selectTab((i + n + TABS.length) % TABS.length, true);
     });
-  } else {
-    // CDN yoksa düz metin alanı
-    const ta = document.createElement("textarea");
-    ta.className = "editor-fallback";
-    ta.value = starter;
-    ta.spellcheck = false;
-    host.appendChild(ta);
-    editor = { getValue: () => ta.value };
-  }
-  $("run").addEventListener("click", runJob);
-  $("cancel").addEventListener("click", cancelJob);
-  $("console-clear").addEventListener("click", () => ($("console").textContent = ""));
-}
-
-const job = { id: null, ws: null, status: "none" };
-
-function consoleWrite(text, kind = "stdout") {
-  const c = $("console");
-  const span = document.createElement("span");
-  span.className = kind;
-  span.textContent = text;
-  c.appendChild(span);
-  while (c.childNodes.length > CONSOLE_MAX_LINES) c.removeChild(c.firstChild);
-  c.scrollTop = c.scrollHeight;
-}
-
-function setJobStatus(status, extra = {}) {
-  job.status = status;
-  const b = $("job-status");
-  b.dataset.status = status;
-  b.textContent = t(JOB_KEYS[status] || "web.job.status.none");
-  const active = status === "queued" || status === "running";
-  $("run").disabled = active;
-  $("cancel").disabled = !active;
-  if (JOB_FINAL.has(status)) {
-    const params = { exit_code: extra.exit_code ?? "—", reason: extra.reason || "" };
-    consoleWrite(t("web.console.finished", { status: b.textContent, ...params }) + "\n", "meta");
-  }
-}
-
-async function runJob() {
-  if (job.status === "queued" || job.status === "running") return;
-  const code = editor.getValue();
-  $("console").textContent = "";
-  try {
-    const r = await api.submitJob(code, "web");
-    job.id = r.job_id;
-    $("job-id").textContent = r.job_id;
-    setJobStatus(r.status || "queued");
-    consoleWrite(t("web.console.started", { id: r.job_id }) + "\n", "meta");
-    followJob(r.job_id);
-  } catch (e) {
-    consoleWrite(errorText(e) + "\n", "stderr");
-  }
-}
-
-function followJob(id) {
-  const ws = new WebSocket(wsUrl(`/ws/jobs/${encodeURIComponent(id)}`));
-  job.ws = ws;
-  ws.onmessage = (m) => {
-    let msg;
-    try {
-      msg = JSON.parse(m.data);
-    } catch {
-      return;
-    }
-    if (msg.type === "stdout" || msg.type === "stderr") consoleWrite(msg.data, msg.type);
-    else if (msg.type === "status") setJobStatus(msg.status, msg);
-  };
-  // Sunucu iş bitince kapatır; son durum gelmediyse REST'ten okunur.
-  ws.onclose = async () => {
-    job.ws = null;
-    if (job.id !== id || JOB_FINAL.has(job.status)) return;
-    try {
-      const j = await api.job(id);
-      if (JOB_FINAL.has(j.status)) setJobStatus(j.status, j);
-      else consoleWrite(t("web.console.stream_lost") + "\n", "stderr");
-    } catch (e) {
-      consoleWrite(errorText(e) + "\n", "stderr");
-    }
-  };
-}
-
-async function cancelJob() {
-  if (!job.id) return;
-  try {
-    await api.cancelJob(job.id);
-  } catch (e) {
-    consoleWrite(errorText(e) + "\n", "stderr");
-  }
+  });
+  const fromHash = () =>
+    Math.max(
+      0,
+      TABS.findIndex((x) => x.hash === location.hash),
+    );
+  window.addEventListener("hashchange", () => selectTab(fromHash()));
+  selectTab(fromHash());
 }
 
 // --- Başlangıç ----------------------------------------------------------------------------------
 
 async function main() {
-  await loadCatalog("tr");
+  const lang = new URLSearchParams(location.search).get("lang") === "en" ? "en" : "tr";
+  document.documentElement.lang = lang;
+  await loadCatalog(lang);
   document.title = t("app.title");
   applyI18n();
   renderDisconnected();
   $("magnet-badge").textContent = t("web.magnet.off");
-  initLogin();
-  initJog();
-  await initEditor();
-  connectAll();
+  initTabs();
+  initAuto();
+  initManual();
+  initStop();
+  start();
 }
 
 main();

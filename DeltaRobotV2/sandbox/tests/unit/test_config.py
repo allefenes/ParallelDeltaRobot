@@ -56,3 +56,11 @@ def test_invalid_limits_rejected(kwargs):
 def test_invalid_image_rejected(image):
     with pytest.raises(ValueError):
         Config(image=image)
+
+
+def test_max_jobs_default_env_and_bounds():
+    assert Config().max_jobs == 1
+    assert config_from_env({"DELTA_SANDBOX_MAX_JOBS": "4"}).max_jobs == 4
+    for bad in (0, 33):
+        with pytest.raises(ValueError):
+            Config(max_jobs=bad)

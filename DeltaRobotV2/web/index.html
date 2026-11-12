@@ -6,14 +6,7 @@
     <meta name="color-scheme" content="light dark" />
     <title>Delta Robotics</title>
     <link rel="icon" href="data:," />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css"
-    />
     <link rel="stylesheet" href="css/style.css" />
-    <!-- CodeMirror 5 (UMD): Monaco'dan çok daha hafif; python modu yeterli -->
-    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
     <script type="importmap">
       {
         "imports": {
@@ -28,160 +21,165 @@
     <header class="topbar">
       <div class="brand">
         <h1 data-i18n="app.title">Delta Robotics</h1>
-        <span class="subtitle" data-i18n="app.subtitle"></span>
+        <span class="subtitle" data-i18n="web.exp.subtitle"></span>
       </div>
-      <form id="login" class="login" autocomplete="off">
-        <label for="token" data-i18n="web.login.token"></label>
-        <input
-          id="token"
-          type="password"
-          spellcheck="false"
-          data-i18n-placeholder="web.login.placeholder"
-        />
-        <button type="submit" data-i18n="web.login.connect"></button>
-        <button type="button" id="token-clear" class="ghost" data-i18n="web.login.clear"></button>
-        <span id="login-status" class="muted" role="status"></span>
-      </form>
+      <div class="status-line">
+        <span
+          id="state-badge"
+          class="badge state"
+          data-state="DISCONNECTED"
+          role="status"
+          aria-live="polite"
+        ></span>
+        <span id="magnet-badge" class="badge" data-on="false"></span>
+      </div>
       <button
         type="button"
+        id="stop-top"
         class="stop stop-top"
         data-action="stop"
         data-i18n="web.jog.stop"
+        data-i18n-aria-label="web.exp.stop_aria"
       ></button>
     </header>
 
-    <main class="grid">
-      <section class="panel editor-panel" aria-labelledby="editor-h">
-        <div class="panel-head">
-          <h2 id="editor-h" data-i18n="nav.editor"></h2>
-          <span
-            id="job-status"
-            class="badge"
-            data-status="none"
-            data-i18n="web.job.status.none"
-          ></span>
-        </div>
-        <div id="editor" class="editor"></div>
-        <div class="row">
-          <button type="button" id="run" class="primary" data-i18n="web.editor.run"></button>
-          <button type="button" id="cancel" disabled data-i18n="web.editor.cancel"></button>
-          <span id="job-id" class="muted mono"></span>
-          <span class="muted hint" data-i18n="web.editor.shortcut"></span>
-        </div>
-        <div class="console-head">
-          <h3 data-i18n="web.console.title"></h3>
-          <button
-            type="button"
-            id="console-clear"
-            class="ghost small"
-            data-i18n="web.console.clear"
-          ></button>
-        </div>
-        <pre id="console" class="console" aria-live="polite"></pre>
-      </section>
+    <div id="notice" class="notice" role="alert" hidden></div>
 
-      <section class="panel twin-panel" aria-labelledby="twin-h">
-        <div class="panel-head">
-          <h2 id="twin-h" data-i18n="nav.twin"></h2>
-          <span id="magnet-badge" class="badge" data-on="false"></span>
-        </div>
-        <div id="twin" class="twin">
+    <main class="layout">
+      <section class="twin-panel" aria-labelledby="twin-h">
+        <h2 id="twin-h" class="sr-only" data-i18n="nav.twin"></h2>
+        <div id="twin" class="twin" data-testid="twin">
           <p id="twin-msg" class="twin-msg muted" data-i18n="web.twin.waiting"></p>
+          <div class="twin-overlay mono" aria-live="off">
+            <div>
+              <span data-i18n="web.telemetry.angles"></span>: <span id="tele-angles">—</span>
+            </div>
+            <div>
+              <span data-i18n="web.telemetry.position"></span>: <span id="tele-pos">—</span>
+            </div>
+          </div>
         </div>
-        <p class="muted small" data-i18n="web.twin.legend"></p>
-        <p class="small board-line">
-          <span id="board-status" aria-live="polite"></span>
+        <p class="muted small" data-i18n="web.exp.twin_legend"></p>
+        <p class="muted small live-note" data-i18n="web.exp.live_soon"></p>
+      </section>
+
+      <section class="panel control-panel">
+        <div class="tabs" role="tablist" data-i18n-aria-label="web.exp.modes">
           <button
-            id="btn-board-reset"
             type="button"
-            class="btn small"
-            data-i18n="web.board.reset"
+            role="tab"
+            id="tab-auto"
+            aria-controls="panel-auto"
+            aria-selected="true"
+            data-i18n="web.exp.tab_auto"
           ></button>
-        </p>
-      </section>
+          <button
+            type="button"
+            role="tab"
+            id="tab-manual"
+            aria-controls="panel-manual"
+            aria-selected="false"
+            tabindex="-1"
+            data-i18n="web.exp.tab_manual"
+          ></button>
+        </div>
 
-      <section class="panel tele-panel" aria-labelledby="tele-h">
-        <div class="panel-head">
-          <h2 id="tele-h" data-i18n="web.telemetry.title"></h2>
-          <span id="state-badge" class="badge state" data-state="DISCONNECTED"></span>
+        <!-- Otomatik mod: robot kendi kendine tic-tac-toe oynar -->
+        <div id="panel-auto" role="tabpanel" aria-labelledby="tab-auto" class="tabpanel">
+          <p class="muted small" data-i18n="web.auto.intro"></p>
+          <div class="row">
+            <button
+              type="button"
+              id="auto-start"
+              class="primary"
+              data-i18n="web.auto.start"
+            ></button>
+            <button type="button" id="auto-stop" data-i18n="web.auto.stop"></button>
+            <button type="button" id="auto-reset" data-i18n="web.auto.reset"></button>
+          </div>
+          <dl class="kv game-kv">
+            <dt data-i18n="web.auto.status_label"></dt>
+            <dd id="auto-status" data-status="idle" aria-live="polite">—</dd>
+            <dt data-i18n="web.auto.turn_label"></dt>
+            <dd id="auto-turn">—</dd>
+            <dt data-i18n="web.auto.winner_label"></dt>
+            <dd id="auto-winner">—</dd>
+          </dl>
+          <div id="auto-result" class="result" role="status"></div>
+          <div class="game">
+            <figure class="board-fig">
+              <div id="board-diagram" class="board" role="img"></div>
+              <figcaption class="muted small" data-i18n="web.auto.board_caption"></figcaption>
+            </figure>
+            <div class="moves-wrap">
+              <h3 data-i18n="web.auto.moves_title"></h3>
+              <div class="moves-scroll" tabindex="0" data-i18n-aria-label="web.auto.moves_title">
+                <table class="moves">
+                  <thead>
+                    <tr>
+                      <th scope="col" data-i18n="web.auto.col_n"></th>
+                      <th scope="col" data-i18n="web.auto.col_piece"></th>
+                      <th scope="col" data-i18n="web.auto.col_move"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="moves-body"></tbody>
+                </table>
+                <p id="moves-empty" class="muted small" data-i18n="web.auto.no_moves"></p>
+              </div>
+            </div>
+          </div>
         </div>
-        <dl class="kv">
-          <dt data-i18n="web.telemetry.edge"></dt>
-          <dd id="tele-edge">—</dd>
-          <dt data-i18n="web.telemetry.angles"></dt>
-          <dd id="tele-angles" class="mono">—</dd>
-          <dt data-i18n="web.telemetry.position"></dt>
-          <dd id="tele-pos" class="mono">—</dd>
-          <dt data-i18n="web.telemetry.magnet"></dt>
-          <dd id="tele-magnet">—</dd>
-          <dt data-i18n="web.telemetry.job"></dt>
-          <dd id="tele-job" class="mono">—</dd>
-        </dl>
-        <table class="motors">
-          <thead>
-            <tr>
-              <th data-i18n="web.telemetry.motor"></th>
-              <th>1</th>
-              <th>2</th>
-              <th>3</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th data-i18n="web.telemetry.temp"></th>
-              <td id="temp-0"></td>
-              <td id="temp-1"></td>
-              <td id="temp-2"></td>
-            </tr>
-            <tr>
-              <th data-i18n="web.telemetry.load"></th>
-              <td id="load-0"></td>
-              <td id="load-1"></td>
-              <td id="load-2"></td>
-            </tr>
-            <tr>
-              <th data-i18n="web.telemetry.voltage"></th>
-              <td id="volt-0"></td>
-              <td id="volt-1"></td>
-              <td id="volt-2"></td>
-            </tr>
-          </tbody>
-        </table>
-        <h3 data-i18n="web.telemetry.last_event"></h3>
-        <div id="tele-event" class="event muted" data-i18n="web.telemetry.no_event"></div>
-      </section>
 
-      <section class="panel jog-panel" aria-labelledby="jog-h">
-        <div class="panel-head">
-          <h2 id="jog-h" data-i18n="web.jog.title"></h2>
-        </div>
-        <form id="jog" class="jog">
-          <label>x <input id="jog-x" type="number" step="1" inputmode="decimal" required /></label>
-          <label>y <input id="jog-y" type="number" step="1" inputmode="decimal" required /></label>
-          <label>z <input id="jog-z" type="number" step="1" inputmode="decimal" required /></label>
-          <span class="muted unit">mm</span>
-          <button type="submit" class="primary" data-i18n="web.jog.go"></button>
-          <button type="button" id="jog-home" data-i18n="web.jog.home"></button>
-        </form>
-        <p id="jog-range" class="muted small"></p>
-        <div class="row">
-          <button type="button" id="magnet-toggle" data-i18n="web.jog.magnet_on"></button>
-          <button type="button" id="torque-on" data-i18n="web.jog.torque_on"></button>
-        </div>
-        <button
-          type="button"
-          class="stop stop-big"
-          data-action="stop"
-          data-i18n="web.jog.stop"
-        ></button>
-        <div id="jog-result" class="result" role="status"></div>
-      </section>
+        <!-- Manuel mod: eklem ve kartezyen sürme, FK/IK önizleme -->
+        <div id="panel-manual" role="tabpanel" aria-labelledby="tab-manual" class="tabpanel" hidden>
+          <fieldset class="group" id="joints">
+            <legend data-i18n="web.manual.joints_title"></legend>
+            <p class="muted small" data-i18n="web.manual.joints_hint"></p>
+            <p id="joints-hint-range" class="muted small"></p>
+            <div id="joint-rows"></div>
+            <div id="fk-preview" class="preview" role="status" aria-live="polite"></div>
+            <div class="row">
+              <button type="button" id="joints-go" class="primary" data-i18n="web.jog.go"></button>
+              <button
+                type="button"
+                id="joints-sync"
+                class="ghost"
+                data-i18n="web.manual.sync"
+              ></button>
+            </div>
+          </fieldset>
 
-      <section class="panel camera-panel" aria-labelledby="cam-h">
-        <div class="panel-head">
-          <h2 id="cam-h" data-i18n="nav.camera"></h2>
+          <fieldset class="group" id="cart">
+            <legend data-i18n="web.manual.cart_title"></legend>
+            <p id="cart-range" class="muted small"></p>
+            <div id="cart-rows"></div>
+            <div id="ik-preview" class="preview" role="status" aria-live="polite"></div>
+            <div class="row">
+              <button type="button" id="cart-go" class="primary" data-i18n="web.jog.go"></button>
+              <button type="button" id="cart-home" data-i18n="web.jog.home"></button>
+              <button
+                type="button"
+                id="cart-sync"
+                class="ghost"
+                data-i18n="web.manual.sync"
+              ></button>
+            </div>
+          </fieldset>
+
+          <div class="row">
+            <button type="button" id="magnet-toggle" data-i18n="web.jog.magnet_on"></button>
+            <button type="button" id="torque-on" data-i18n="web.manual.ready"></button>
+          </div>
+          <button
+            type="button"
+            class="stop stop-big"
+            data-action="stop"
+            data-i18n="web.jog.stop"
+            data-i18n-aria-label="web.exp.stop_aria"
+          ></button>
+          <div id="manual-result" class="result" role="status" aria-live="polite"></div>
+          <p id="tele-event" class="event muted small" data-i18n="web.telemetry.no_event"></p>
         </div>
-        <div class="camera-placeholder" data-i18n="web.camera.placeholder"></div>
       </section>
     </main>
   </body>

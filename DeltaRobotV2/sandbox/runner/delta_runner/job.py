@@ -67,10 +67,15 @@ async def remove_stale_jobs(config: Config) -> int:
 class Job:
     """Bir kod çalıştırması. `run()` bitene kadar `rpc_result` ve `cancel` çağrılabilir."""
 
-    def __init__(self, job_id: str, code: str, config: Config, send: Send) -> None:
+    def __init__(
+        self, job_id: str, code: str, config: Config, send: Send, timeout_s: float | None = None
+    ) -> None:
         self.job_id = job_id
         self.code = code
         self.config = config
+        # İşe özel süre (plan kotası) koşucu sınırını aşamaz.
+        limit = config.limits.timeout_s
+        self.timeout_s = limit if timeout_s is None else max(0.1, min(float(timeout_s), limit))
         self.name = dockerargs.container_name(job_id, secrets.token_hex(4))
         self._send_raw = send
         self._budget = OutputBudget(config.limits.output_bytes)
@@ -101,7 +106,6 @@ class Job:
 
     async def run(self) -> dict[str, Any]:
         """Konteyneri çalıştırır, `exit` mesajını gönderir ve döndürür."""
-        limits = self.config.limits
         if len(self.code.encode()) > self.config.max_code_bytes:
             await self._send(stream_message("stderr", "sandbox: kod boyut sınırını aşıyor\n"))
             return await self._finish(-1, "error")
@@ -124,7 +128,7 @@ class Job:
             stop = asyncio.create_task(self._stop.wait())
             try:
                 done, _ = await asyncio.wait(
-                    {pump, stop}, timeout=limits.timeout_s, return_when=asyncio.FIRST_COMPLETED
+                    {pump, stop}, timeout=self.timeout_s, return_when=asyncio.FIRST_COMPLETED
                 )
                 if pump not in done:
                     if stop not in done:

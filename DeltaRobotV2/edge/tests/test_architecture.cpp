@@ -1,6 +1,7 @@
 // G10 (mimari test): seri hattı yalnız sürücü arka ucu kullanır. Kenar kaynaklarında seri port
-// API'lerine yalnız ax12_driver.* içinde izin verilir; EdgeCore donanıma yalnız Driver arayüzüyle
-// erişir.
+// API'lerine yalnız posix_serial.* (aygıtı açan tek gerçekleme) ve ax12_driver.* içinde izin
+// verilir; sürücü, protokol ve kurulum aracı aygıtı yalnız SerialPort arayüzüyle görür, EdgeCore
+// donanıma yalnız Driver arayüzüyle erişir. Özel kilit testi: test_posix_serial.cpp.
 #include <gtest/gtest.h>
 
 #include <filesystem>
@@ -24,7 +25,8 @@ TEST(Architecture, G10_OnlyDriverBackendTouchesSerialPort) {
     for (const auto& e : fs::recursive_directory_iterator(fs::path(DELTA_EDGE_SRC) / dir)) {
       if (!e.is_regular_file()) continue;
       const std::string name = e.path().filename().string();
-      if (name.rfind("ax12_driver", 0) == 0) continue;  // tek izinli sahip
+      if (name.rfind("ax12_driver", 0) == 0) continue;   // sürücü arka ucu
+      if (name.rfind("posix_serial", 0) == 0) continue;  // aygıtı açan tek gerçekleme
       std::ifstream in(e.path());
       std::stringstream ss;
       ss << in.rdbuf();

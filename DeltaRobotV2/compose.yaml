@@ -4,6 +4,7 @@
 #           + api (https://localhost:8000, web arayüzü) + runner (sandbox koşucusu)
 #           Sandbox imajı ayrıca derlenir: docker build -f docker/sandbox/Dockerfile -t deltarobotv2-sandbox .
 #           docker compose --profile sim up -d      /  uçtan uca test: ./tools/e2e.sh
+#   demo    profil: F6 tek sayfalık deneyim arayüzü (simülasyon), https://localhost:8080
 # Sertifikalar ve ROS günlükleri adlandırılmış birimlerde tutulur; çalışma ağacına yazılmaz.
 name: deltarobotv2
 
@@ -20,7 +21,7 @@ services:
 
   # Yerel, kendinden imzalı CA + sunucu sertifikası (yalnız geliştirme; gerçek sertifika F4 sonrası)
   certs:
-    profiles: [sim]
+    profiles: [sim, demo]
     image: deltarobotv2-dev:latest
     user: root
     volumes:
@@ -101,6 +102,29 @@ services:
     volumes:
       - certs:/certs:ro
     restart: "no"
+
+  # F6 deneyim arayüzü: tek sayfa + simülasyon (ziyaretçi başına yalıtılmış oturum), ROS yığını
+  # ve sanal Pi gerekmez. https://localhost:8080  (docker compose --profile demo up -d)
+  demo:
+    profiles: [demo]
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    image: deltarobotv2-api:latest
+    depends_on:
+      certs:
+        condition: service_completed_successfully
+    environment:
+      DELTA_API_MODE: sim
+      DELTA_API_TOKENS: ""
+      DELTA_SIM_MAX_SESSIONS: "50"
+      DELTA_SIM_IDLE_TIMEOUT_S: "600"
+      DELTA_TLS_CERT: /certs/server.crt
+      DELTA_TLS_KEY: /certs/server.key
+    volumes:
+      - certs:/certs:ro
+    ports:
+      - "127.0.0.1:8080:8000"
 
 volumes:
   certs:

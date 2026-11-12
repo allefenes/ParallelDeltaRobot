@@ -10,6 +10,10 @@ export async function loadCatalog(lang = "tr") {
   }
 }
 
+export function has(key) {
+  return Object.prototype.hasOwnProperty.call(catalog, key);
+}
+
 // t("anahtar", {ad: değer}) -> metin; {ad} yer tutucuları doldurulur.
 export function t(key, params = {}) {
   const text = Object.prototype.hasOwnProperty.call(catalog, key) ? catalog[key] : key;

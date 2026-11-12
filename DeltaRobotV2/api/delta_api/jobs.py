@@ -7,6 +7,7 @@ Tek robot olduğu için işler sırayla çalışır; çalışan iş robotun kont
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import datetime as dt
 import itertools
 import json
@@ -68,16 +69,30 @@ class Job:
                 q.put_nowait(msg)
 
 
+_SEQ = itertools.count(1)  # tüm oturumlarda tekil iş kimliği
+
+
 class JobManager:
-    def __init__(self, backend: Backend, runner_url: str, runner_secret: str) -> None:
+    """Bir arka ucun (robot ya da kullanıcının simülasyon oturumu) iş kuyruğu; işler sırayla.
+
+    slots: koşucu kapasitesi kadar ortak semafor (oturumlar arası paralellik sınırı).
+    """
+
+    def __init__(
+        self,
+        backend: Backend,
+        runner_url: str,
+        runner_secret: str,
+        slots: asyncio.Semaphore | None = None,
+    ) -> None:
         self.backend = backend
         self.runner_url = runner_url
         self.runner_secret = runner_secret
+        self.slots = slots
         self.jobs: dict[str, Job] = {}
         self.queue: asyncio.Queue[Job] = asyncio.Queue()
         self.active: Job | None = None
         self._cancel_events: dict[str, asyncio.Event] = {}
-        self._seq = itertools.count(1)
         self._worker: asyncio.Task | None = None
 
     def start(self) -> None:
@@ -98,7 +113,7 @@ class JobManager:
             raise ApiError("bad_request", "kod 64 KB'tan büyük")
         if name is not None and (not isinstance(name, str) or len(name) > 100):
             raise ApiError("bad_request", "ad en çok 100 karakter olmalı")
-        jid = f"job-{next(self._seq):04d}-{uuid.uuid4().hex[:4]}"
+        jid = f"job-{next(_SEQ):04d}-{uuid.uuid4().hex[:4]}"
         job = Job(jid, code, name, owner)
         self.jobs[jid] = job
         self._cancel_events[jid] = asyncio.Event()
@@ -126,7 +141,11 @@ class JobManager:
                 continue
             self.active = job
             try:
-                await self._run(job)
+                async with self.slots or contextlib.nullcontext():
+                    if job.cancel_requested:
+                        self._finish(job, "cancelled", None, "kuyrukta iptal edildi")
+                        continue
+                    await self._run(job)
             except Exception as e:  # noqa: BLE001 - iş başarısız sayılır, kuyruk sürer
                 if job.status not in FINAL:
                     self._finish(job, "failed", None, f"koşucu hatası: {e}")
@@ -153,8 +172,13 @@ class JobManager:
             self._finish(job, "failed", None, f"sandbox koşucusuna bağlanılamadı: {e}")
             return
         async with ws:
-            await ws.send(json.dumps({"type": "start", "job_id": job.job_id, "code": job.code,
-                                      "secret": self.runner_secret}))  # fmt: skip
+            start = {
+                "type": "start",
+                "job_id": job.job_id,
+                "code": job.code,
+                "secret": self.runner_secret,
+            }
+            await ws.send(json.dumps(start))
             job.status, job.started_at = "running", _now()
             job.broadcast({"type": "status", "status": "running"})
             cancel_task = asyncio.create_task(cancel_ev.wait())
@@ -189,8 +213,11 @@ class JobManager:
                 result = await execute(self.backend, method, msg.get("params"), job.job_id)
                 reply = {"type": "rpc_result", "id": rid, "result": result}
             except ApiError as e:
-                reply = {"type": "rpc_result", "id": rid,
-                         "error": {"code": e.code, "message": e.message}}  # fmt: skip
+                reply = {
+                    "type": "rpc_result",
+                    "id": rid,
+                    "error": {"code": e.code, "message": e.message},
+                }
             await ws.send(json.dumps(reply))
         elif kind == "exit":
             code, reason = msg.get("exit_code"), msg.get("reason", "error")

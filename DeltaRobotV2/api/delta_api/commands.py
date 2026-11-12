@@ -11,14 +11,25 @@ import math
 from delta_api.backend import Backend
 
 METHODS = ("robot", "state", "move", "magnet", "torque", "stop", "board", "board_reset")
+# F6 deneyim arayüzü (yalnız REST; sandbox RPC'de yok)
+UI_METHODS = ("move_joints", "fk", "ik", "auto_start", "auto_stop")
+# Otomatik oyun sürerken reddedilen elle komutlar (dur her zaman kabul)
+MANUAL = ("move", "move_joints", "magnet", "torque", "board_reset", "auto_start")
 MAX_DURATION_S = 60.0  # süpervizörün max_duration_s değeriyle aynı
 
 
 class ApiError(Exception):
     """Sözleşmedeki hata kodu + Türkçe mesaj (HTTP durumu `status`)."""
 
-    STATUS = {"bad_request": 400, "unauthorized": 401, "not_found": 404, "busy": 409,
-              "robot_unavailable": 503}  # fmt: skip
+    STATUS = {
+        "bad_request": 400,
+        "unauthorized": 401,
+        "not_found": 404,
+        "busy": 409,
+        "rate_limited": 429,
+        "capacity": 503,
+        "robot_unavailable": 503,
+    }
 
     def __init__(self, code: str, message: str, **extra) -> None:
         super().__init__(message)
@@ -85,6 +96,11 @@ async def execute(backend: Backend, method: str, params: dict | None, job_id: st
         if not await backend.stop():
             raise ApiError("robot_unavailable", "dur komutu iletilemedi (kenar bağlı değil)")
         return {"ok": True}
+    if method in UI_METHODS:
+        try:
+            return await _ui(backend, method, params)
+        except NotImplementedError:
+            raise ApiError("not_found", "bu komut yalnız simülasyon modunda") from None
     if method == "board":
         board = backend.board()
         if board is None:
@@ -102,3 +118,34 @@ async def execute(backend: Backend, method: str, params: dict | None, job_id: st
 def _require_connected(backend: Backend) -> None:
     if backend.state().state == "DISCONNECTED":
         raise ApiError("robot_unavailable", "robot bağlı değil")
+
+
+def _angles(params: dict) -> list[float]:
+    a = params.get("angles_deg")
+    if not isinstance(a, list) or len(a) != 3:
+        raise ApiError("bad_request", "'angles_deg' üç sayılık liste olmalı")
+    return [_number({"a": v}, "a") for v in a]
+
+
+async def _ui(backend: Backend, method: str, params: dict):
+    if method == "fk":
+        return backend.fk(_angles(params))
+    if method == "ik":
+        x, y, z = (_number(params, k) for k in ("x", "y", "z"))
+        return backend.ik(x, y, z)
+    if method == "move_joints":
+        angles = _angles(params)
+        dur = params.get("duration_s")
+        if dur is not None:
+            dur = _number(params, "duration_s")
+            if not 0 < dur <= MAX_DURATION_S:
+                raise ApiError(
+                    "bad_request", f"duration_s 0 ile {MAX_DURATION_S:g} s arasında olmalı"
+                )
+        wait = _flag(params, "wait", True)
+        return (await backend.move_joints(angles, dur, wait)).to_dict()
+    if method == "auto_start":
+        await backend.auto_start()
+        return {"ok": True}
+    await backend.auto_stop()
+    return {"ok": True}

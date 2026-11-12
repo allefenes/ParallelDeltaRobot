@@ -38,36 +38,6 @@
     --twin-bg: #1b222b;
     --twin-grid: #3a4450;
   }
-  .CodeMirror {
-    background: #0b0f14;
-    color: #e6edf3;
-  }
-  .CodeMirror-gutters {
-    background: #11161d;
-    border-color: #30363d;
-  }
-  .CodeMirror-cursor {
-    border-left-color: #e6edf3;
-  }
-  .cm-s-default .cm-keyword {
-    color: #ff7b72;
-  }
-  .cm-s-default .cm-string {
-    color: #a5d6ff;
-  }
-  .cm-s-default .cm-comment {
-    color: #8b949e;
-  }
-  .cm-s-default .cm-number {
-    color: #79c0ff;
-  }
-  .cm-s-default .cm-def,
-  .cm-s-default .cm-variable-2 {
-    color: #d2a8ff;
-  }
-  .cm-s-default .cm-builtin {
-    color: #ffa657;
-  }
 }
 
 * {
@@ -193,42 +163,53 @@ button.stop:hover {
   font-size: 12px;
   color: var(--muted);
 }
-.login {
+.status-line {
   display: flex;
   align-items: center;
   gap: 8px;
   flex: 1;
   flex-wrap: wrap;
 }
-.login input {
-  width: 220px;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
-/* Izgara: 1280 px'de üç sütun */
-.grid {
+/* Kapasite / oturum uyarısı */
+.notice {
+  margin: 12px 16px 0;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  background: var(--panel);
+}
+.notice[hidden] {
+  display: none;
+}
+
+/* Düzen: solda büyük ikiz, sağda kontrol paneli */
+.layout {
   display: grid;
   gap: 12px;
   padding: 12px 16px;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.2fr) minmax(0, 0.85fr);
-  grid-template-areas:
-    "editor twin tele"
-    "editor twin jog"
-    "editor camera jog";
-}
-.editor-panel {
-  grid-area: editor;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+  align-items: start;
 }
 .twin-panel {
-  grid-area: twin;
+  position: sticky;
+  top: 64px;
+  min-width: 0;
 }
-.tele-panel {
-  grid-area: tele;
+.twin-panel p {
+  margin: 6px 0 0;
 }
-.jog-panel {
-  grid-area: jog;
-}
-.camera-panel {
-  grid-area: camera;
+.live-note {
+  font-style: italic;
 }
 
 .panel {
@@ -238,23 +219,12 @@ button.stop:hover {
   padding: 12px;
   min-width: 0;
 }
-.panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
-}
 .row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
-}
-.hint {
-  margin-left: auto;
-  font-size: 12px;
 }
 
 /* Rozetler */
@@ -286,82 +256,21 @@ button.stop:hover {
   background: var(--error);
   border-color: var(--error);
 }
-.badge[data-status="running"],
-.badge[data-status="queued"] {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-.badge[data-status="done"] {
-  color: var(--ok);
-  border-color: var(--ok);
-}
-.badge[data-status="failed"],
-.badge[data-status="timeout"] {
-  color: var(--error);
-  border-color: var(--error);
-}
-.badge[data-status="cancelled"] {
-  color: var(--warn);
-  border-color: var(--warn);
-}
 #magnet-badge[data-on="true"] {
   color: #fff;
   background: var(--error);
   border-color: var(--error);
 }
 
-/* Editör ve konsol */
-.editor {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  overflow: hidden;
-}
-.editor .CodeMirror {
-  height: 380px;
-  font-size: 13px;
-}
-.editor-fallback {
-  width: 100%;
-  height: 380px;
-  border: 0;
-  font-family: ui-monospace, Consolas, monospace;
-  background: var(--console-bg);
-  color: var(--text);
-  padding: 8px;
-}
-.console-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.console {
-  margin: 0;
-  height: 220px;
-  overflow: auto;
-  background: var(--console-bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px;
-  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-  font-size: 12px;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-.console .stderr {
-  color: var(--error);
-}
-.console .meta {
-  color: var(--muted);
-  font-style: italic;
-}
-
 /* İkiz */
 .twin {
   position: relative;
-  height: 460px;
-  border-radius: 6px;
+  height: calc(100vh - 150px);
+  min-height: 360px;
+  border-radius: var(--radius);
   overflow: hidden;
   background: var(--twin-bg);
+  border: 1px solid var(--border);
 }
 .twin canvas {
   display: block;
@@ -381,139 +290,267 @@ button.stop:hover {
 .twin-msg[hidden] {
   display: none;
 }
+.twin-overlay {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--panel) 80%, transparent);
+  font-size: 12px;
+  pointer-events: none;
+}
 
-/* Telemetri */
+/* Sekmeler */
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin: -4px -4px 10px;
+}
+.tabs [role="tab"] {
+  flex: 1;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  padding: 10px 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.tabs [role="tab"][aria-selected="true"] {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+.tabpanel[hidden] {
+  display: none;
+}
+.tabpanel > p:first-child {
+  margin-top: 0;
+}
+
+/* Sonuç kutuları */
+.result,
+.preview,
+.event {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+.result:empty,
+.preview:empty {
+  display: none;
+}
+[data-kind="error"] {
+  color: var(--error);
+  background: var(--error-bg);
+  border-color: var(--error);
+}
+[data-kind="ok"] {
+  color: var(--ok);
+}
+[data-kind="warn"] {
+  color: var(--warn);
+}
+[data-kind="info"] {
+  color: var(--muted);
+}
+
+/* Oyun durumu */
 .kv {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 4px 12px;
-  margin: 0;
+  margin: 12px 0 0;
 }
 .kv dt {
   color: var(--muted);
 }
 .kv dd {
   margin: 0;
+  font-weight: 600;
 }
-#tele-edge[data-ok="true"] {
+#auto-status[data-status="playing"] {
+  color: var(--accent);
+}
+#auto-status[data-status="finished"] {
   color: var(--ok);
 }
-#tele-edge[data-ok="false"] {
+#auto-status[data-status="error"] {
   color: var(--error);
 }
-.motors {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  font-size: 13px;
-}
-.motors th,
-.motors td {
-  border-bottom: 1px solid var(--border);
-  padding: 3px 4px;
-  text-align: right;
-}
-.motors th:first-child {
-  text-align: left;
-  color: var(--muted);
-  font-weight: normal;
-}
-.event,
-.result {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  min-height: 36px;
-  font-size: 13px;
-}
-.result:empty {
-  display: none;
-}
-.event[data-kind="error"],
-.result[data-kind="error"] {
-  color: var(--error);
-  background: var(--error-bg);
-  border-color: var(--error);
-}
-.event[data-kind="ok"],
-.result[data-kind="ok"] {
-  color: var(--ok);
-}
-.result[data-kind="warn"] {
-  color: var(--warn);
-}
-.result {
-  margin-top: 10px;
-}
 
-/* Elle sürme */
-.jog {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+.game {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 12px;
+  align-items: start;
 }
-.jog label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-family: ui-monospace, Consolas, monospace;
+.board-fig {
+  margin: 0;
+  max-width: 190px;
 }
-.jog input {
-  width: 74px;
+.board-fig figcaption {
+  margin-top: 6px;
 }
-
-.camera-placeholder {
-  height: 120px;
+.board {
+  display: grid;
+  grid-template-columns: 18px repeat(3, 48px);
+  grid-template-rows: 18px repeat(3, 48px);
+  gap: 3px;
+}
+.board .head {
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  border: 1px dashed var(--border);
-  border-radius: 6px;
+  font-size: 12px;
   color: var(--muted);
-  padding: 12px;
+  font-weight: 600;
+}
+.board .cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: #33373f;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  border: 2px solid transparent;
+}
+.board .cell[data-kind="X"] {
+  color: #5aa2ff;
+}
+.board .cell[data-kind="O"] {
+  color: #f2cc1a;
+}
+.board .cell.from {
+  border: 2px dashed var(--accent);
+}
+.board .cell.to {
+  border: 2px solid var(--accent);
+}
+.moves-wrap h3 {
+  margin-top: 0;
+}
+.moves-scroll {
+  max-height: 230px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.moves {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.moves th,
+.moves td {
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.moves th {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  color: var(--muted);
+  font-weight: 600;
+}
+.moves tr[data-kind="X"] td:nth-child(2) {
+  color: var(--accent);
+  font-weight: 700;
+}
+.moves tr[data-kind="O"] td:nth-child(2) {
+  color: var(--warn);
+  font-weight: 700;
+}
+.moves-scroll p {
+  margin: 6px 8px;
+}
+.moves-scroll p[hidden] {
+  display: none;
 }
 
-/* Orta genişlik: iki sütun */
-@media (max-width: 1100px) {
-  .grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-areas:
-      "twin tele"
-      "twin jog"
-      "editor editor"
-      "camera camera";
+/* Manuel mod */
+.group {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 0 0 12px;
+  padding: 8px 12px 12px;
+  min-width: 0;
+}
+.group legend {
+  font-weight: 600;
+  padding: 0 4px;
+}
+.group > p {
+  margin: 2px 0 6px;
+}
+.slider-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 76px 24px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.slider-row label {
+  font-family: ui-monospace, Consolas, monospace;
+  font-weight: 600;
+}
+.slider-row input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.slider-row input[type="number"] {
+  width: 100%;
+  text-align: right;
+}
+.unit {
+  font-size: 12px;
+}
+.event:empty {
+  display: none;
+}
+
+/* Dar ekran: tek sütun */
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .twin-panel {
+    position: static;
+  }
+  .twin {
+    height: 52vh;
+    min-height: 280px;
   }
 }
 
-/* Telefon: tek sütun, Dur üstte sabit */
-@media (max-width: 700px) {
+/* Telefon */
+@media (max-width: 600px) {
   .topbar {
     flex-wrap: wrap;
     gap: 8px;
     padding: 8px 12px;
   }
-  .login input {
-    width: 100%;
-    flex: 1 1 100%;
-  }
   .stop-top {
     width: 100%;
   }
-  .grid {
+  .layout {
     padding: 8px;
+  }
+  .game {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "jog" "tele" "twin" "editor" "camera";
   }
-  .twin {
-    height: 320px;
-  }
-  .editor .CodeMirror,
-  .editor-fallback {
-    height: 280px;
-  }
-  .hint {
-    display: none;
+  .board-fig {
+    max-width: none;
   }
 }

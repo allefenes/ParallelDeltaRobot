@@ -114,7 +114,7 @@ def test_health_without_token(spec):
     with c:
         r = c.get("/api/v1/health")
     assert r.status_code == 200
-    assert r.json() == {"ok": True, "edge_connected": True, "version": "v1"}
+    assert r.json() == {"ok": True, "edge_connected": True, "version": "v1", "mode": "robot"}
 
 
 @pytest.mark.parametrize(

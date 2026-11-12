@@ -17,7 +17,7 @@ Son güncelleme: 2026-11-12
 | F4.5 Tic-tac-toe (sim)      | Kod tamam; gerçek yığında senaryo koşusu bekliyor              | Tabla ikizi + kurallar 15 test; API üzerinden tam oyun regresyonu ✔                                                                                                     |
 | Malzeme listesi             | Her fazda güncellenir                                          | 32 kalem (G13 donanım bekçisi dahil), [hardware/bom.md](../hardware/bom.md)                                                                                              |
 
-Sıradaki: Docker Desktop yeniden başlatılınca G11 yeniden koşusu ve F4/F4.5 uçtan uca koşusu; ardından F5 yazılım yarısı (tahmin ~3–4 saat) ve askıya alma, F6 simülasyon kiralama sitesi (tahmin ~10–14 saat). Son güncelleme: 2026-11-12, F4/F4.5 kodu tamam.
+Sıradaki: F6 tek sayfalık deneyim arayüzü (tahmin ~5–7 saat; arka uç tamam, arayüz ve Playwright sürüyor), F5 yazılım yarısı (AX-12A arka ucu sürüyor) ve askıya alma. Docker Desktop yeniden başlatılınca: G11 yeniden koşusu, F4/F4.5 uçtan uca koşusu. Son güncelleme: 2026-11-12.
 
 ## F0 İskele
 
@@ -229,12 +229,48 @@ Sözleşme: [api.md](api.md). Bilgisayarın ikinci çökmesinden (11:07) sonra d
 | Senaryo regresyonu: iki minimaks oyuncu; API üzerinden (sahte arka uç) ✔, gerçek yığında `tools/e2e_f4.sh`                  | kısmen                              |
 | Datasheet "Senaryo metrikleri (simülasyon)" bölümü                                                                           | ✔ (veri uçtan uca koşudan gelecek) |
 
+## F5 Yeniden kurulum: askıda (kısmen tamamlandı)
+
+Kullanıcı kararı (2026-11-12): elektronik ve mekanik geliştirmeler bekler; yazılım yarısı yapılıp faz askıya alındı.
+
+| Teslim                                                                                                                          | Durum                     |
+| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| AX-12A arka ucu (Dynamixel Protokol 1.0): paket katmanı, hat işlemleri, POSIX seri port (termios, `flock` + `TIOCEXCL`), sürücü | ✔ (sahte servo hattıyla) |
+| Motor parametre yapılandırması (`edge/config/motor_ax12.yaml`; `model` ile arka uç seçimi, başka motor takılabilir)             | ✔                        |
+| `delta_servo_tool`: tarama, kimlik, hız, okuma, tork                                                                            | ✔                        |
+| Kurulum planı yazılım adımları (servo ayarı, Pi kurulumu, systemd, kalibrasyon yazılım kısmı, yerel sunucu)                     | ✔                        |
+| Kabul testi prosedürleri: H1–H13 + ön doğrulamalar S1–S8                                                                        | ✔ (yazılı)               |
+| Elektronik tasarım (donanım bekçisi devresi, mıknatıs sürücüsü, acil stop, Pi beslemesi)                                        | askıda                    |
+| Kutu, kamera tutucu, kamera kalibrasyonu, üretim, montaj                                                                        | askıda                    |
+| Gerçek donanımla kabul testleri, datasheet ölçüm alanları                                                                       | askıda                    |
+
+| Bileşen                                        | Test (geçen / toplam) | Satır % |
+| ---------------------------------------------- | --------------------- | ------- |
+| delta_edge (GoogleTest; AX-12A arka ucu dahil) | 190 / 190             | 99.0    |
+
+## F6 Tek sayfalık deneyim arayüzü (sürüyor)
+
+Kapsam iki kez değişti (kullanıcı, 2026-11-12): önce simülasyon kiralama sitesi, sonra üyeliksiz tek sayfa. Kiralama sitesi için başlanan `site/` kodu kaydedilmeden kaldırıldı; API'deki site doğrulaması, kota ve kullanım kaydı da kaldırıldı. Tasarım: [f6-deneyim-arayuzu.md](f6-deneyim-arayuzu.md).
+
+| Teslim                                                                                               | Durum   |
+| ---------------------------------------------------------------------------------------------------- | ------- |
+| Süreç içi simülasyon arka ucu (`sim_backend.py`): aynı kinematik, planlayıcı, 1. kapı ve tabla ikizi | ✔      |
+| Anonim ziyaretçi oturumları; IP/oturum hız sınırı, kapasite, boşta silme                             | ✔      |
+| Manuel mod uç noktaları: `/kinematics/fk`, `/kinematics/ik`, `/move_joints` (quintic, eklem uzayı)   | ✔      |
+| Otomatik mod: `/auto/start`, `/auto/stop`, `/board` içinde oyun durumu ve hamleler                   | ✔      |
+| Koşucu: eşzamanlı iş kapasitesi ve işe özel süre                                                     | ✔      |
+| Compose `demo` profili (https://localhost:8080)                                                      | ✔      |
+| Tek sayfa arayüz (otomatik + manuel), Playwright uçtan uca, ekran görüntüleri                        | sürüyor |
+
+| Bileşen                        | Test (geçen / toplam) | Satır % |
+| ------------------------------ | --------------------- | ------- |
+| API (robot + simülasyon modu)  | 67 / 67               | 91      |
+| ROS2 (pytest + launch_testing) | 98 + 3                | —       |
+| Sandbox birim                  | 90 / 90               | —       |
+
 ## Kullanıcıdan beklenen kararlar
 
-| Konu                                                                | Neden gerekli                                              | Şimdilik                        |
-| ------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------- |
-| Docker Desktop yeniden başlatması                                   | Takılı G11 konteyneri; G11 ve uçtan uca koşular buna bağlı | Kök oturum kullanıcıya soruyor  |
-| Fiyatlandırma (F6)                                                  | Simülasyon kiralama planları                               | Öneri belgede; yer tutucular    |
-| Ödeme sağlayıcısı (F6): iyzico ya da PayTR                          | Stripe Türk satıcı kabul etmiyor                           | Soyutlama + test modu           |
-| Alan adı ve sunucu (F6)                                             | Gerçek dağıtım                                             | Yalnız yerel konteyner          |
-| Hukuki metinler (F6): Kullanım Koşulları, KVKK aydınlatma, Gizlilik | Hukuk incelemesi                                           | "Taslak" işaretli yer tutucular |
+| Konu                              | Neden gerekli                                              | Şimdilik                       |
+| --------------------------------- | ---------------------------------------------------------- | ------------------------------ |
+| Docker Desktop yeniden başlatması | Takılı G11 konteyneri; G11 ve uçtan uca koşular buna bağlı | Kök oturum kullanıcıya soruyor |
+| Sunucu ve alan adı                | Deneyim arayüzünün yayına alınması                         | Yalnız yerel konteyner         |

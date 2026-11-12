@@ -201,6 +201,11 @@ def parse_api_message(text: str | bytes) -> dict[str, Any]:
                 raise ProtocolError(f"start: {key} metin olmalı")
         if not msg["job_id"]:
             raise ProtocolError("start: job_id boş")
+        t = msg.get("timeout_s")
+        if t is not None and (
+            isinstance(t, bool) or not isinstance(t, int | float) or not 0 < t <= 3600
+        ):
+            raise ProtocolError("start: timeout_s 0..3600 s arası sayı olmalı")
     elif kind == "rpc_result":
         if not _valid_id(msg.get("id")):
             raise ProtocolError("rpc_result: id geçersiz")

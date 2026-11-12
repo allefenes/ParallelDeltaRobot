@@ -130,6 +130,10 @@ def render_md(rows: list[list[str]]) -> str:
         "",
         "Üretmek: `docker compose run --rm dev python3 tools/bom.py`",
         "",
+        "**Durum: F5 askıda (2026-11-12).** Hiçbir kalem satın alınmadı ya da üretilmedi. "
+        "Elektronik kalemler (donanım bekçisi, mıknatıs sürücüsü, acil stop, Pi beslemesi) ve "
+        "kutu/kamera tasarımı kesinleşmedi; fiyat ve tedarikçi alanları boştur.",
+        "",
     ]
     out += md_table(COLUMNS, rows)
     masses = {}

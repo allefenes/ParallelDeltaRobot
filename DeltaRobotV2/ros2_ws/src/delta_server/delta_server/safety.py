@@ -32,6 +32,15 @@ CORE_REASON_REQUIREMENT = {
 }
 
 
+def min_tool_z_mm(spec: dict) -> float:
+    """G14: mıknatıs ucunun en alçak z'si = tabla üst yüzü (zemin + tabla), robot.yaml'dan.
+
+    Tabla yalnız ortada olsa da sınır her yerde uygulanır (ihtiyatlı taraf).
+    """
+    k, task = spec["kinematics"], spec.get("task", {})
+    return -float(k["base_to_floor"]) + float(task.get("board_thickness", 0.0))
+
+
 @dataclass(frozen=True)
 class Limits:
     """Süpervizör sınırları; açı/konum limitleri delta_core'dadır (robot.yaml)."""

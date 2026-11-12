@@ -1,0 +1,33 @@
+# Motor parametreleri: Dynamixel AX-12A (delta_edge, DELTA_DRIVER=ax12).
+# Biçim motora geneldir: `model` arka ucu seçer; başka motor için yeni bir motor_<model>.yaml yazılır.
+# Eklem açı limitleri burada YOKTUR: tek kaynak config/robot.yaml (kinematics.motor_limit_min/max).
+# Yükleyici limitlerin tick karşılığı 0..ticks-1 dışına düşerse dosyayı reddeder.
+#
+# Eşleme (eklem j, θ deg, pozitif = kol aşağı):
+#   tick = zero_tick + sign * θ / (range_deg / ticks)
+#
+# zero_tick ve sign VARSAYIM'dır; F5'te her kol yatayken (θ = 0) `delta_servo_tool read ID`
+# ile ölçülüp buraya yazılır, sonra kol aşağı itilip tick'in arttığı (sign +1) doğrulanır.
+
+motor:
+  model: AX-12A # robot.yaml motor.model ile aynı olmalı
+  bus:
+    baud: 1000000 # katalog: AX-12A varsayılanı 1 Mbps (baud kodu 1)
+    reply_timeout_ms: 5 # varsayim: 1 Mbps'te 8 baytlık yanıt ~0.1 ms + yanıt gecikmesi
+    local_echo: false # varsayim: yön denetimli tampon/U2D2; tek telli yankılı hatta true
+    status_return_level: 2 # katalog varsayılanı: WRITE de yanıtlanır
+    return_delay_us: 100 # varsayim: yön değişimine pay (katalog varsayılanı 500 us)
+  position:
+    ticks: 1024 # katalog: 0..1023
+    range_deg: 300.0 # katalog; robot.yaml motor.position_range_deg ile aynı olmalı
+  scale:
+    voltage_v_per_unit: 0.1 # katalog: Present Voltage = 10 x V
+    temp_c_per_unit: 1.0 # katalog: Present Temperature °C
+    load_pct_per_unit: 0.1 # katalog: Present Load 0..1023 büyüklük, ~%0.1 adım; bit 10 yön
+  moving_speed: 0 # katalog: 0 = denetimsiz en yüksek hız; hız sınırı kenar kapısında (G5)
+  write_angle_limits: true # CW/CCW limitleri eklem penceresine yazılır (yalnız farklıysa, EEPROM)
+  joints: # sıra kol 1, 2, 3 (robot.yaml arm_angles)
+    # varsayim: θ = 0 tick 376 -> -70..150 deg = 138..888 tick (orta nokta 512 = θ 40 deg)
+    - { id: 1, zero_tick: 376, sign: 1 }
+    - { id: 2, zero_tick: 376, sign: 1 }
+    - { id: 3, zero_tick: 376, sign: 1 }

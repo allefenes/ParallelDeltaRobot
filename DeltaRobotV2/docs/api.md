@@ -34,7 +34,7 @@ Statik dosyalar (`/`, `/assets/meshes/*`, `/i18n/*`) belirteç gerektirmez; robo
 
 ## REST uç noktaları (`/api/v1`)
 
-Tüm gövdeler JSON. Uzunluk mm, açı derece, süre saniye. Hata gövdesi: `{"error": <kod>, "message": <Türkçe metin>}`; kodlar `bad_request` (400), `unauthorized` (401), `not_found` (404), `busy` (409), `robot_unavailable` (503).
+Tüm gövdeler JSON. Uzunluk mm, açı derece, süre saniye. Hata gövdesi: `{"error": <kod>, "message": <Türkçe metin>}`; kodlar `bad_request` (400), `unauthorized` (401), `not_found` (404), `busy` (409), `rate_limited` (429, F6), `robot_unavailable` (503), `capacity` (503, F6: oturum sınırı dolu). `GET /health` yanıtında `mode`: `robot` (tek robot, kontrol kilidi) ya da `sim` (F6: ziyaretçi başına simülasyon oturumu; kilit oturum başına). İşler yalnız sahibine görünür; başkasının işi `404`.
 
 | Yöntem | Yol                 | Gövde                                                                | Yanıt                                                                                      |
 | ------ | ------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -203,9 +203,52 @@ for s in robot.telemetry():          # WS akışı (yalnız ağ taşımasında)
 
 ### Koşucu ↔ API (`ws://runner:8100/run`, iç ağ, paylaşılan gizli anahtar `DELTA_RUNNER_SECRET`)
 
-API → koşucu: `{"type": "start", "job_id", "code", "secret"}`, `{"type": "rpc_result", "id", "result" | "error"}`, `{"type": "cancel"}`.
+API → koşucu: `{"type": "start", "job_id", "code", "secret", "timeout_s"?}` (`timeout_s`: işe özel süre, koşucu sınırını aşamaz), `{"type": "rpc_result", "id", "result" | "error"}`, `{"type": "cancel"}`.
 Koşucu → API: `{"type": "rpc", "id", "method", "params"}`, `{"type": "stdout" | "stderr", "data"}`, `{"type": "exit", "exit_code", "reason": "ok | timeout | output_limit | cancelled | error"}`.
 
 ## Güvenlik gereksinimi G11 testleri
 
 `sandbox/tests/` ağ erişimi (DNS, TCP, kenar uç noktası), dosya sistemine yazma (`/`, `/home`, `/tmp` boyut sınırı, `noexec`), bellek, süreç sayısı (fork bombası), CPU/duvar saati, çıktı taşması, yetki yükseltme ve konteynerden kaçış denemelerinin hepsinin engellendiğini doğrular. Test adları `G11_` ile başlar.
+
+## F6 deneyim arayüzü (simülasyon modu, üyeliksiz)
+
+Kullanıcı kararı (2026-11-12): nihai site üyeliksiz, tek sayfalık bir deneyim arayüzüdür; robot dijital ikizde (simülasyon) çalışır. API `DELTA_API_MODE=sim` ile başlar; her ziyaretçi kendi yalıtılmış simülasyon oturumunu alır.
+
+### Anonim oturum
+
+| Yöntem | Yol        | Gövde                    | Yanıt                                                                                                                                                                   |
+| ------ | ---------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/session` | `{}` (belirteç gerekmez) | `201 {"token": str, "idle_timeout_s": 600}`; IP başına dakikada 10 oturum → `429 {"error": "rate_limited"}`; eşzamanlı oturum sınırı dolu → `503 {"error": "capacity"}` |
+
+- Dönen belirteç diğer uç noktalarda `Authorization: Bearer` / WS `?token=` olarak kullanılır. Oturum `idle_timeout_s` boyunca istek ya da açık telemetri bağlantısı olmazsa silinir; sonraki çağrı `401` alır, arayüz yeni oturum açar.
+- Oturum başına istek sınırı: saniyede 20 istek → `429`.
+
+### Manuel mod
+
+| Yöntem | Yol              | Gövde                                                                             | Yanıt                                                                                                                                |
+| ------ | ---------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| POST   | `/move_joints`   | `{"angles_deg": [θ1, θ2, θ3], "duration_s": number \| null, "wait": bool = true}` | Hareket sonucu (`/move` ile aynı); eklem uzayında yumuşak (quintic) yörünge, aynı 1. kapıdan (G1–G5, G14) geçer                      |
+| POST   | `/kinematics/fk` | `{"angles_deg": [θ1, θ2, θ3]}`                                                    | `{"ok": bool, "position_mm": [x, y, z] \| null, "requirement": str?, "reason": str?}`; hareket yok, nokta denetimi (G1, G2, G3, G14) |
+| POST   | `/kinematics/ik` | `{"x", "y", "z"}`                                                                 | `{"ok": bool, "angles_deg": [θ1, θ2, θ3] \| null, "requirement": str?, "reason": str?}`; hareket yok                                 |
+
+### Otomatik mod (tic-tac-toe)
+
+| Yöntem | Yol           | Gövde | Yanıt                                                                                                                                               |
+| ------ | ------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | `/auto/start` | `{}`  | `{"ok": true}`; robot iki minimaks oyuncuyla kendi kendine oynar (taşları gerçekten al-taşı-bırak ile taşır). Çalışırken manuel komutlar `409 busy` |
+| POST   | `/auto/stop`  | `{}`  | `{"ok": true}`; hareket kesilir, robot durur (HOLDING) ve IDLE'a alınır                                                                             |
+
+`GET /board` yanıtına `auto` alanı eklenir:
+
+```json
+{
+  "auto": {
+    "status": "idle | playing | finished | stopped | error",
+    "turn": "X",
+    "reason": null,
+    "moves": [{ "n": 1, "kind": "X", "from": 1, "to": 4 }]
+  }
+}
+```
+
+`POST /stop` otomatik oyunu da durdurur. `POST /board/reset` oyun bitmiş ya da durmuşken taşları başlangıca alır.

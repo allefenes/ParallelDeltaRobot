@@ -57,24 +57,35 @@ Bilinen ilkeler:
 - Pi ↔ servo: yarım-dupleks TTL seri hat (Dynamixel arayüzü: U2D2 ya da 74LS241 tabanlı devre; açık).
 - Elektromıknatıs: Pi GPIO'dan MOSFET ile anahtarlanır, serbest dönüş diyotu ile; varsayılan (Pi kapalı / bekçi tetik) durumu tanımlıdır (F3'te kararlaştırılır).
 
-## 4. Servo yapılandırması — Bekliyor (F3)
+## 4. Servo yapılandırması — Hazır (F5 yazılım)
 
-Motor kimlikleri (1, 2, 3), haberleşme hızı, servo içindeki açı limitleri (yazılım limitleriyle aynı), sıfır konumu.
+Araç: `delta_servo_tool` (depodaki `edge/`, Pi'de derlenir). Çıkış kodu 0 tamam, 1 haberleşme hatası, 2 kullanım hatası. Fabrika ayarlı AX-12A'ların hepsi kimlik 1, 1 Mbps'tir; bu yüzden **servolar hatta tek tek bağlanır**.
 
-## 5. Robot bilgisayarı (Raspberry Pi kenarı) — Taslak (F3/F5)
+1. Yalnız 1. servoyu bağla: `delta_servo_tool --device /dev/ttyAMA0 --baud 1000000 scan 0 10` → kimlik 1 görünmeli.
+2. 2. ve 3. servoyu sırayla tek başına bağlayıp kimlik ver: `delta_servo_tool set-id 1 2`, `delta_servo_tool set-id 1 3`. Araç yeni kimlik zaten yanıt veriyorsa reddeder ve değişikliği ping ile doğrular.
+3. Üçü birlikte: `scan 0 10` → 1, 2, 3.
+4. Haberleşme hızı 1 Mbps kalır (`set-baud` yalnız Pi'nin açabildiği hızları kabul eder; servo erişilemez hâle getirilemez).
+5. Açı limitleri ve hız: elle yazılmaz; `delta_edge` ilk bağlantıda servo içindeki CW/CCW limitlerini `robot.yaml` eklem penceresine yazar (yalnız farklıysa; EEPROM), dönüş gecikmesi ve durum dönüş seviyesini denetler.
+6. Ayarlar: [`edge/config/motor_ax12.yaml`](../edge/config/motor_ax12.yaml) (kimlikler, hız, `zero_tick`, `sign`, ölçek). Başka motor için yeni bir `motor:` bölümü ve sürücü arka ucu eklenir; eklem limitleri her zaman `robot.yaml`'dan gelir.
+
+## 5. Robot bilgisayarı (Raspberry Pi kenarı) — Hazır (F5 yazılım; donanımda doğrulanmadı)
 
 Pi yalnız kenar görevini yapar; ROS2 yığını sunucudadır ([mimari.md](mimari.md)).
 
-1. İşletim sistemi: Ubuntu 24.04 Server (arm64) ya da Raspberry Pi OS Lite; SSH anahtarla, parola girişi kapalı.
-2. `delta_edge` servisini kur (C++17, depodaki `edge/`); systemd birimi olarak açılışta başlar, çökerse yeniden başlar.
-3. Robot kimliği: sunucunun verdiği belirteç / istemci sertifikası `/etc/delta_edge/` altında, yalnız servis kullanıcısı okuyabilir.
-4. **Bağlantıyı Pi açar:** `delta_edge`, sunucuya TLS'li WebSocket ile dışarı doğru bağlanır; yönlendiricide gelen port açılmaz. Bağlantı koparsa üstel bekleme ile yeniden dener.
-5. Sınırlar `config/robot.yaml`'ın Pi'deki kopyasından okunur; sunucuyla sürümü eşleşmezse servis hareket kabul etmez.
-6. Kamera: WebRTC yayını Pi'den başlatılır (F4/F5).
+1. İşletim sistemi: Raspberry Pi OS Lite (64 bit) ya da Ubuntu 24.04 Server (arm64); SSH anahtarla, parola girişi kapalı.
+2. Seri port (1 Mbps için PL011): `/boot/firmware/config.txt` içine `enable_uart=1` ve `dtoverlay=disable-bt`; seri konsol kapatılır (`raspi-config` → Interface → Serial: konsol hayır, donanım evet). Aygıt `/dev/ttyAMA0`. USB adaptör (U2D2) kullanılırsa `/dev/ttyUSB0`. Yön (TX/RX) donanımda çözülür; tek telli hatta gönderilen baytlar geri geliyorsa `local_echo: true`.
+3. Derleme (Pi üzerinde): `sudo apt install build-essential cmake ninja-build libboost-dev libssl-dev nlohmann-json3-dev libyaml-cpp-dev` sonra `cmake -S edge -B build/edge -G Ninja -DCMAKE_BUILD_TYPE=Release -DDELTA_EDGE_BUILD_TESTS=OFF && cmake --build build/edge`. İkililer: `delta_edge`, `delta_servo_tool`.
+4. Servis kullanıcısı `delta` (`dialout` ve `gpio` grupları), dosyalar `/opt/delta_edge/` (ikili, `edge.yaml`, `motor_ax12.yaml`, `robot.yaml`), kimlik `/etc/delta_edge/` (CA sertifikası, robot belirteci; yalnız `delta` okur).
+5. systemd birimi (`/etc/systemd/system/delta-edge.service`): `ExecStart=/opt/delta_edge/delta_edge`, ortam `DELTA_DRIVER=ax12`, `DELTA_SERIAL_DEVICE=/dev/ttyAMA0`, `DELTA_MOTOR_CONFIG=/opt/delta_edge/motor_ax12.yaml`, `DELTA_SERVER_URL=wss://<sunucu>:8443/edge`, `DELTA_CA_FILE=/etc/delta_edge/ca.crt`; belirteç `EnvironmentFile=/etc/delta_edge/token.env` içinde `DELTA_EDGE_TOKEN=...` (izin 600); `Restart=always`, `RestartSec=1`. Servis çökerse donanım bekçisi (G13) servo gücünü keser; systemd yeniden başlatınca kenar güvenli açılışla (TORQUE_OFF) başlar.
+6. **Bağlantıyı Pi açar:** `delta_edge`, sunucuya TLS'li WebSocket ile dışarı doğru bağlanır; yönlendiricide gelen port açılmaz. Bağlantı koparsa yeniden dener.
+7. Sınırlar `robot.yaml`'ın Pi'deki kopyasından okunur; `motor_ax12.yaml` model ya da açı aralığı `robot.yaml` ile uyuşmazsa servis başlamaz.
+8. Kamera: WebRTC yayını — askıda (F5 donanım yarısı).
 
-## 6. Kalibrasyon — Bekliyor (F3/F4.5)
+## 6. Kalibrasyon — Kısmen hazır (F5 yazılım)
 
-Motor sıfır ofsetleri, tabla hücre koordinatları, kamera.
+1. **Motor sıfırı:** tork kapalıyken her kolu yatay konuma getir (θ = 0; açıölçer ya da şablon), `delta_servo_tool read <kimlik>` ile konum tikini oku ve `motor_ax12.yaml` içindeki `zero_tick`'e yaz (varsayılan 376, doğrulanmadı). Kol aşağı inerken tik artıyorsa `sign: +1`, azalıyorsa `-1`. Kabul testi H4 ile 10 tekrar, standart sapma.
+2. **Tabla:** tabla merkezi robot ekseninde, hücre 20 mm (`robot.yaml task.board`); gerçek tablada dört köşe hücreye gidilip mıknatıs ucunun hücre merkezine uzaklığı ölçülür — askıda (donanım).
+3. **Kamera:** askıda.
 
 ## 7. İlk enerji verme ve güvenlik kontrolleri — Taslak (F3/F5)
 
@@ -85,6 +96,14 @@ Sırayla, kollar serbestken:
 3. Son kapı: sunucudan bilerek sınır dışı bir yörünge (açı, hız, ivme) gönder; Pi'nin hiç başlatmadığını ve `fault` bildirdiğini doğrula.
 4. Sıcaklık, yük ve gerilim sınırlarını düşük ayarlayıp tetiklendiklerini doğrula; sonra gerçek değerlere geri al.
 
-## 8. Sunucu kurulumu — Bekliyor (F4)
+## 8. Sunucu kurulumu — Hazır (yerel)
 
-`compose.yaml` ile web, API, sandbox, ROS2 yığını ve kenar uç noktasının (TLS) kendi sunucuda kurulması; sonra buluta taşınabilir.
+Yerelde tamamen konteynerde çalışır; gerçek sunucu ve alan adı kullanıcı kararından sonra.
+
+- Deneyim arayüzü (F6, simülasyon): `docker compose --profile demo up -d --build` → https://localhost:8080
+- Tam yığın (ROS2 + sanal Pi + API + sandbox koşucusu): `docker build -f docker/sandbox/Dockerfile -t deltarobotv2-sandbox .` sonra `docker compose --profile sim up -d --build` → https://localhost:8000; uçtan uca testler `./tools/e2e.sh`, `./tools/e2e_f4.sh`
+- Gerçek Pi bağlanacaksa sunucunun 8443 portu (kenar uç noktası) dışarı açılır ve gerçek sertifika kullanılır.
+
+## F5 durumu: askıda (kısmen tamamlandı)
+
+Kullanıcı kararı (2026-11-12): elektronik ve mekanik geliştirmeler bekler. Yazılım yarısı bitti: AX-12A arka ucu (Protokol 1.0, sahte servo hattıyla test), motor yapılandırması, servo ayar aracı, bu belgedeki 4–6 ve 8. adımlar. Askıda: 0–3. adımlardaki üretim, montaj ve kablolama; donanım bekçisi ve mıknatıs sürücüsü devresi; kutu ve kamera; 7. adımdaki ilk enerji verme ve [kabul testleri](kabul-testleri.md) (H1–H13).

@@ -182,3 +182,16 @@ def test_outgoing_messages():
     assert exit_message(0, "ok") == {"type": "exit", "exit_code": 0, "reason": "ok"}
     with pytest.raises(ValueError):
         exit_message(0, "bilinmeyen")
+
+
+@pytest.mark.parametrize("t", [0, -1, 3601, True, "5", float("nan")])
+def test_start_timeout_rejected(t):
+    msg = {"type": "start", "job_id": "j", "code": "x", "secret": "s", "timeout_s": t}
+    with pytest.raises(ProtocolError):
+        parse_api_message(json.dumps(msg).replace("NaN", "1e999"))
+
+
+def test_start_timeout_optional_and_valid():
+    base = {"type": "start", "job_id": "j", "code": "x", "secret": "s"}
+    assert parse_api_message(json.dumps(base))["type"] == "start"
+    assert parse_api_message(json.dumps({**base, "timeout_s": 30}))["timeout_s"] == 30
