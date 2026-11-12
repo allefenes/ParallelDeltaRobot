@@ -1,0 +1,14 @@
+# edge_bridge parametreleri. Pi (ya da sanal Pi) bu uç noktaya TLS WebSocket ile bağlanır.
+edge_bridge:
+  ros__parameters:
+    listen_host: "0.0.0.0"
+    listen_port: 8443
+    path: "/edge"
+    # Yerel geliştirme: tools/certs/make_certs.sh ile üretilen kendinden imzalı sertifika
+    cert_file: "/certs/server.crt"
+    key_file: "/certs/server.key"
+    # Boşsa belirteç denetlenmez (yalnız yerel). Gerçek kurulumda robot başına belirteç verilir.
+    token: ""
+    # Kenarın bekçi süresi T_stop = 200 ms; 20 Hz kalp atışı 4 kat pay bırakır.
+    heartbeat_hz: 20.0
+    auto_torque: true

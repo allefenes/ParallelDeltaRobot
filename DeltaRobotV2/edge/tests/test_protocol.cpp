@@ -107,6 +107,25 @@ TEST(Protocol, RejectsOversizedMessage) {
   EXPECT_NE(r.error.find("büyük"), std::string::npos);
 }
 
+TEST(Protocol, SizeLimitInclusive) {
+  // Tam kMaxMessageBytes uzunluğundaki mesaj kabul, bir bayt fazlası red (JSON sonda boşluk alır).
+  std::string msg = R"({"v":1,"type":"stop"})";
+  msg.append(kMaxMessageBytes - msg.size(), ' ');
+  ASSERT_EQ(msg.size(), kMaxMessageBytes);
+  EXPECT_TRUE(parse(msg).ok());
+  msg.push_back(' ');
+  EXPECT_FALSE(parse(msg).ok());
+}
+
+TEST(Protocol, EchoedNamesTruncatedTo32Chars) {
+  // Hata metnine yansıtılan bilinmeyen alan ve tip adları tam 32 karakterde kesilir.
+  const std::string head(32, 'k');
+  const ParseResult rf = parse(R"({"v":1,"type":"stop",")" + head + R"(XYZ":1})");
+  EXPECT_NE(rf.error.find("'" + head + "'"), std::string::npos) << rf.error;
+  const ParseResult rt = parse(R"({"v":1,"type":")" + head + R"(XYZ"})");
+  EXPECT_NE(rt.error.find("'" + head + "'"), std::string::npos) << rt.error;
+}
+
 TEST(Protocol, PeriodBoundsInclusive) {
   const auto msg = [](const std::string& p) {
     return R"({"v":1,"type":"trajectory","id":"a","period_ms":)" + p + R"(,"points":[[0,0,0]]})";

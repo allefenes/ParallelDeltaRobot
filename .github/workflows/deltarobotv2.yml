@@ -30,6 +30,17 @@ jobs:
           -v "$PWD":/workspace -w /workspace
           deltarobotv2-dev:ci ./tools/ci.sh
 
+      - name: ROS2 temel imajını derle
+        run: >
+          docker tag deltarobotv2-dev:ci deltarobotv2-dev:latest &&
+          docker build -f docker/ros/Dockerfile --target base -t deltarobotv2-ros:base .
+
+      - name: ROS2 testleri (tools/ros_test.sh)
+        run: >
+          docker run --rm --user root
+          -v "$PWD":/workspace -w /workspace
+          deltarobotv2-ros:base ./tools/ros_test.sh
+
       - name: Kapsama raporları (artefakt)
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,0 +1,242 @@
+{
+  "tarih": "2026-11-12T07:24:46+00:00",
+  "mermaid": "flowchart LR\n  n_delta_state_publisher([\"delta_state_publisher\"])\n  n_edge_bridge([\"edge_bridge\"])\n  n_robot_state_publisher([\"robot_state_publisher\"])\n  n_supervisor([\"supervisor\"])\n  n_trajectory_planner([\"trajectory_planner\"])\n  t_delta_markers[\"/delta/markers\"]\n  t_edge_connected[\"/edge/connected\"]\n  t_edge_status[\"/edge/status\"]\n  t_edge_trajectory_out[\"/edge/trajectory_out\"]\n  t_joint_states[\"/joint_states\"]\n  t_robot_description[\"/robot_description\"]\n  t_supervisor_events[\"/supervisor/events\"]\n  t_tf[\"/tf\"]\n  t_tf_static[\"/tf_static\"]\n  s_edge_bridge_heartbeat_pause{{\"/edge_bridge/heartbeat_pause\"}}\n  s_edge_bridge_torque{{\"/edge_bridge/torque\"}}\n  s_move_to{{\"/move_to\"}}\n  s_supervisor_validate{{\"/supervisor/validate\"}}\n  delta_edge[\"delta_edge (Raspberry Pi)\"]\n  n_delta_state_publisher --> t_delta_markers\n  n_edge_bridge --> t_edge_connected\n  n_edge_bridge --> t_edge_status\n  t_edge_status --> n_supervisor\n  n_supervisor --> t_edge_trajectory_out\n  t_edge_trajectory_out --> n_edge_bridge\n  n_edge_bridge --> t_joint_states\n  t_joint_states --> n_delta_state_publisher\n  t_joint_states --> n_robot_state_publisher\n  t_joint_states --> n_supervisor\n  t_joint_states --> n_trajectory_planner\n  n_robot_state_publisher --> t_robot_description\n  n_edge_bridge --> t_supervisor_events\n  n_supervisor --> t_supervisor_events\n  t_supervisor_events --> n_delta_state_publisher\n  n_delta_state_publisher --> t_tf\n  n_robot_state_publisher --> t_tf\n  n_robot_state_publisher --> t_tf_static\n  s_edge_bridge_heartbeat_pause -.-> n_edge_bridge\n  s_edge_bridge_torque -.-> n_edge_bridge\n  s_move_to -.-> n_trajectory_planner\n  n_trajectory_planner -.-> s_supervisor_validate\n  s_supervisor_validate -.-> n_supervisor\n  delta_edge <-->|\"TLS WebSocket, Pi bağlanır\"| n_edge_bridge\n  classDef rosnode fill:#dbe9ff,stroke:#3a6ea5\n  classDef topic fill:#fff4d6,stroke:#b08900\n  classDef srv fill:#e9f7e9,stroke:#3a8a3a,stroke-dasharray: 4 3\n  classDef pi fill:#ffe1e1,stroke:#b03030\n  class n_delta_state_publisher,n_edge_bridge,n_robot_state_publisher,n_supervisor,n_trajectory_planner rosnode\n  class t_delta_markers,t_edge_connected,t_edge_status,t_edge_trajectory_out,t_joint_states,t_robot_description,t_supervisor_events,t_tf,t_tf_static topic\n  class s_edge_bridge_heartbeat_pause,s_edge_bridge_torque,s_move_to,s_supervisor_validate srv\n  class delta_edge pi\n",
+  "dugumler": [
+    {
+      "ad": "delta_state_publisher",
+      "amac": "Dijital ikiz: /joint_states'ten ileri kinematikle (delta_core) bicep, forearm ve platform TF'ini yayımlar; RViz marker'ları: tabla, taşlar, uç izi, hedef ve ret nedeni.",
+      "arayuzler": [
+        "yayın /delta/markers (visualization_msgs/msg/MarkerArray)",
+        "yayın /tf (tf2_msgs/msg/TFMessage)",
+        "abone /joint_states (sensor_msgs/msg/JointState)",
+        "abone /supervisor/events (delta_interfaces/msg/SupervisorEvent)"
+      ],
+      "hz": {
+        "/delta/markers": 2.0,
+        "/tf": "34 (konu toplamı, 2 yayıncı)"
+      },
+      "qos": {
+        "yayın /delta/markers": "reliable, transient_local, keep_last 1 (QOS_LATCHED)",
+        "yayın /tf": "reliable, volatile",
+        "abone /joint_states": "reliable, volatile, keep_last 10 (QOS_STATE)",
+        "abone /supervisor/events": "reliable, volatile, keep_last 50 (QOS_EVENTS)"
+      },
+      "guvenlik": "karar vermez; süpervizör kararlarını (/supervisor/events) görünür kılar"
+    },
+    {
+      "ad": "edge_bridge",
+      "amac": "Kenar köprüsü: kabul edilen yörüngeyi kenar protokolüne çevirip TLS WebSocket ile Pi'deki delta_edge'e gönderir; Pi telemetrisini ROS konularına yayımlar.",
+      "arayuzler": [
+        "yayın /edge/connected (std_msgs/msg/Bool)",
+        "yayın /edge/status (delta_interfaces/msg/EdgeStatus)",
+        "yayın /joint_states (sensor_msgs/msg/JointState)",
+        "yayın /supervisor/events (delta_interfaces/msg/SupervisorEvent)",
+        "abone /edge/trajectory_out (trajectory_msgs/msg/JointTrajectory)",
+        "servis /edge_bridge/heartbeat_pause (std_srvs/srv/SetBool)",
+        "servis /edge_bridge/torque (std_srvs/srv/SetBool)"
+      ],
+      "hz": {
+        "/edge/status": 18.1,
+        "/joint_states": 18.1
+      },
+      "qos": {
+        "yayın /edge/connected": "reliable, transient_local",
+        "yayın /edge/status": "reliable, volatile",
+        "yayın /joint_states": "reliable, volatile",
+        "yayın /supervisor/events": "reliable, volatile",
+        "abone /edge/trajectory_out": "reliable, volatile"
+      },
+      "guvenlik": "taşıyıcı; 2. (son) kapı Pi'de: G1, G4, G5, G8, G9; bekçi G6, G7 (köprü 20 Hz kalp atışı gönderir; kenar arızalarını /supervisor/events'e gereksinimiyle yayımlar)"
+    },
+    {
+      "ad": "robot_state_publisher",
+      "amac": "URDF'i (delta.urdf.xacro) /robot_description olarak yayımlar; sabit bağların TF'i /tf_static'e gider. Hareketli bağlar floating eklemli olduğundan onları delta_state_publisher yayımlar.",
+      "arayuzler": [
+        "yayın /robot_description (std_msgs/msg/String)",
+        "yayın /tf (tf2_msgs/msg/TFMessage)",
+        "yayın /tf_static (tf2_msgs/msg/TFMessage)",
+        "abone /joint_states (sensor_msgs/msg/JointState)"
+      ],
+      "hz": {
+        "/tf": "34 (konu toplamı, 2 yayıncı)"
+      },
+      "qos": {
+        "yayın /robot_description": "reliable, transient_local",
+        "yayın /tf": "reliable, volatile",
+        "yayın /tf_static": "reliable, transient_local",
+        "abone /joint_states": "best_effort, volatile"
+      },
+      "guvenlik": "yok (görselleştirme)"
+    },
+    {
+      "ad": "supervisor",
+      "amac": "Sunucu 1. güvenlik kapısı: planlayıcının yörüngesini denetler, yalnız kabul edileni /edge/trajectory_out'a iletir, her kararı /supervisor/events'e yazar.",
+      "arayuzler": [
+        "yayın /edge/trajectory_out (trajectory_msgs/msg/JointTrajectory)",
+        "yayın /supervisor/events (delta_interfaces/msg/SupervisorEvent)",
+        "abone /edge/status (delta_interfaces/msg/EdgeStatus)",
+        "abone /joint_states (sensor_msgs/msg/JointState)",
+        "servis /supervisor/validate (delta_interfaces/srv/ValidateTrajectory)"
+      ],
+      "hz": null,
+      "qos": {
+        "yayın /edge/trajectory_out": "reliable, volatile, keep_last 10 (QOS_COMMAND)",
+        "yayın /supervisor/events": "reliable, volatile, keep_last 50 (QOS_EVENTS)",
+        "abone /edge/status": "reliable, volatile, keep_last 10 (QOS_STATE)",
+        "abone /joint_states": "reliable, volatile, keep_last 10 (QOS_STATE)"
+      },
+      "guvenlik": "1. kapı: G1, G2, G3, G4, G5; kenar RUNNING/FAULT iken yeni yörünge reddi (DURUM)"
+    },
+    {
+      "ad": "trajectory_planner",
+      "amac": "/move_to isteğini anlık konumdan hedefe düz çizgi, quintic zaman profilli, 100 Hz örneklenmiş eklem yörüngesine çevirir (delta_core ters kinematiği) ve süpervizöre doğrulatır.",
+      "arayuzler": [
+        "abone /joint_states (sensor_msgs/msg/JointState)",
+        "servis /move_to (delta_interfaces/srv/MoveTo)",
+        "istemci /supervisor/validate (delta_interfaces/srv/ValidateTrajectory)"
+      ],
+      "hz": null,
+      "qos": {
+        "abone /joint_states": "reliable, volatile, keep_last 10 (QOS_STATE)"
+      },
+      "guvenlik": "karar vermez; her plan (erişilemeyen örnekler NaN) 1. kapıya gider"
+    }
+  ],
+  "arayuzler": [
+    {
+      "ad": "/delta/markers",
+      "tip": "visualization_msgs/msg/MarkerArray",
+      "tur": "topic",
+      "yayinlayan": ["delta_state_publisher"],
+      "dinleyen": [],
+      "hz": 2.0,
+      "qos": "reliable, transient_local, keep_last 1 (QOS_LATCHED)",
+      "guvenlik": "-"
+    },
+    {
+      "ad": "/edge/connected",
+      "tip": "std_msgs/msg/Bool",
+      "tur": "topic",
+      "yayinlayan": ["edge_bridge"],
+      "dinleyen": [],
+      "hz": null,
+      "qos": "reliable, transient_local",
+      "guvenlik": "kenar (Pi) bağlı mı; kalıcı (transient local)"
+    },
+    {
+      "ad": "/edge/status",
+      "tip": "delta_interfaces/msg/EdgeStatus",
+      "tur": "topic",
+      "yayinlayan": ["edge_bridge"],
+      "dinleyen": ["supervisor"],
+      "hz": 18.1,
+      "qos": "reliable, volatile",
+      "guvenlik": "kenar durumu; RUNNING/FAULT iken 1. kapı yeni yörüngeyi reddeder"
+    },
+    {
+      "ad": "/edge/trajectory_out",
+      "tip": "trajectory_msgs/msg/JointTrajectory",
+      "tur": "topic",
+      "yayinlayan": ["supervisor"],
+      "dinleyen": ["edge_bridge"],
+      "hz": null,
+      "qos": "reliable, volatile, keep_last 10 (QOS_COMMAND)",
+      "guvenlik": "yalnız 1. kapıdan geçmiş yörünge (radyan, 100 Hz ızgara)"
+    },
+    {
+      "ad": "/joint_states",
+      "tip": "sensor_msgs/msg/JointState",
+      "tur": "topic",
+      "yayinlayan": ["edge_bridge"],
+      "dinleyen": [
+        "delta_state_publisher",
+        "robot_state_publisher",
+        "supervisor",
+        "trajectory_planner"
+      ],
+      "hz": 18.1,
+      "qos": "reliable, volatile",
+      "guvenlik": "1. kapı başlangıç sürekliliği (G5) ve planlayıcı başlangıcı"
+    },
+    {
+      "ad": "/robot_description",
+      "tip": "std_msgs/msg/String",
+      "tur": "topic",
+      "yayinlayan": ["robot_state_publisher"],
+      "dinleyen": [],
+      "hz": null,
+      "qos": "reliable, transient_local",
+      "guvenlik": "-"
+    },
+    {
+      "ad": "/supervisor/events",
+      "tip": "delta_interfaces/msg/SupervisorEvent",
+      "tur": "topic",
+      "yayinlayan": ["edge_bridge", "supervisor"],
+      "dinleyen": ["delta_state_publisher"],
+      "hz": null,
+      "qos": "reliable, volatile | reliable, volatile, keep_last 50 (QOS_EVENTS)",
+      "guvenlik": "her kararın kaydı (gereksinim + neden)"
+    },
+    {
+      "ad": "/tf",
+      "tip": "tf2_msgs/msg/TFMessage",
+      "tur": "topic",
+      "yayinlayan": ["delta_state_publisher", "robot_state_publisher"],
+      "dinleyen": [],
+      "hz": 34.0,
+      "qos": "reliable, volatile",
+      "guvenlik": "-"
+    },
+    {
+      "ad": "/tf_static",
+      "tip": "tf2_msgs/msg/TFMessage",
+      "tur": "topic",
+      "yayinlayan": ["robot_state_publisher"],
+      "dinleyen": [],
+      "hz": null,
+      "qos": "reliable, transient_local",
+      "guvenlik": "-"
+    },
+    {
+      "ad": "/edge_bridge/heartbeat_pause",
+      "tip": "std_srvs/srv/SetBool",
+      "tur": "service",
+      "yayinlayan": ["edge_bridge"],
+      "dinleyen": [],
+      "hz": null,
+      "qos": "servis varsayılanı (reliable)",
+      "guvenlik": "YALNIZ TEST: kalp atışını keser (G6/G7 hata enjeksiyonu)"
+    },
+    {
+      "ad": "/edge_bridge/torque",
+      "tip": "std_srvs/srv/SetBool",
+      "tur": "service",
+      "yayinlayan": ["edge_bridge"],
+      "dinleyen": [],
+      "hz": null,
+      "qos": "servis varsayılanı (reliable)",
+      "guvenlik": "tork aç/kapa; bekçi sonrası kurtarma yalnız bununla (G7)"
+    },
+    {
+      "ad": "/move_to",
+      "tip": "delta_interfaces/srv/MoveTo",
+      "tur": "service",
+      "yayinlayan": ["trajectory_planner"],
+      "dinleyen": [],
+      "hz": null,
+      "qos": "servis varsayılanı (reliable)",
+      "guvenlik": "komut girişi; karar 1. kapıda"
+    },
+    {
+      "ad": "/supervisor/validate",
+      "tip": "delta_interfaces/srv/ValidateTrajectory",
+      "tur": "service",
+      "yayinlayan": ["supervisor"],
+      "dinleyen": ["trajectory_planner"],
+      "hz": null,
+      "qos": "servis varsayılanı (reliable)",
+      "guvenlik": "1. kapı girişi (G1–G5)"
+    }
+  ]
+}

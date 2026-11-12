@@ -6,16 +6,16 @@ Son güncelleme: 2026-11-12
 
 ## Özet
 
-| Faz                         | Durum                                        | Sayaç                                                                                                                                         |
-| --------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| F0 İskele                   | Tamamlandı                                   | 6 / 6 teslim                                                                                                                                  |
-| F0.5 CAD                    | Tamamlandı (revizyon 6 onaylandı, `95358ba`) | 20 / 20 parça çizildi, 123 / 123 bileşen montajlandı                                                                                          |
-| F1 Kinematik                | Tamamlandı                                   | 8 / 8 teslim; 532 test geçti; 4 / 12 güvenlik gereksinimi kanıtlandı (çekirdek)                                                               |
-| F2 Datasheet                | Tamamlandı                                   | 1 / 1 etkileşimli HTML; 6 grafik, 10 bölüm; 25 / 25 test                                                                                      |
-| F3 ROS2 + kenar + uçtan uca | Sürüyor (ara kayıt `0616a7d`)                | Kenar 102 / 102 test; ROS 79 birim + 3 launch; uçtan uca 13 / 16 (son tam koşu, ağır fuzz işi sürerken); 10 / 12 gereksinim testle gösterildi |
-| Malzeme listesi             | Başladı; her fazda güncellenir               | 28 kalem (19'u CAD'den), [hardware/bom.md](../hardware/bom.md)                                                                                |
+| Faz                         | Durum                                        | Sayaç                                                                                                                                                                    |
+| --------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| F0 İskele                   | Tamamlandı                                   | 6 / 6 teslim                                                                                                                                                             |
+| F0.5 CAD                    | Tamamlandı (revizyon 6 onaylandı, `95358ba`) | 20 / 20 parça çizildi, 123 / 123 bileşen montajlandı                                                                                                                     |
+| F1 Kinematik                | Tamamlandı                                   | 8 / 8 teslim; 532 test geçti; 4 / 12 güvenlik gereksinimi kanıtlandı (çekirdek)                                                                                          |
+| F2 Datasheet                | Tamamlandı                                   | 1 / 1 etkileşimli HTML; 6 grafik, 10 bölüm; 25 / 25 test                                                                                                                 |
+| F3 ROS2 + kenar + uçtan uca | Tamamlandı                                   | Kenar 111 / 111; ROS 79 birim + 3 launch; uçtan uca 16 / 16; mutasyon 130 / 131; fuzz ~175 bin girdi, bulgu yok; 10 / 13 gereksinim tüm yazılım katmanlarında kanıtlandı |
+| Malzeme listesi             | Her fazda güncellenir                        | 32 kalem (G13 donanım bekçisi dahil), [hardware/bom.md](../hardware/bom.md)                                                                                              |
 
-Kalan süre: F3 ~2 saat (fuzz + mutasyon koşusu sürüyor; ardından temiz uçtan uca koşu, ROS ağı diyagramı, datasheet ROS bölümü). Son güncelleme: 2026-11-12, F3 ara durum.
+Sıradaki: F4 uzaktan erişim (tahmin ~6–8 saat), ardından F4.5 tic-tac-toe simülasyonda (~3–4 saat). Son güncelleme: 2026-11-12, F3 tamamlandı.
 
 ## F0 İskele
 
@@ -147,35 +147,39 @@ Kalan süre: F3 ~2 saat (fuzz + mutasyon koşusu sürüyor; ardından temiz uçt
 | Datasheet hesapları + üretici          | 10 / 10               | 96–99   |
 | Araçlar toplamı (bom, i18n, datasheet) | 25 / 25               | 97.5    |
 
-## F3 ROS2, Pi kenarı, uçtan uca sistem (sürüyor)
+## F3 ROS2, Pi kenarı, uçtan uca sistem
 
 Bilgisayarın gece yeniden başlamasından sonra diskteki iş denetlendi: hiçbir şey kaybolmadı; 2 derleme hatası ve 2 hatalı test düzeltilip `0616a7d` olarak kaydedildi.
 
-| Teslim                                                                                                                            | Durum                                              |
-| --------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| Pi kenar servisi `delta_edge` (C++17, ROS'suz): protokol v1, son kapı, oynatıcı, bekçi, durum makinesi, MockDriver, TLS istemcisi | ✔                                                 |
-| Sanal Pi konteyneri (`docker/edge`, gerçek Pi ile aynı ikili)                                                                     | ✔                                                 |
-| ROS2 paketleri: `delta_interfaces`, `delta_description` (CAD mesh'li URDF), `delta_server`                                        | ✔                                                 |
-| Sunucu düğümleri: planlayıcı, 1. kapı süpervizörü, durum yayıncısı, `edge_bridge` (TLS WebSocket, Pi bağlanır)                    | ✔                                                 |
-| Compose: yerel TLS sertifikası (adlandırılmış birim), sunucu, sanal Pi                                                            | ✔                                                 |
-| Uçtan uca test + hata enjeksiyonu (`tools/e2e.sh`)                                                                                | 13 / 16 son koşu; temiz koşu bekliyor              |
-| RViz ekran görüntüleri (başsız, CAD mesh'leri)                                                                                    | 4 / 4                                              |
-| ROS ağı diyagramı (çalışan sistemden)                                                                                             | sim ile ✔; `edge_bridge` dahil yeniden üretilecek |
-| Fuzz (protokol ayrıştırıcı) ve mutasyon testi (kapı, bekçi, protokol)                                                             | sürüyor                                            |
-| Datasheet "Yazılım mimarisi / ROS2 ağı" bölümü (gerçek diyagram)                                                                  | bekliyor                                           |
+| Teslim                                                                                                                            | Durum                          |
+| --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Pi kenar servisi `delta_edge` (C++17, ROS'suz): protokol v1, son kapı, oynatıcı, bekçi, durum makinesi, MockDriver, TLS istemcisi | ✔                             |
+| G13 donanım bekçisi için yaşam darbesi (döngü her tick'te çıkışı ters çevirir; sanal Pi'de dosyaya, F5'te GPIO'ya)                | ✔                             |
+| AX-12A sürücü arka ucu                                                                                                            | İskelet; F5'te gerçek servoyla |
+| Sanal Pi konteyneri (`docker/edge`, gerçek Pi ile aynı ikili)                                                                     | ✔                             |
+| ROS2 paketleri: `delta_interfaces`, `delta_description` (CAD mesh'li URDF), `delta_server`                                        | ✔                             |
+| Sunucu düğümleri: planlayıcı, 1. kapı süpervizörü, durum yayıncısı, `edge_bridge` (TLS WebSocket, Pi bağlanır)                    | ✔                             |
+| Compose `sim` profili: yerel TLS sertifikası (adlandırılmış birim), sunucu, sanal Pi                                              | ✔                             |
+| Uçtan uca test + hata enjeksiyonu (`tools/e2e.sh`)                                                                                | 16 / 16                        |
+| RViz ekran görüntüleri (başsız, CAD mesh'leri)                                                                                    | 4 / 4                          |
+| ROS ağı diyagramı (çalışan Compose sisteminden: 5 düğüm, 9 konu, 4 servis)                                                        | ✔                             |
+| Datasheet "Yazılım mimarisi / ROS2 ağı" bölümü (gerçek diyagram + arayüz tablosu)                                                 | ✔                             |
+| Fuzz (protokol ayrıştırıcı) ve mutasyon testi (kapı, bekçi, protokol)                                                             | ✔                             |
+| CI: kenar testleri + kapsama `tools/ci.sh`'ta; ROS testleri `tools/ros_test.sh` ile ayrı adım                                     | ✔                             |
 
-### F3 test özeti (ara)
+### F3 test özeti
 
-| Bileşen                     | Test (geçen / toplam) | Satır %                       | Not                                                                                                                                |
-| --------------------------- | --------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| delta_edge (GoogleTest)     | 102 / 102             | 98.9 (kapı/bekçi/protokol 98) | Test adları gereksinim numarasıyla                                                                                                 |
-| delta_server (pytest)       | 79 / 79               | 93                            | + kenar protokolü testleri                                                                                                         |
-| launch_testing (ROS yığını) | 3 / 3                 | —                             | geçerli hareket; G2 reddi                                                                                                          |
-| Uçtan uca (Compose)         | 13 / 16               | —                             | 3 başarısızlık: ağır fuzz işi sürerken kalp atışı gecikti → bekçi doğru biçimde HOLD; test başlangıcına açık yeniden kurma eklendi |
-| Mutasyon testi              | sürüyor               | —                             | kritik modüller                                                                                                                    |
+| Bileşen                                | Test (geçen / toplam) | Satır % | Not                                                                  |
+| -------------------------------------- | --------------------- | ------- | -------------------------------------------------------------------- |
+| delta_edge (GoogleTest)                | 111 / 111             | 99.0    | Test adları gereksinim numarasıyla; dal %63                          |
+| delta_server + description (pytest)    | 79 / 79               | 93      | kenar protokolü testleri dahil                                       |
+| launch_testing (ROS yığını)            | 3 / 3                 | —       | geçerli hareket; G2 reddi                                            |
+| Uçtan uca (Compose)                    | 16 / 16               | —       | HOLD 200 ms, TORQUE_OFF 1023 ms (T_stop 200, T_off 1000)             |
+| Mutasyon testi (kapı, bekçi, protokol) | 130 / 131 öldürüldü   | —       | %99.2; kalan 1 mutant eşdeğer                                        |
+| Fuzz (libFuzzer + ASan/UBSan)          | ~175 bin girdi        | —       | çökme / tanımsız davranış yok; 24 tohumluk derlem regresyon testinde |
 
-Uçtan uca senaryolar: TLS bağlantısı; yörünge yürütme; 1. kapı reddi (G1/G2); 1. kapıyı atlayan limit dışı yörüngede son kapı reddi (G1/G8); hareket ortasında kalp atışı kaybı → HOLD ~200 ms, TORQUE_OFF ~1 s (G6/G7); 80±40 ms gecikme + %10 paket kaybında yürütme; bağlantı kara deliği; sunucu çökmesi; Pi çökmesi (SIGKILL) ve düzgün kapanış (SIGTERM).
+Uçtan uca senaryolar: TLS bağlantısı; yörünge yürütme; 1. kapı reddi (G1/G2); 1. kapıyı atlayan limit dışı yörüngede son kapı reddi (G1/G8); hareket ortasında kalp atışı kaybı → HOLD, TORQUE_OFF (G6/G7); 80±40 ms gecikme + %10 paket kaybında yürütme; bağlantı kara deliği ve açık kurtarma; sunucu çökmesi (kenar kendi başına HOLD → TORQUE_OFF); Pi çökmesi (SIGKILL) sonrası güvenli açılış; düzgün kapanış (SIGTERM) tork + mıknatıs kapatır.
 
-**Bulgu:** Pi çökerse (SIGKILL / elektrik kesintisi) yazılım torku kapatamaz; gerçek servolar son hedefte torklu kalır (yeni hedef gelmediği için hareket durur). Bu durumu yalnız fiziksel acil stop (G12) güvenceye alır.
+**Bulgu ve karar:** Pi çökerse (SIGKILL / donma / elektrik kesintisi) yazılım torku kapatamaz; gerçek servolar son hedefte torklu kalır. Karar: G13 donanım bekçisi; yaşam darbesi kesilince 74HC123 monostable servo gücünü ≤ 0.5 s (varsayım) içinde keser. Mimari, BOM (47–49), kurulum planı ve kabul testi H13 güncellendi.
 
-**Güvenlik gereksinimleri:** 10 / 12 testle gösterildi (G1–G10, çekirdek + sunucu + kenar katmanları; G4 fuzz sonucu bekleniyor). G11 (sandbox) F4'te, G12 (acil stop) F5 donanımında.
+**Güvenlik gereksinimleri:** 10 / 13 tüm yazılım katmanlarında kanıtlandı (G1–G10); G13'ün yazılım tarafı kanıtlandı, donanım tarafı F5'te; G11 (sandbox) F4'te; G12 (acil stop) F5'te. Ayrıntı: [guvenlik-gereksinimleri.md](guvenlik-gereksinimleri.md).

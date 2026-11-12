@@ -16,7 +16,7 @@ V2 sıfırdan yazılır. Repodaki eski klasörler (`LikeSoup/`, `KilavuzDeltaRob
 | F0.5 | FreeCAD ile parametrik 3B model, montaj, renkli görseller | Tamamlandı |
 | F1   | C++ kinematik çekirdeği + testler + Python bağlaması      | Tamamlandı |
 | F2   | Datasheet (etkileşimli HTML)                              | Tamamlandı |
-| F3   | ROS2 + güvenlik süpervizörü + dijital ikiz                | —          |
+| F3   | ROS2 + güvenlik süpervizörü + dijital ikiz                | Tamamlandı |
 | F4   | Uzaktan erişim: API, Python istemcisi, web, sandbox       | —          |
 | F4.5 | Tic-tac-toe senaryosu                                     | —          |
 | F5   | Robotun yeniden kurulumu                                  | —          |
@@ -29,19 +29,23 @@ Ayrıntı: [docs/yol-haritasi.md](docs/yol-haritasi.md)
 ```
 DeltaRobotV2/
   README.md           Bu dosya
-  compose.yaml        Konteyner servisleri (şimdilik: dev)
+  compose.yaml        Konteyner servisleri: dev; sim profili (certs, server, edge)
   docker/dev/         Geliştirme imajı: Ubuntu 24.04 + ROS2 Jazzy + C++/Python araçları
+  docker/ros/         Sunucu imajı (ROS2 yığını)
+  docker/edge/        Sanal Pi imajı (gerçek Pi ile aynı delta_edge ikilisi)
   config/robot.yaml   Robot tanımı: tek ölçü kaynağı (mm, derece)
   cad/                FreeCAD betikleri, montaj, mesh ve kütle çıktıları
-  core/               delta_core: ROS'tan bağımsız C++ çekirdek kütüphane (F1'de dolacak)
+  core/               delta_core: ROS'tan bağımsız C++ kinematik çekirdeği + Python bağlaması
+  edge/               delta_edge: Pi kenar servisi (C++17, ROS'suz): son kapı, bekçi, oynatıcı
+  ros2_ws/            ROS2 paketleri: arayüzler, URDF, sunucu düğümleri, edge_bridge
   i18n/locales/       Arayüz metinleri; tr.json kaynak, en.json çeviri
   hardware/           Malzeme listesi: bom.yaml (kaynak) -> bom.csv, bom.md (CAD ile senkron)
   tools/              ci.sh, format.sh, cad.sh, bom.py, i18n denetimi, git kancaları
-  tests/              Python testleri (pytest)
+  tests/              Python testleri (pytest) ve uçtan uca senaryolar (tests/e2e)
   docs/               Mimari, yol haritası, robot girdileri, geliştirme ortamı
 ```
 
-Alt klasörler yalnız gerektiği fazda açılır (`ros2_ws/` F3'te, `api/` ve `web/` F4'te).
+Alt klasörler yalnız gerektiği fazda açılır (`api/` ve `web/` F4'te).
 
 ## Hızlı başlangıç
 

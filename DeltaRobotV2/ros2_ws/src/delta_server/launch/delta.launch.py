@@ -2,12 +2,13 @@
 
 Başlatılanlar: robot_state_publisher (URDF), delta_state_publisher (TF + marker),
 trajectory_planner (/move_to), supervisor (1. kapı), sim_executor (GEÇİCİ sanal Pi; sim:=false
-ile kapatılır, gerçek edge_bridge geldiğinde onun yerine geçer) ve isteğe bağlı rviz2.
+ile kapatılır), edge_bridge (edge:=true; Pi ya da sanal Pi bağlanır) ve isteğe bağlı rviz2.
 
 Kullanım:
   ros2 launch delta_server delta.launch.py                 # başsız
   ros2 launch delta_server delta.launch.py rviz:=true      # RViz ile
-Argümanlar: rviz, sim, robot_yaml (boşsa DELTA_ROBOT_YAML), server_config, rviz_config.
+Argümanlar: rviz, sim, edge, robot_yaml (boşsa DELTA_ROBOT_YAML), server_config, edge_config,
+rviz_config. Gerçek sistem: sim:=false edge:=true.
 """
 
 from __future__ import annotations
@@ -38,6 +39,14 @@ def generate_launch_description() -> LaunchDescription:
             "server_config", default_value=str(server / "config" / "server.yaml")
         ),
         DeclareLaunchArgument("rviz_config", default_value=str(desc / "rviz" / "delta.rviz")),
+        DeclareLaunchArgument(
+            "edge",
+            default_value="false",
+            description="edge_bridge (gerçek / sanal Pi) başlatılsın mı",
+        ),
+        DeclareLaunchArgument(
+            "edge_config", default_value=str(server / "config" / "edge_bridge.yaml")
+        ),
     ]
     cfg = LaunchConfiguration("server_config")
     common = [cfg, {"robot_yaml": LaunchConfiguration("robot_yaml")}]
@@ -70,6 +79,13 @@ def generate_launch_description() -> LaunchDescription:
             parameters=common,
             output="screen",
             condition=IfCondition(LaunchConfiguration("sim")),
+        ),
+        Node(
+            package="delta_server",
+            executable="edge_bridge",
+            parameters=[LaunchConfiguration("edge_config")],
+            output="screen",
+            condition=IfCondition(LaunchConfiguration("edge")),
         ),
         Node(
             package="rviz2",

@@ -35,14 +35,14 @@ Bütün fazlarda [hardware/bom.md](../hardware/bom.md) (malzeme listesi) ve [kur
 - Motor parametrelerine göre yeniden üretilebilir (motor değişirse tek komutla güncellenir)
 - Her değerin kaynağı: hesap / simülasyon / ölçüm
 
-## F3 — ROS2, kenar protokolü ve dijital ikiz
+## F3 — ROS2, kenar protokolü ve dijital ikiz (tamamlandı)
 
 Sunucu:
 
 - ROS2 yığını; 1. güvenlik kapısı (tam süpervizör: çalışma alanı, çarpışma, görev mantığı, hız/ivme profili)
 - Yörünge planlama (zaman damgalı tam yörünge), durum makinesi
 - Kenar köprüsü düğümü: ROS2 yörüngesi -> kenar protokolü, telemetri -> ROS2 konuları
-- Tabla, taşlar ve elektromıknatıs dahil dijital ikiz
+- Dijital ikiz (URDF + CAD mesh, RViz); tabla, taşlar ve elektromıknatıs F4.5'te eklenir
 
 Kenar (`edge/`, C++17, ROS'suz):
 

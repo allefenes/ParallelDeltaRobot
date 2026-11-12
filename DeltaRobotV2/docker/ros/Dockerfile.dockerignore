@@ -3,6 +3,7 @@
 !core/
 !config/
 !cad/out/meshes/
+!cad/out/mass_properties.json
 !ros2_ws/src/
 !docker/ros/entrypoint.sh
 **/__pycache__

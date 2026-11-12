@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <limits>
+#include <utility>
 
 #include "delta_edge/faults.hpp"
 #include "delta_edge/gate.hpp"
@@ -306,6 +307,66 @@ TEST(Gate, G4_ClampCommandNonFinite) {
     Angles prev{0, 0, 0};
     prev[j] = kNaN;
     EXPECT_FALSE(g.clamp_command(prev, {0, 0, 0}, 0.01).has_value());
+  }
+}
+
+// Mutasyon testinin bulduğu boşluklar (edge/tools/mutate.py): aşağıdaki testler ilk noktanın
+// doğrulamadan atlanmasını, başlangıç hızının yalnız eklem 1'de sıfır alınmasını ve son eklemin
+// kırpılmamasını yakalar.
+TEST(Gate, G1_G4_FirstPointCheckedEvenWithoutMotion) {
+  const Gate g{EdgeLimits{}};
+  for (int j = 0; j < 3; ++j) {
+    Angles nan_pt{0, 0, 0};
+    nan_pt[j] = kNaN;
+    // NaN hız/ivme karşılaştırmalarında hep false verir: yalnız nokta denetimi yakalayabilir.
+    EXPECT_EQ(g.validate_trajectory({0, 0, 0}, {nan_pt}, 10).code, fault::kNonFinite) << j;
+    // Ölçülen konum zaten sınır dışında, nokta onunla aynı: sıçrama yok, nokta yine reddedilir.
+    Angles out{0, 0, 0};
+    out[j] = 150.5;
+    EXPECT_EQ(g.validate_trajectory(out, {out}, 10).code, fault::kJointLimit) << j;
+  }
+}
+
+TEST(Gate, G5_EveryJointStartsFromRest) {
+  const Gate g{EdgeLimits{}};  // pay 1 deg, 3000 deg/s2, T = 10 ms
+  for (int j = 0; j < 3; ++j) {
+    // İlk adım (paydan sonra) 0.305 deg -> v = 30.5 deg/s, a = 3050 deg/s2 > sınır; sonraki
+    // adımlar yavaşça durur, yani yalnız başlangıç ivmesi sınırı aşar.
+    Angles p0{0, 0, 0};
+    Angles p1{0, 0, 0};
+    p0[j] = 1.0 + 0.305;
+    p1[j] = p0[j] + 0.015;
+    const GateResult r = g.validate_trajectory({0, 0, 0}, {p0, p1}, 10);
+    EXPECT_EQ(r.code, fault::kAccel) << j;
+    EXPECT_NE(r.detail.find("ilk nokta"), std::string::npos) << r.detail;
+    EXPECT_NE(r.detail.find("eklem " + std::to_string(j + 1)), std::string::npos) << r.detail;
+    // Aynı profil 29.5 deg/s ile sınır içinde.
+    p0[j] = 1.0 + 0.295;
+    p1[j] = p0[j] + 0.015;
+    EXPECT_TRUE(g.validate_trajectory({0, 0, 0}, {p0, p1}, 10).ok) << j;
+  }
+}
+
+TEST(Gate, ClampToLimitsEveryJoint) {
+  const Gate g{EdgeLimits{}};
+  for (int j = 0; j < 3; ++j) {
+    for (const auto& [in, want] : {std::pair{200.0, 150.0}, std::pair{-100.0, -70.0}}) {
+      Angles a{10, 10, 10};
+      a[j] = in;
+      const Angles c = g.clamp_to_limits(a);
+      for (int k = 0; k < 3; ++k) EXPECT_DOUBLE_EQ(c[k], k == j ? want : 10.0) << j << k;
+    }
+  }
+}
+
+TEST(Gate, G9_NonFiniteReadingNamesServo) {
+  const Gate g{EdgeLimits{}};
+  for (int j = 0; j < 3; ++j) {
+    DriverState s = healthy();
+    s.temps_c[j] = kNaN;
+    const GateResult r = g.check_health(s);
+    EXPECT_EQ(r.code, fault::kNonFinite);
+    EXPECT_NE(r.detail.find("servo " + std::to_string(j + 1)), std::string::npos) << r.detail;
   }
 }
 

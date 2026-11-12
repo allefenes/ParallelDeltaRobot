@@ -73,7 +73,8 @@ if(DELTA_EDGE_BUILD_TESTS)
     tests/test_edge.cpp
     tests/test_url.cpp
     tests/test_architecture.cpp
-    tests/test_fuzz_regressions.cpp)
+    tests/test_fuzz_regressions.cpp
+    tests/test_life_pulse.cpp)
   target_link_libraries(edge_core_tests PRIVATE edge_core nlohmann_json::nlohmann_json
                                                 GTest::gtest_main)
   target_compile_options(edge_core_tests PRIVATE ${DELTA_EDGE_WARNINGS})

@@ -59,6 +59,7 @@ FROM base AS ros
 
 # CAD mesh'leri (bağ başına STL, bağın yerel çerçevesinde) ve ROS2 çalışma alanı.
 COPY cad/out/meshes /opt/delta/cad/out/meshes
+COPY cad/out/mass_properties.json /opt/delta/cad/out/mass_properties.json
 COPY ros2_ws/src /opt/delta/ros2_ws/src
 RUN . /opt/ros/jazzy/setup.sh \
     && cd /opt/delta/ros2_ws \

@@ -20,6 +20,17 @@ PIECE_COLORS = {"X": (0.10, 0.45, 0.90, 1.0), "O": (0.95, 0.80, 0.10, 1.0)}
 TRAIL_COLOR = (0.10, 0.85, 0.95, 1.0)
 REJECT_COLOR = (0.95, 0.10, 0.10, 0.9)
 ACCEPT_COLOR = (0.15, 0.85, 0.25, 0.9)
+LABEL_COLOR = (1.0, 0.35, 0.30, 1.0)  # koyu arka planda okunur açık kırmızı
+LABEL_HEIGHT_M = 0.011  # yazı satır yüksekliği (m)
+LABEL_Z_MM = 80.0  # ret yazısının z'si: robot gövdesinin üstü (base_link motor düzlemi)
+# RViz (rviz_rendering MovableText) yazı kısıtları, Jazzy:
+#  - Yazı tipi yalnız 33-166 kod noktalarını içerir ve metni bayt bayt çizer; UTF-8 Türkçe
+#    harfler (ş, ı, ğ, ...) çizimi orada keser. Bu yüzden yazı ASCII'ye çevrilir.
+#  - Boşluk genişliği yazı boyutuyla ölçeklenmez (~0.5 m); kelimeler ekran dışına dağılır.
+#    Sekme doğru ölçeklenir (biraz geniş), boşluk yerine o kullanılır.
+RVIZ_ASCII = str.maketrans(
+    {**dict(zip("çğıöşüÇĞİÖŞÜâîûÂÎÛ", "cgiosuCGIOSUaiuAIU", strict=True)), "°": " deg", "²": "^2"}
+)
 
 
 @dataclass(frozen=True)
@@ -106,26 +117,49 @@ def trail_marker(points_mm, stamp=None) -> Marker:
     if len(points_mm) < 2:
         m.action = Marker.DELETE
         return m
-    m.scale.x = 0.002
+    m.scale.x = 0.003
     m.color = _color(TRAIL_COLOR)
     m.points = [_pt(p) for p in points_mm]
     return m
 
 
+def rviz_text(text: str) -> str:
+    """RViz'in çizebildiği metin: Türkçe harfler ASCII, boşluklar sekme."""
+    return text.translate(RVIZ_ASCII).replace(" ", "\t")
+
+
+def reject_label(reason: str) -> str:
+    """Ret yazısı, iki satır: "RET G2: rot başı açı limiti" ve ayrıntı "(kol 2, örnek 0)".
+
+    Süpervizör nedeni "G2: rot başı açı limiti (hedef yol, kol 2, örnek 0)" biçimindedir;
+    ayrıntı ayrı satıra alınır ki ilk satır kısa ve okunur kalsın.
+    """
+    head, sep, rest = reason.strip().partition(" (")
+    return f"RET {head}" + (f"\n({rest}" if sep else "")
+
+
 def target_markers(target_mm, accepted: bool, text: str, stamp=None) -> list[Marker]:
-    """Hedef küresi (kabul yeşil, ret kırmızı) ve ret nedeninin yazısı."""
+    """Hedef küresi (kabul yeşil, ret kırmızı); retde neden yazısı ve yazıdan küreye çizgi.
+
+    Yazı robotun üstünde (LABEL_Z_MM) durur: hedefin yanında olsa kollar ve gövde onu örter.
+    """
     sphere = _marker("target", 0, Marker.SPHERE, stamp)
     sphere.pose.position = _pt(target_mm)
     d = 0.008 if accepted else 0.014
     sphere.scale.x = sphere.scale.y = sphere.scale.z = d
     sphere.color = _color(ACCEPT_COLOR if accepted else REJECT_COLOR)
     label = _marker("target", 1, Marker.TEXT_VIEW_FACING, stamp)
+    leader = _marker("target", 2, Marker.LINE_LIST, stamp)
     if accepted or not text:
         label.action = Marker.DELETE
+        leader.action = Marker.DELETE
     else:
         x, y, z = target_mm
-        label.pose.position = _pt((x, y, z + 28.0))
-        label.scale.z = 0.014
-        label.color = _color(REJECT_COLOR)
-        label.text = "REDDEDİLDİ  " + text
-    return [sphere, label]
+        label.pose.position = _pt((x, y, LABEL_Z_MM))
+        label.scale.z = LABEL_HEIGHT_M
+        label.color = _color(LABEL_COLOR)
+        label.text = rviz_text(reject_label(text))
+        leader.scale.x = 0.0008
+        leader.color = _color(REJECT_COLOR)
+        leader.points = [_pt((x, y, LABEL_Z_MM - 24.0)), _pt((x, y, z))]
+    return [sphere, label, leader]

@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <deque>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -26,6 +27,7 @@
 #include "delta_edge/ax12_driver.hpp"
 #include "delta_edge/config.hpp"
 #include "delta_edge/edge.hpp"
+#include "delta_edge/life_pulse.hpp"
 #include "delta_edge/mock_driver.hpp"
 #include "delta_edge/url.hpp"
 
@@ -82,6 +84,7 @@ Ortam değişkenleri:
   DELTA_INSECURE=1        YALNIZ GELİŞTİRME: sertifika doğrulaması kapalı
   DELTA_EDGE_TOKEN=...    WebSocket el sıkışmasında "Authorization: Bearer" belirteci
   DELTA_ESTOP_FILE=PATH   sanal Pi: bu dosya varsa acil stop girişi etkin
+  DELTA_LIFE_FILE=PATH    sanal Pi: donanım bekçisi darbe sayacı bu dosyaya yazılır (G13)
 
 Çıkış kodları: 0 normal (SIGINT/SIGTERM), 2 kullanım/yapılandırma hatası, 3 sunucuya ulaşılamadı.
 )";
@@ -100,6 +103,21 @@ class FileEstop : public delta_edge::EstopInput {
   std::string path_;
 };
 
+// Donanım bekçisi çıkışı (G13). Gerçek Pi: GPIO (F5). Sanal Pi: DELTA_LIFE_FILE verilmişse
+// darbe sayısı bu dosyaya 10 kenarda bir yazılır (dış gözlem için); verilmemişse çıkış yok.
+class FilePulseOutput : public delta_edge::PulseOutput {
+ public:
+  explicit FilePulseOutput(std::string path) : path_(std::move(path)) {}
+  void write(bool /*level*/) override {
+    if (path_.empty() || ++edges_ % 10 != 0) return;
+    std::ofstream(path_, std::ios::trunc) << edges_ << '\n';
+  }
+
+ private:
+  std::string path_;
+  std::uint64_t edges_{0};
+};
+
 struct Options {
   std::string url;
   std::string robot_yaml;
@@ -108,6 +126,7 @@ struct Options {
   std::string token;
   std::string driver;
   std::string estop_file;
+  std::string life_file;
   bool insecure{false};
   int max_retries{0};
 };
@@ -115,8 +134,9 @@ struct Options {
 class App {
  public:
   App(const Options& opt, const delta_edge::ServerUrl& url, const delta_edge::EdgeLimits& limits,
-      delta_edge::Driver& driver, delta_edge::EstopInput& estop)
+      delta_edge::Driver& driver, delta_edge::EstopInput& estop, delta_edge::LifePulse& pulse)
       : opt_(opt),
+        pulse_(pulse),
         url_(url),
         ctx_(ssl::context::tls_client),
         resolver_(ioc_),
@@ -187,6 +207,7 @@ class App {
       log_line(std::string("durum ") + delta_edge::state_name(before) + " -> " +
                delta_edge::state_name(core_.state()));
     }
+    pulse_.on_tick_completed();  // G13: döngü canlı; durursa donanım bekçisi servo gücünü keser
     // Sabit hızlı zamanlama; gecikmede adım atlanır (birikmez).
     next_tick_ += period_;
     const auto now = std::chrono::steady_clock::now();
@@ -318,6 +339,7 @@ class App {
   }
 
   const Options& opt_;
+  delta_edge::LifePulse& pulse_;
   delta_edge::ServerUrl url_;
   net::io_context ioc_;
   ssl::context ctx_;
@@ -362,6 +384,7 @@ int main(int argc, char** argv) {
     opt.token = env_or("DELTA_EDGE_TOKEN", "");
     opt.driver = env_or("DELTA_DRIVER", "mock");
     opt.estop_file = env_or("DELTA_ESTOP_FILE", "");
+    opt.life_file = env_or("DELTA_LIFE_FILE", "");
     opt.insecure = env_or("DELTA_INSECURE", "0") == "1";
     opt.max_retries = parse_int(env_or("DELTA_MAX_RETRIES", "0"), "DELTA_MAX_RETRIES");
     for (int i = 1; i < argc; ++i) {
@@ -424,8 +447,10 @@ int main(int argc, char** argv) {
     return kExitUsage;
   }
   FileEstop estop(opt.estop_file);
+  FilePulseOutput pulse_out(opt.life_file);
+  delta_edge::LifePulse pulse(pulse_out);
 
-  App app(opt, *url, limits, *driver, estop);
+  App app(opt, *url, limits, *driver, estop, pulse);
   const std::string tls_error = app.configure_tls();
   if (!tls_error.empty()) {
     log_line("hata: " + tls_error);

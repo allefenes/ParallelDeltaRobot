@@ -32,6 +32,16 @@ gcovr -r core build/core --filter core/src --filter core/include \
   --xml "$COV/core.xml" --html-details "$COV/core.html" \
   --fail-under-line 80 | tail -4
 
+echo "== delta_edge (C++, Pi kenarı) + kapsama =="
+cmake -S edge -B build/edge -G Ninja -DCMAKE_BUILD_TYPE=Debug -DDELTA_EDGE_COVERAGE=ON >/dev/null
+cmake --build build/edge
+find build/edge -name '*.gcda' -delete
+ctest --test-dir build/edge --output-on-failure
+gcovr -r edge build/edge --filter edge/src --filter edge/include \
+  --txt-metric branch --print-summary \
+  --xml "$COV/edge.xml" --html-details "$COV/edge.html" \
+  --fail-under-line 80 | tail -4
+
 echo "== Python araç ve datasheet testleri + kapsama =="
 python3 -m pytest -q -p no:cacheprovider tests \
   --cov=tools --cov-report=term --cov-report=xml:"$COV/python-tools.xml" \

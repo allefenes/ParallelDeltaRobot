@@ -29,6 +29,7 @@ setup(
             "trajectory_planner = delta_server.trajectory_planner_node:main",
             "supervisor = delta_server.supervisor_node:main",
             "sim_executor = delta_server.sim_executor_node:main",
+            "edge_bridge = delta_server.edge_bridge_node:main",
         ],
     },
 )

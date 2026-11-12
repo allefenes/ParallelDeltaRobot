@@ -1,7 +1,8 @@
 # Delta Robotics V2 konteyner servisleri.
-# Şimdilik yalnız geliştirme ortamı var. Sonraki fazlarda eklenecekler:
-#   F3: robot (ROS2 süpervizör + donanım arayüzü / mock), sim (dijital ikiz)
-#   F4: api, web, sandbox
+#   dev     geliştirme/test ortamı (her zaman)
+#   sim     profil: sunucu (ROS2 yığını + kenar köprüsü) + sanal Pi (delta_edge + MockDriver)
+#           docker compose --profile sim up -d      /  uçtan uca test: ./tools/e2e.sh
+# Sertifikalar ve ROS günlükleri adlandırılmış birimlerde tutulur; çalışma ağacına yazılmaz.
 name: deltarobotv2
 
 services:
@@ -14,3 +15,49 @@ services:
     working_dir: /workspace
     stdin_open: true
     tty: true
+
+  # Yerel, kendinden imzalı CA + sunucu sertifikası (yalnız geliştirme; gerçek sertifika F4 sonrası)
+  certs:
+    profiles: [sim]
+    image: deltarobotv2-dev:latest
+    user: root
+    volumes:
+      - ./tools/certs:/scripts:ro
+      - certs:/certs
+    command: ["bash", "/scripts/make_certs.sh", "/certs", "server"]
+
+  # Sunucu: ROS2 yığını (planlayıcı, 1. kapı, durum yayıncısı) + edge_bridge (wss://server:8443/edge)
+  server:
+    profiles: [sim]
+    image: deltarobotv2-ros:latest
+    depends_on:
+      certs:
+        condition: service_completed_successfully
+    environment:
+      ROS_DOMAIN_ID: "21"
+      ROS_LOG_DIR: /tmp/roslog
+    volumes:
+      - certs:/certs:ro
+      - ./tests/e2e:/e2e:ro
+      - ./ros2_ws/tools:/tools:ro
+    command: ["ros2", "launch", "delta_server", "delta.launch.py", "sim:=false", "edge:=true"]
+
+  # Sanal Pi: gerçek Pi ile aynı ikili; sunucuya kendisi bağlanır. NET_ADMIN: tc netem arıza enjeksiyonu.
+  edge:
+    profiles: [sim]
+    build:
+      context: .
+      dockerfile: docker/edge/Dockerfile
+    image: deltarobotv2-edge:latest
+    depends_on: [server]
+    cap_add: [NET_ADMIN]
+    environment:
+      DELTA_SERVER_URL: wss://server:8443/edge
+      DELTA_CA_FILE: /certs/ca.crt
+      DELTA_DRIVER: mock
+    volumes:
+      - certs:/certs:ro
+    restart: "no"
+
+volumes:
+  certs:

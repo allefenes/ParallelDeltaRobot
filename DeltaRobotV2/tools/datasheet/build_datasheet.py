@@ -268,6 +268,15 @@ def fig_board(g: C.Grid, h: dict, square: float) -> go.Figure:
 # --- Sayfa -------------------------------------------------------------------------------------
 
 
+def cell(v) -> str:
+    """Liste ve sözlükleri tablo hücresinde satır satır gösterir."""
+    if isinstance(v, dict):
+        return "<br>".join(f"{esc(k)}: {esc(x)}" for k, x in v.items())
+    if isinstance(v, list | tuple):
+        return "<br>".join(esc(x) for x in v)
+    return esc(v)
+
+
 def ros_section() -> str:
     """ROS2 ağı bölümü. F3'ten sonra docs/datasheet/ros_graph.json çalışan sistemden üretilir."""
     graph = V2 / "docs" / "datasheet" / "ros_graph.json"
@@ -276,16 +285,50 @@ def ros_section() -> str:
         mermaid = data["mermaid"]
         rows = [
             [
-                esc(n["ad"]),
+                f"<b>{esc(n['ad'])}</b>",
                 esc(n["amac"]),
-                esc(n.get("arayuzler", "")),
-                esc(n.get("hz", "")),
-                esc(n.get("qos", "")),
+                cell(n.get("arayuzler", "")),
+                cell(n.get("hz", "")),
+                cell(n.get("qos", "")),
                 esc(n.get("guvenlik", "")),
             ]
             for n in data["dugumler"]
         ]
-        note = f"Kaynak: çalışan sistemin iç gözlemi ({esc(data.get('tarih', ''))})."
+        iface_rows = [
+            [
+                f"<code>{esc(i['ad'])}</code>",
+                esc(i["tur"]),
+                f"<code>{esc(i['tip'])}</code>",
+                cell(i.get("yayinlayan", [])),
+                cell(i.get("dinleyen", [])),
+                esc(i.get("hz", "") or ""),
+                esc(i.get("qos", "")),
+                esc(i.get("guvenlik", "")),
+            ]
+            for i in data.get("arayuzler", [])
+        ]
+        svg_path = graph.with_suffix(".svg")
+        svg = svg_path.read_text(encoding="utf-8") if svg_path.exists() else ""
+        svg = svg[svg.find("<svg") :] if "<svg" in svg else ""
+        extra = (
+            "<h3>rqt_graph tarzı ağ (graphviz)</h3>"
+            f'<div style="overflow:auto;background:#fff;border-radius:8px">{svg}</div>'
+            "<h3>Arayüzler</h3>"
+            + table(
+                [
+                    "Ad",
+                    "Tür",
+                    "Tip",
+                    "Yayınlayan / sunucu",
+                    "Dinleyen / istemci",
+                    "Hz",
+                    "QoS",
+                    "Güvenlik",
+                ],
+                iface_rows,
+            )
+        )
+        note = f"Kaynak: çalışan sistemin iç gözlemi ({esc(data.get('tarih', ''))}); Compose ile sunucu + sanal Pi ayaktayken üretildi."
     else:
         mermaid = """flowchart LR
   subgraph Sunucu
@@ -341,10 +384,13 @@ def ros_section() -> str:
             ],
         ]
         note = "Planlanan mimari (F3'te çalışan sistemden otomatik üretilen diyagramla değiştirilecek)."
+        extra = ""
     tbl = table(["Düğüm / bileşen", "Amaç", "Arayüz", "Hz", "QoS", "Güvenlik rolü"], rows)
     return f"""<p class="muted">{note}</p>
 <pre class="mermaid">{esc(mermaid)}</pre>
+<h3>Düğümler</h3>
 {tbl}
+{extra}
 <h3>Kalp atışı ve bekçi</h3>
 <p>Sunucu kenara düzenli kalp atışı gönderir. Kenar, kalp atışı T_stop süresince gelmezse hareketin
 ortasında bile kontrollü durup konumu tutar; T_off süresince gelmezse torku kapatır ve

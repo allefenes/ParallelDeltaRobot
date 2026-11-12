@@ -1,0 +1,5 @@
+# Yalnız kenar kaynakları ve robot.yaml bağlama gönderilir.
+*
+!edge/
+!config/robot.yaml
+edge/fuzz/corpus/
