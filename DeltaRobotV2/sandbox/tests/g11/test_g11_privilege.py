@@ -5,7 +5,8 @@ from harness import probe
 
 def test_G11_runs_as_nobody():
     r = probe("import os; print(os.getuid(), os.geteuid(), os.getgid(), os.getgroups())")
-    assert r.stdout.strip() == "65534 65534 65534 []"
+    # Docker birincil grubu ek grup olarak da ekleyebilir ([65534] = nogroup); başka grup olmamalı.
+    assert r.stdout.strip() in ("65534 65534 65534 []", "65534 65534 65534 [65534]")
 
 
 def test_G11_no_capabilities_and_no_new_privs():

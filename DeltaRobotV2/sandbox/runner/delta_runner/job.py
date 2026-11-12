@@ -30,6 +30,11 @@ log = logging.getLogger(__name__)
 
 Send = Callable[[dict[str, Any]], Awaitable[None]]
 READ_CHUNK = 64 * 1024
+# Konteynere giden (stdin) yazılmamış veri sınırı. Okuyucu hiçbir zaman stdin'e yazmayı BEKLEMEZ:
+# kullanıcı kodu stdin'i okumazsa yanıtlar burada birikir; sınır aşılınca iş durdurulur. Aksi hâlde
+# stdout okuyucusu durur, docker istemcisi ve Docker daemon'ının akış kopyası tıkanır ve konteyner
+# kill/rm ile bile silinemez hâle gelir (G11 bulgusu, RPC seli testi).
+STDIN_BUFFER_LIMIT = 256 * 1024
 DOCKER_CMD_TIMEOUT_S = 30.0
 
 
@@ -73,7 +78,6 @@ class Job:
         self._reason: str | None = None
         self._stop = asyncio.Event()
         self._proc: asyncio.subprocess.Process | None = None
-        self._stdin_lock = asyncio.Lock()
 
     # Dış olaylar
 
@@ -198,7 +202,8 @@ class Job:
             if key in self._pending:
                 await self._reply_error(ev.id, "bad_request", "bu kimlikle bekleyen istek var")
             elif len(self._pending) >= self.config.max_pending_rpc:
-                await self._reply_error(ev.id, "busy", "çok fazla bekleyen istek")
+                # Yanıt beklemeden istek seli: kötüye kullanım, iş durdurulur (yanıt yazılmaz).
+                self._request_stop("output_limit")
             else:
                 self._pending.add(key)
                 await self._send(rpc_message(ev))
@@ -211,15 +216,17 @@ class Job:
         await self._write_stdin(encode_rpc_reply(req_id, error=error_body(code, message)))
 
     async def _write_stdin(self, data: bytes) -> None:
+        """Bloklamadan yazar; tampon STDIN_BUFFER_LIMIT'i aşarsa iş durdurulur (drain beklenmez)."""
         proc = self._proc
         if proc is None or proc.stdin is None or proc.stdin.is_closing():
             return
-        async with self._stdin_lock:
-            try:
-                proc.stdin.write(data)
-                await proc.stdin.drain()
-            except (BrokenPipeError, ConnectionResetError, RuntimeError):
-                pass  # konteyner çıktı; okuyucular sonucu görecek
+        try:
+            proc.stdin.write(data)
+        except (BrokenPipeError, ConnectionResetError, RuntimeError):
+            return  # konteyner çıktı; okuyucular sonucu görecek
+        if proc.stdin.transport.get_write_buffer_size() > STDIN_BUFFER_LIMIT:
+            log.warning("%s: kullanıcı kodu stdin okumuyor, durduruluyor", self.name)
+            self._request_stop("output_limit")
 
     async def _send(self, msg: dict[str, Any]) -> None:
         try:
@@ -238,4 +245,10 @@ class Job:
         self._stop.set()
 
     async def _remove_container(self) -> None:
+        """Önce stdin kapanır (daemon'ın akış kopyası tıkanmasın), sonra SIGKILL ve rm -f."""
+        proc = self._proc
+        if proc is not None and proc.stdin is not None and not proc.stdin.is_closing():
+            with contextlib.suppress(Exception):
+                proc.stdin.close()
+        await run_docker(dockerargs.build_kill_argv(self.config, self.name))
         await run_docker(dockerargs.build_rm_argv(self.config, self.name))

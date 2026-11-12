@@ -81,6 +81,7 @@ def test_container_name_is_prefixed_and_unique_suffix_validated():
 def test_rm_and_list_argv():
     cfg = Config()
     assert dockerargs.build_rm_argv(cfg, "n") == ["docker", "rm", "-f", "n"]
+    assert dockerargs.build_kill_argv(cfg, "n") == ["docker", "kill", "--signal", "KILL", "n"]
     assert dockerargs.build_list_jobs_argv(cfg) == [
         "docker",
         "ps",

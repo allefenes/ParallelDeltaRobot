@@ -76,6 +76,10 @@ def build_rm_argv(config: Config, name: str) -> list[str]:
     return [config.docker, "rm", "-f", name]
 
 
+def build_kill_argv(config: Config, name: str) -> list[str]:
+    return [config.docker, "kill", "--signal", "KILL", name]
+
+
 def build_list_jobs_argv(config: Config) -> list[str]:
     """Bu koşucunun etiketiyle duran/çalışan tüm iş konteynerlerinin kimlikleri."""
     return [config.docker, "ps", "-aq", "--filter", f"label={LABEL_KEY}={LABEL_VALUE}"]

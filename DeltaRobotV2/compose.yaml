@@ -1,6 +1,8 @@
 # Delta Robotics V2 konteyner servisleri.
 #   dev     geliştirme/test ortamı (her zaman)
 #   sim     profil: sunucu (ROS2 yığını + kenar köprüsü) + sanal Pi (delta_edge + MockDriver)
+#           + api (https://localhost:8000, web arayüzü) + runner (sandbox koşucusu)
+#           Sandbox imajı ayrıca derlenir: docker build -f docker/sandbox/Dockerfile -t deltarobotv2-sandbox .
 #           docker compose --profile sim up -d      /  uçtan uca test: ./tools/e2e.sh
 # Sertifikalar ve ROS günlükleri adlandırılmış birimlerde tutulur; çalışma ağacına yazılmaz.
 name: deltarobotv2
@@ -36,11 +38,52 @@ services:
     environment:
       ROS_DOMAIN_ID: "21"
       ROS_LOG_DIR: /tmp/roslog
+      ROS_AUTOMATIC_DISCOVERY_RANGE: LOCALHOST # DDS ağa çıkmaz (mimari ilke)
     volumes:
       - certs:/certs:ro
       - ./tests/e2e:/e2e:ro
       - ./ros2_ws/tools:/tools:ro
     command: ["ros2", "launch", "delta_server", "delta.launch.py", "sim:=false", "edge:=true"]
+    # API (aynı ağ ad alanı) dışarıya yalnız yerel makinede açılır: https://localhost:8000
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  # Komut API'si + web arayüzü. server'ın ağ ad alanını paylaşır: ROS2 trafiği localhost'ta kalır.
+  api:
+    profiles: [sim]
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    image: deltarobotv2-api:latest
+    depends_on: [server, runner]
+    network_mode: "service:server"
+    environment:
+      ROS_DOMAIN_ID: "21"
+      ROS_LOG_DIR: /tmp/roslog
+      ROS_AUTOMATIC_DISCOVERY_RANGE: LOCALHOST
+      # Yerel geliştirme belirteci; gerçek kullanımda DELTA_API_TOKENS ortamdan verilir.
+      DELTA_API_TOKENS: ${DELTA_API_TOKENS:-gelistirici:delta-dev-token-0123456789}
+      DELTA_RUNNER_URL: ws://runner:8100/run
+      DELTA_RUNNER_SECRET: ${DELTA_RUNNER_SECRET:-delta-dev-runner-secret}
+      DELTA_TLS_CERT: /certs/server.crt
+      DELTA_TLS_KEY: /certs/server.key
+    volumes:
+      - certs:/certs:ro
+
+  # Sandbox koşucusu: kullanıcı kodunu ağsız, kaynak sınırlı kardeş konteynerde çalıştırır.
+  # Docker soketini tutar (ana makinede root eşdeğeri): portu dışarı açılmaz, yalnız iç ağ.
+  runner:
+    profiles: [sim]
+    build:
+      context: .
+      dockerfile: docker/runner/Dockerfile
+      target: runtime
+    image: deltarobotv2-runner:latest
+    environment:
+      DELTA_RUNNER_SECRET: ${DELTA_RUNNER_SECRET:-delta-dev-runner-secret}
+      DELTA_SANDBOX_IMAGE: deltarobotv2-sandbox:latest
+    volumes:
+      - //var/run/docker.sock:/var/run/docker.sock
 
   # Sanal Pi: gerçek Pi ile aynı ikili; sunucuya kendisi bağlanır. NET_ADMIN: tc netem arıza enjeksiyonu.
   edge:
