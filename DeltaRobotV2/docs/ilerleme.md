@@ -13,7 +13,7 @@ Son güncelleme: 2026-11-12
 | F1 Kinematik                | Tamamlandı                                                     | 8 / 8 teslim; 532 test geçti; 4 / 12 güvenlik gereksinimi kanıtlandı (çekirdek)                                                                                          |
 | F2 Datasheet                | Tamamlandı                                                     | 1 / 1 etkileşimli HTML; 6 grafik, 10 bölüm; 25 / 25 test                                                                                                                 |
 | F3 ROS2 + kenar + uçtan uca | Tamamlandı                                                     | Kenar 111 / 111; ROS 79 birim + 3 launch; uçtan uca 16 / 16; mutasyon 130 / 131; fuzz ~175 bin girdi, bulgu yok; 10 / 13 gereksinim tüm yazılım katmanlarında kanıtlandı |
-| F4 Uzaktan erişim           | Kod tamam; uçtan uca koşu Docker yeniden başlatmasını bekliyor | API 49, istemci 102, web 16, sandbox birim 81, G11 55 / 59 (düzeltme sonrası yeniden koşu bekliyor), ROS 97 + 3; G14 eklendi                                             |
+| F4 Uzaktan erişim           | Kod tamam; uçtan uca koşu Docker yeniden başlatmasını bekliyor | API 45, istemci 99, web 16, sandbox birim 81, G11 55 / 59 (düzeltme sonrası yeniden koşu bekliyor), ROS 97 + 3; G14 eklendi                                              |
 | F4.5 Tic-tac-toe (sim)      | Kod tamam; gerçek yığında senaryo koşusu bekliyor              | Tabla ikizi + kurallar 15 test; API üzerinden tam oyun regresyonu ✔                                                                                                     |
 | Malzeme listesi             | Her fazda güncellenir                                          | 32 kalem (G13 donanım bekçisi dahil), [hardware/bom.md](../hardware/bom.md)                                                                                              |
 
@@ -205,8 +205,8 @@ Sözleşme: [api.md](api.md). Bilgisayarın ikinci çökmesinden (11:07) sonra d
 
 | Bileşen                                          | Test (geçen / toplam)         | Satır % | Not                                                                |
 | ------------------------------------------------ | ----------------------------- | ------- | ------------------------------------------------------------------ |
-| API (pytest, sahte arka uç + sahte koşucu)       | 49 / 49                       | 93      | Kimlik, kilit, iş akışı, tabla, tam oyun regresyonu                |
-| Python istemcisi                                 | 102 / 102                     | 100     | Python 3.10 (en düşük sürümler) ve 3.12                            |
+| API (pytest, sahte arka uç + sahte koşucu)       | 45 / 45                       | 93      | Kimlik, kilit, iş akışı, tabla, tam oyun regresyonu                |
+| Python istemcisi                                 | 99 / 99                       | 100     | Python 3.10 (en düşük sürümler) ve 3.12                            |
 | Web (JS çalıştırmadan denetimler + sahte sunucu) | 16 / 16                       | —       | Tarayıcıda elle doğrulandı (1280 px ve 375 px)                     |
 | Sandbox birim                                    | 81 / 81                       | —       | Docker'sız; G11 tıkanma regresyonu dahil                           |
 | Sandbox G11 (gerçek konteyner)                   | 55 / 59 (+14 temizlik hatası) | —       | Hatalar aşağıdaki bulgudan; düzeltme sonrası yeniden koşu bekliyor |
