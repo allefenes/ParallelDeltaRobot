@@ -345,6 +345,42 @@ items:
       status: v1,
       notes: "WebRTC yayını Pi'den",
     }
+  - {
+      id: 47,
+      name: Donanım bekçisi monostable,
+      category: elektronik,
+      qty: 1,
+      unit_mass_g: "",
+      spec: "74HC123 yeniden tetiklenebilir monostable + RC (≈0.5 s, varsayım)",
+      method: satın alma,
+      supplier: TBD,
+      status: v2,
+      notes: "Pi yaşam darbesi kesilirse servo gücünü keser (G13)",
+    }
+  - {
+      id: 48,
+      name: Servo güç anahtarı,
+      category: elektronik,
+      qty: 1,
+      unit_mass_g: "",
+      spec: "Lojik seviyeli N-MOSFET (≥10 A) ya da 12 V röle modülü, serbest dönüş diyotu",
+      method: satın alma,
+      supplier: TBD,
+      status: v2,
+      notes: "Acil stopla seri; donanım bekçisi sürer",
+    }
+  - {
+      id: 49,
+      name: Bekçi pasifleri,
+      category: elektronik,
+      qty: 1,
+      unit_mass_g: "",
+      spec: "Direnç, kondansatör, gate direnci, LED (takım)",
+      method: satın alma,
+      supplier: TBD,
+      status: v2,
+      notes: "Donanım bekçisi devresi",
+    }
 
   # --- Sarf ---
   - {

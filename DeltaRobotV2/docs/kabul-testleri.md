@@ -2,17 +2,18 @@
 
 F5'te gerçek robotla koşulacak testler. Sonuçlar datasheet'in "ölçüm" alanlarını doldurur ve [güvenlik gereksinimleri](guvenlik-gereksinimleri.md) tablosundaki D katmanını kapatır. Her test: hazırlık, adımlar, geçme ölçütü, kaydedilecek değer.
 
-| No  | Test                  | Ölçüm / ölçüt                                                                                       | Datasheet alanı         |
-| --- | --------------------- | --------------------------------------------------------------------------------------------------- | ----------------------- |
-| H1  | Acil stop (G12)       | Buton basılıyken servolar enerjisiz; bırakınca Pi durumu sunucuya bildirir                          | Güvenlik                |
-| H2  | Bekçi (G6, G7)        | Hareket ortasında ağ kesilir; duruş süresi ≤ T_stop, tork kapanma ≤ T_off, mıknatıs güvenli durumda | Güvenlik                |
-| H3  | Son kapı (G1, G5, G8) | Sunucudan bilerek sınır dışı yörünge: hiç başlamaz, `fault` gelir                                   | Güvenlik                |
-| H4  | Sıfır kalibrasyonu    | Üç motorun sıfır ofseti; 10 tekrar, standart sapma                                                  | Kalibrasyon             |
-| H5  | Tekrarlanabilirlik    | 5 noktaya 30'ar gidiş, kadranlı saat / kamera ile; ISO 9283 benzeri                                 | Tekrarlanabilirlik (mm) |
-| H6  | Mutlak doğruluk       | Tabla ızgarasında 9 nokta, komut – ölçüm farkı                                                      | Doğruluk (mm)           |
-| H7  | Boşluk (backlash)     | Her eksende yön değiştirme farkı                                                                    | Boşluk (°, mm)          |
-| H8  | Hız ve çevrim süresi  | 25/100/25 mm küçültülmüş pick-and-place çevrimi                                                     | Çevrim süresi (s)       |
-| H9  | Taşıma kapasitesi     | Mıknatıs tutma kuvveti ve artan yükle hız düşümü                                                    | Faydalı yük (g)         |
-| H10 | Isınma                | 30 dk tic-tac-toe döngüsü; servo sıcaklıkları                                                       | Görev döngüsü           |
-| H11 | Elle hareket          | Enerjisiz uç işlevci çalışma alanında takılmadan gezer (V1 nitel özelliği)                          | Nitel                   |
-| H12 | Tic-tac-toe           | 20 tam oyun; yerleştirme hatası, kaçırılan taş sayısı                                               | Senaryo metrikleri      |
+| No  | Test                  | Ölçüm / ölçüt                                                                                                                                                                     | Datasheet alanı         |
+| --- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| H1  | Acil stop (G12)       | Buton basılıyken servolar enerjisiz; bırakınca Pi durumu sunucuya bildirir                                                                                                        | Güvenlik                |
+| H2  | Bekçi (G6, G7)        | Hareket ortasında ağ kesilir; duruş süresi ≤ T_stop, tork kapanma ≤ T_off, mıknatıs güvenli durumda                                                                               | Güvenlik                |
+| H3  | Son kapı (G1, G5, G8) | Sunucudan bilerek sınır dışı yörünge: hiç başlamaz, `fault` gelir                                                                                                                 | Güvenlik                |
+| H4  | Sıfır kalibrasyonu    | Üç motorun sıfır ofseti; 10 tekrar, standart sapma                                                                                                                                | Kalibrasyon             |
+| H5  | Tekrarlanabilirlik    | 5 noktaya 30'ar gidiş, kadranlı saat / kamera ile; ISO 9283 benzeri                                                                                                               | Tekrarlanabilirlik (mm) |
+| H6  | Mutlak doğruluk       | Tabla ızgarasında 9 nokta, komut – ölçüm farkı                                                                                                                                    | Doğruluk (mm)           |
+| H7  | Boşluk (backlash)     | Her eksende yön değiştirme farkı                                                                                                                                                  | Boşluk (°, mm)          |
+| H8  | Hız ve çevrim süresi  | 25/100/25 mm küçültülmüş pick-and-place çevrimi                                                                                                                                   | Çevrim süresi (s)       |
+| H9  | Taşıma kapasitesi     | Mıknatıs tutma kuvveti ve artan yükle hız düşümü                                                                                                                                  | Faydalı yük (g)         |
+| H10 | Isınma                | 30 dk tic-tac-toe döngüsü; servo sıcaklıkları                                                                                                                                     | Görev döngüsü           |
+| H11 | Elle hareket          | Enerjisiz uç işlevci çalışma alanında takılmadan gezer (V1 nitel özelliği)                                                                                                        | Nitel                   |
+| H12 | Tic-tac-toe           | 20 tam oyun; yerleştirme hatası, kaçırılan taş sayısı                                                                                                                             | Senaryo metrikleri      |
+| H13 | Donanım bekçisi (G13) | `delta_edge` süreci SIGKILL ile öldürülür ve ayrıca Pi'nin güç kablosu çekilir: servo gücünün kesilme süresi osiloskopla ölçülür, ≤ 0.5 s; servolar enerjisiz, elle oynatılabilir | Güvenlik                |

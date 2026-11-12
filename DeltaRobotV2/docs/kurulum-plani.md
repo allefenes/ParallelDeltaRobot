@@ -52,6 +52,7 @@ Bilinen ilkeler:
 
 - 12 V güç kaynağı, akımı üç motorun en büyük akımından yüksek (≥5 A, varsayım); servolar ve elektromıknatıs bu hattan.
 - **Fiziksel acil stop (ağdan bağımsız):** Mantar buton, servo ve mıknatıs güç hattını doğrudan keser (kontaktör ya da buton kontağı). Butonun ikinci kontağı Pi'nin bir GPIO girişine bağlanır; Pi durumu sunucuya bildirir. Yazılım ya da ağ arızası butonun işlevini etkileyemez.
+- **Donanım bekçisi (G13):** 12 V servo güç hattına acil stopla seri bir röle ya da lojik seviyeli N-MOSFET konur. Sürme ucu, yeniden tetiklenebilir monostable bir devreye (74HC123, RC ≈ 0.5 s; varsayım) bağlanır; tetik girişi Pi'nin bir GPIO çıkışıdır (`delta_edge` yaşam darbesi, döngü sağlıklıyken ~20 Hz). Darbe kesilirse çıkış düşer, servo gücü kesilir. Pi'nin kendi beslemesi bu hattan ayrıdır. Montajdan sonra kabul testi H13 ile süre ölçülür.
 - Raspberry Pi beslemesi: 12 V → 5 V/3 A DC-DC dönüştürücü ya da ayrı adaptör (açık). Acil stop Pi'nin beslemesini kesmez; Pi telemetriyi ve bağlantıyı korur.
 - Pi ↔ servo: yarım-dupleks TTL seri hat (Dynamixel arayüzü: U2D2 ya da 74LS241 tabanlı devre; açık).
 - Elektromıknatıs: Pi GPIO'dan MOSFET ile anahtarlanır, serbest dönüş diyotu ile; varsayılan (Pi kapalı / bekçi tetik) durumu tanımlıdır (F3'te kararlaştırılır).

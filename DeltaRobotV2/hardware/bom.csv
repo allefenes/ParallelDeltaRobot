@@ -27,4 +27,7 @@ No,Ad,Kategori,Malzeme / özellik,Adet,Birim kütle (g),Toplam kütle (g),Üreti
 44,Elektromıknatıs sürücüsü,Elektronik,Lojik seviyeli MOSFET + serbest dönüş diyotu,1,,,satın alma,TBD,,Varsayım,elle,Güvenli durum F3'te
 45,Acil stop butonu,Elektronik,"Mantar buton, NC + NO kontak",1,,,satın alma,TBD,,V2'de değişti,elle,"Güç yolunu keser, Pi GPIO'ya bildirir"
 46,Kamera,Elektronik,USB ya da CSI kamera,1,,,satın alma,TBD,,V1 (olduğu gibi),elle,WebRTC yayını Pi'den
+47,Donanım bekçisi monostable,Elektronik,"74HC123 yeniden tetiklenebilir monostable + RC (≈0.5 s, varsayım)",1,,,satın alma,TBD,,V2'de değişti,elle,Pi yaşam darbesi kesilirse servo gücünü keser (G13)
+48,Servo güç anahtarı,Elektronik,"Lojik seviyeli N-MOSFET (≥10 A) ya da 12 V röle modülü, serbest dönüş diyotu",1,,,satın alma,TBD,,V2'de değişti,elle,Acil stopla seri; donanım bekçisi sürer
+49,Bekçi pasifleri,Elektronik,"Direnç, kondansatör, gate direnci, LED (takım)",1,,,satın alma,TBD,,V2'de değişti,elle,Donanım bekçisi devresi
 50,PLA filament,Sarf,1.75 mm PLA,1,,,satın alma,TBD,,V1 (olduğu gibi),elle,Toplam baskı kütlesi BOM toplamından

@@ -29,11 +29,15 @@ Bu belge hedef mimariyi anlatır; parçalar fazlar ilerledikçe hayata geçer ([
 │          elektromıknatısı tanımlı güvenli duruma al              │
 │   geri bildirim: açı, sıcaklık, yük, gerilim -> sunucu           │
 │   motor sürücüsü: AX-12A arka ucu (motordan bağımsız arayüz)     │
+│   GPIO yaşam darbesi: döngü sağlıklıyken donanım bekçisine       │
 │ kamera: WebRTC ile doğrudan yayın                                │
 └───────────────────────────────┬─────────────────────────────────┘
-                 seri hat (yarım-dupleks)   fiziksel acil stop
-                                │           (ağdan bağımsız, güç
-                           3× servo         yolunda / Pi girişinde)
+                 seri hat (yarım-dupleks)
+                                │
+                           3× servo  <── 12 V servo gücü ── [acil stop] ── [donanım bekçisi
+                                                             (seri)        röle/MOSFET; darbe
+                                                                           kesilirse ≤0.5 s'de
+                                                                           güç keser]
 ```
 
 ## Sorumluluk dağılımı
@@ -53,18 +57,19 @@ Bu belge hedef mimariyi anlatır; parçalar fazlar ilerledikçe hayata geçer ([
 
 ## İlkeler
 
-1. **İki katmanlı güvenlik.** Sunucudaki tam süpervizör ilk kapıdır: çalışma alanı, küresel mafsal limiti (14°), çarpışma, görev mantığı, hız/ivme profili. Pi'deki hafif kapı son kapıdır: sunucu ne gönderirse göndersin, eklem/hız/ivme/sıcaklık/yük/gerilim sınırlarını aşan ya da sınır dışı değer içeren hiçbir komut servolara ulaşmaz. İki kapı aynı `config/robot.yaml` sınırlarını kullanır.
+1. **İki katmanlı güvenlik.** Sunucudaki tam süpervizör ilk kapıdır: çalışma alanı, küresel mafsal limiti (13°), çarpışma, görev mantığı, hız/ivme profili. Pi'deki hafif kapı son kapıdır: sunucu ne gönderirse göndersin, eklem/hız/ivme/sıcaklık/yük/gerilim sınırlarını aşan ya da sınır dışı değer içeren hiçbir komut servolara ulaşmaz. İki kapı aynı `config/robot.yaml` sınırlarını kullanır.
 2. **İnternet üzerinden nokta nokta sürüş yok.** Sunucu, zaman damgalı tam yörüngeyi gönderir; Pi onu kendi saatiyle oynatır. Ağ gecikmesi ve titremesi hareketi etkilemez, yalnız yörüngenin başlamasını geciktirir.
 3. **Bekçi.** Pi, sunucudan belirli aralıkla kalp atışı bekler. Kesilirse hareketin ortasında bile kontrollü durur ve konumu tutar; süre uzarsa torku kapatır ve elektromıknatısı tanımlı güvenli duruma alır.
 4. **Ağdan bağımsız acil stop.** Fiziksel buton güç yolunu keser ve Pi'ye ayrıca bildirir; yazılım ya da ağ arızası onu etkilemez.
-5. **Bağlantıyı Pi açar.** Pi, sunucuya TLS'li WebSocket ile dışarı doğru bağlanır; robotun bulunduğu ağda gelen port açılmaz.
-6. **Simülasyon ile gerçek ayırt edilemez.** Mock ve dijital ikiz arka uçları aynı kenar protokolünü konuşan bir "sanal Pi" olarak çalışır; sunucu karşısında simülasyon mu gerçek robot mu olduğunu bilmez. F5'e kadar tüm zincir sanal Pi ile test edilir.
-7. **Donanımın tek sahibi.** Seri hattı yalnız `delta_edge` kullanır.
-8. **Kullanıcı kodu robotta çalışmaz.** Web editöründeki kod sunucuda ağsız, kaynak sınırlı bir konteynerde; VS Code'daki kod kullanıcının kendi bilgisayarında çalışır. İkisi de yalnız komut API'si üzerinden konuşur. Komutlar veridir (hedef konum, eklem açıları, zamanlı yörünge), doğrudan motor erişimi yoktur.
-9. **Tek kinematik kaynağı.** İleri/ters kinematik, Jacobian ve limitler `core/` altındaki C++ kütüphanededir; sunucu, Python istemcisi (pybind11), web ikizi ve gerektiğinde Pi aynı kodu kullanır.
-10. **Motordan bağımsız donanım katmanı.** AX-12A, `delta_edge` içindeki bir arka uçtur; yeniden kurulumda motor değişirse yalnız arka uç ve motor parametreleri değişir.
-11. **Taşınabilir dağıtım.** Sunucu servisleri konteynerdir ve `compose.yaml` ile kalkar. Önce kendi sunucumuz, sonra bulut; buluta özgü bağımlılık yok.
-12. **Çok dilli arayüz.** Metinler koda gömülmez; `i18n/locales/` katalogları kullanılır. Kaynak dil Türkçe, eksik çeviri Türkçeye düşer.
+5. **Donanım bekçisi (Pi çökmesine karşı).** Pi çöker ya da donarsa yazılım torku kapatamaz ve servolar son hedefte torklu kalır (F3 bulgusu). Bu yüzden `delta_edge`, kendi döngüsü sağlıklı çalıştıkça bir GPIO çıkışından düzenli darbe üretir. Servo güç yolundaki bağımsız, yeniden tetiklenebilir bir monostable devre (ör. 74HC123) darbe ~0.5 s kesilirse röle/MOSFET ile 12 V servo gücünü keser (G13; süre varsayım). Acil stop aynı güç yolunda seridir. Darbe, döngü takılırsa, süreç ölürse ya da çekirdek donarsa kesilir; yazılımla taklit edilemez.
+6. **Bağlantıyı Pi açar.** Pi, sunucuya TLS'li WebSocket ile dışarı doğru bağlanır; robotun bulunduğu ağda gelen port açılmaz.
+7. **Simülasyon ile gerçek ayırt edilemez.** Mock ve dijital ikiz arka uçları aynı kenar protokolünü konuşan bir "sanal Pi" olarak çalışır; sunucu karşısında simülasyon mu gerçek robot mu olduğunu bilmez. F5'e kadar tüm zincir sanal Pi ile test edilir.
+8. **Donanımın tek sahibi.** Seri hattı yalnız `delta_edge` kullanır.
+9. **Kullanıcı kodu robotta çalışmaz.** Web editöründeki kod sunucuda ağsız, kaynak sınırlı bir konteynerde; VS Code'daki kod kullanıcının kendi bilgisayarında çalışır. İkisi de yalnız komut API'si üzerinden konuşur. Komutlar veridir (hedef konum, eklem açıları, zamanlı yörünge), doğrudan motor erişimi yoktur.
+10. **Tek kinematik kaynağı.** İleri/ters kinematik, Jacobian ve limitler `core/` altındaki C++ kütüphanededir; sunucu, Python istemcisi (pybind11), web ikizi ve gerektiğinde Pi aynı kodu kullanır.
+11. **Motordan bağımsız donanım katmanı.** AX-12A, `delta_edge` içindeki bir arka uçtur; yeniden kurulumda motor değişirse yalnız arka uç ve motor parametreleri değişir.
+12. **Taşınabilir dağıtım.** Sunucu servisleri konteynerdir ve `compose.yaml` ile kalkar. Önce kendi sunucumuz, sonra bulut; buluta özgü bağımlılık yok.
+13. **Çok dilli arayüz.** Metinler koda gömülmez; `i18n/locales/` katalogları kullanılır. Kaynak dil Türkçe, eksik çeviri Türkçeye düşer.
 
 ## Pi'de neden ROS2 değil, küçük bir C++ servisi?
 

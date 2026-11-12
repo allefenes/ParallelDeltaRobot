@@ -18,7 +18,8 @@ Katmanlar: **Ç** çekirdek (`core/`, F1), **S** sunucu 1. kapı (F3), **K** Pi 
 | G10 | Seri hattı yalnız kenar servisi kullanır (tek sahip)                                               | K       | F3 (mimari test)                                                                                     | F3           |
 | G11 | Kullanıcı kodu sandbox'ta ağa çıkamaz, kaynak sınırını aşamaz, dosya sistemine yazamaz             | S       | F4 (sandbox güvenlik testleri)                                                                       | F4           |
 | G12 | Fiziksel acil stop, yazılımdan bağımsız olarak servo gücünü keser                                  | D       | F5 kabul testi                                                                                       | F5           |
+| G13 | Pi çöker ya da donarsa servo gücü donanımca en geç 0.5 s içinde kesilir (varsayım)                 | K, D    | K: GPIO yaşam darbesi döngü ölünce durur (kenar testi); D: F5 kabul testi H13                        | K F3, D F5   |
 
-**Durum:** 4 / 12 gereksinim çekirdek katmanında testle kanıtlandı (G1–G4); tam kanıt F3–F5'te tamamlanır.
+**Durum:** 4 / 13 gereksinim çekirdek katmanında testle kanıtlandı (G1–G4); F3 sonuçları F3 kaydında işlenir. G13 (donanım bekçisi) F3'te eklendi: Pi çökmesi bulgusu üzerine.
 
 Süre değerleri (T_stop, T_off) F3'te kenar servisiyle birlikte sabitlenir ve buraya yazılır.
