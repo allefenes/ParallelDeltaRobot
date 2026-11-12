@@ -236,6 +236,9 @@ TEST(Protocol, SerializesOutgoingMessages) {
   EXPECT_EQ(j["voltages"][1], 12.0);
   EXPECT_EQ(j["traj_id"], "abc");
   EXPECT_EQ(j["index"], 7);
+  EXPECT_EQ(j["magnet"], false);
+  t.magnet = true;
+  EXPECT_EQ(json::parse(serialize_telemetry(t))["magnet"], true);
 
   t.traj_id.clear();
   EXPECT_TRUE(json::parse(serialize_telemetry(t))["traj_id"].is_null());

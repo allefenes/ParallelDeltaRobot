@@ -1,0 +1,8 @@
+# Yalnız istemci paketi ve bootstrap bağlama gönderilir.
+*
+!client/
+!sandbox/bootstrap.py
+client/tests/
+client/examples/
+**/__pycache__
+**/.pytest_cache

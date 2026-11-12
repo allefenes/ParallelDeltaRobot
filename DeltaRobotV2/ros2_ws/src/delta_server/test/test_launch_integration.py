@@ -86,9 +86,15 @@ class TestStack(unittest.TestCase):
         req = MoveTo.Request()
         req.target = Point(x=target[0], y=target[1], z=target[2])
         req.duration_s = duration
-        fut = self.client.call_async(req)
-        self.assertTrue(self.spin_until(fut.done, 20.0), "/move_to yanıtı yok")
-        return fut.result()
+        # Planlayıcı ilk /joint_states'i testten sonra alabilir (yük altında yarış): yinele.
+        end = time.monotonic() + 15.0
+        while True:
+            fut = self.client.call_async(req)
+            self.assertTrue(self.spin_until(fut.done, 20.0), "/move_to yanıtı yok")
+            res = fut.result()
+            if "durumu bilinmiyor" not in res.reason or time.monotonic() > end:
+                return res
+            self.spin_until(lambda: False, 0.2)
 
     def test_1_valid_move_reaches_ik_solution(self):
         self.assertTrue(self.spin_until(lambda: self.joints is not None, 30.0), "joint_states yok")

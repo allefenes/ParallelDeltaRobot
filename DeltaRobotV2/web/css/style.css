@@ -1,0 +1,519 @@
+/* Delta Robotics arayüzü: açık/koyu tema prefers-color-scheme ile. */
+:root {
+  --bg: #f4f6f8;
+  --panel: #ffffff;
+  --border: #d8dee4;
+  --text: #1c2228;
+  --muted: #5d6873;
+  --accent: #1f6feb;
+  --accent-text: #ffffff;
+  --ok: #1a7f37;
+  --warn: #9a6700;
+  --error: #cf222e;
+  --error-bg: #ffebe9;
+  --stop: #d1242f;
+  --stop-hover: #a40e26;
+  --console-bg: #f6f8fa;
+  --twin-bg: #eef1f4;
+  --twin-grid: #b0b8c0;
+  --radius: 8px;
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8d96a0;
+    --accent: #2f81f7;
+    --ok: #3fb950;
+    --warn: #d29922;
+    --error: #f85149;
+    --error-bg: #3c1618;
+    --stop: #da3633;
+    --stop-hover: #b62324;
+    --console-bg: #0b0f14;
+    --twin-bg: #1b222b;
+    --twin-grid: #3a4450;
+  }
+  .CodeMirror {
+    background: #0b0f14;
+    color: #e6edf3;
+  }
+  .CodeMirror-gutters {
+    background: #11161d;
+    border-color: #30363d;
+  }
+  .CodeMirror-cursor {
+    border-left-color: #e6edf3;
+  }
+  .cm-s-default .cm-keyword {
+    color: #ff7b72;
+  }
+  .cm-s-default .cm-string {
+    color: #a5d6ff;
+  }
+  .cm-s-default .cm-comment {
+    color: #8b949e;
+  }
+  .cm-s-default .cm-number {
+    color: #79c0ff;
+  }
+  .cm-s-default .cm-def,
+  .cm-s-default .cm-variable-2 {
+    color: #d2a8ff;
+  }
+  .cm-s-default .cm-builtin {
+    color: #ffa657;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+h1 {
+  font-size: 18px;
+}
+h2 {
+  font-size: 15px;
+}
+h3 {
+  font-size: 13px;
+  margin: 12px 0 6px;
+  color: var(--muted);
+}
+
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 12px;
+}
+.mono {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+input {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  min-width: 0;
+}
+button {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+button.ghost {
+  background: transparent;
+}
+button.small {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+/* Dur: her zaman etkin, kırmızı ve büyük */
+button.stop {
+  background: var(--stop);
+  border-color: var(--stop);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+button.stop:hover {
+  background: var(--stop-hover);
+}
+.stop-top {
+  padding: 8px 22px;
+}
+.stop-big {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+/* Üst şerit */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+.brand {
+  display: flex;
+  flex-direction: column;
+}
+.subtitle {
+  font-size: 12px;
+  color: var(--muted);
+}
+.login {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.login input {
+  width: 220px;
+}
+
+/* Izgara: 1280 px'de üç sütun */
+.grid {
+  display: grid;
+  gap: 12px;
+  padding: 12px 16px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.2fr) minmax(0, 0.85fr);
+  grid-template-areas:
+    "editor twin tele"
+    "editor twin jog"
+    "editor camera jog";
+}
+.editor-panel {
+  grid-area: editor;
+}
+.twin-panel {
+  grid-area: twin;
+}
+.tele-panel {
+  grid-area: tele;
+}
+.jog-panel {
+  grid-area: jog;
+}
+.camera-panel {
+  grid-area: camera;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  min-width: 0;
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.hint {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+/* Rozetler */
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.badge.state[data-state="IDLE"] {
+  color: var(--ok);
+  border-color: var(--ok);
+}
+.badge.state[data-state="RUNNING"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.badge.state[data-state="HOLDING"],
+.badge.state[data-state="TORQUE_OFF"] {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+.badge.state[data-state="FAULT"],
+.badge.state[data-state="ESTOP"] {
+  color: #fff;
+  background: var(--error);
+  border-color: var(--error);
+}
+.badge[data-status="running"],
+.badge[data-status="queued"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.badge[data-status="done"] {
+  color: var(--ok);
+  border-color: var(--ok);
+}
+.badge[data-status="failed"],
+.badge[data-status="timeout"] {
+  color: var(--error);
+  border-color: var(--error);
+}
+.badge[data-status="cancelled"] {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+#magnet-badge[data-on="true"] {
+  color: #fff;
+  background: var(--error);
+  border-color: var(--error);
+}
+
+/* Editör ve konsol */
+.editor {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.editor .CodeMirror {
+  height: 380px;
+  font-size: 13px;
+}
+.editor-fallback {
+  width: 100%;
+  height: 380px;
+  border: 0;
+  font-family: ui-monospace, Consolas, monospace;
+  background: var(--console-bg);
+  color: var(--text);
+  padding: 8px;
+}
+.console-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.console {
+  margin: 0;
+  height: 220px;
+  overflow: auto;
+  background: var(--console-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.console .stderr {
+  color: var(--error);
+}
+.console .meta {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* İkiz */
+.twin {
+  position: relative;
+  height: 460px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--twin-bg);
+}
+.twin canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.twin-msg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+}
+.twin-msg[hidden] {
+  display: none;
+}
+
+/* Telemetri */
+.kv {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+}
+.kv dt {
+  color: var(--muted);
+}
+.kv dd {
+  margin: 0;
+}
+#tele-edge[data-ok="true"] {
+  color: var(--ok);
+}
+#tele-edge[data-ok="false"] {
+  color: var(--error);
+}
+.motors {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 13px;
+}
+.motors th,
+.motors td {
+  border-bottom: 1px solid var(--border);
+  padding: 3px 4px;
+  text-align: right;
+}
+.motors th:first-child {
+  text-align: left;
+  color: var(--muted);
+  font-weight: normal;
+}
+.event,
+.result {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  min-height: 36px;
+  font-size: 13px;
+}
+.result:empty {
+  display: none;
+}
+.event[data-kind="error"],
+.result[data-kind="error"] {
+  color: var(--error);
+  background: var(--error-bg);
+  border-color: var(--error);
+}
+.event[data-kind="ok"],
+.result[data-kind="ok"] {
+  color: var(--ok);
+}
+.result[data-kind="warn"] {
+  color: var(--warn);
+}
+.result {
+  margin-top: 10px;
+}
+
+/* Elle sürme */
+.jog {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.jog label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: ui-monospace, Consolas, monospace;
+}
+.jog input {
+  width: 74px;
+}
+
+.camera-placeholder {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  padding: 12px;
+}
+
+/* Orta genişlik: iki sütun */
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "twin tele"
+      "twin jog"
+      "editor editor"
+      "camera camera";
+  }
+}
+
+/* Telefon: tek sütun, Dur üstte sabit */
+@media (max-width: 700px) {
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  .login input {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+  .stop-top {
+    width: 100%;
+  }
+  .grid {
+    padding: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "jog" "tele" "twin" "editor" "camera";
+  }
+  .twin {
+    height: 320px;
+  }
+  .editor .CodeMirror,
+  .editor-fallback {
+    height: 280px;
+  }
+  .hint {
+    display: none;
+  }
+}

@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 import rclpy
 import yaml
+from delta_server.common import min_tool_z_mm
 from delta_server.robot import Robot
 from delta_server.safety import Limits
 
@@ -40,7 +41,7 @@ def server_cfg() -> dict:
 
 
 @pytest.fixture(scope="session")
-def limits(server_cfg) -> Limits:
+def limits(server_cfg, robot) -> Limits:
     """server.yaml'daki G5 sınırları (testler sayıları koda kopyalamaz)."""
     common = server_cfg["/**"]["ros__parameters"]
     sup = server_cfg["supervisor"]["ros__parameters"]
@@ -51,6 +52,8 @@ def limits(server_cfg) -> Limits:
         start_tolerance_deg=sup["start_tolerance_deg"],
         cartesian_tolerance_mm=sup["cartesian_tolerance_mm"],
         max_duration_s=sup["max_duration_s"],
+        min_tool_z_mm=min_tool_z_mm(robot.spec),
+        tool_offset_mm=robot.spec["kinematics"]["ee_offset"],
     )
 
 

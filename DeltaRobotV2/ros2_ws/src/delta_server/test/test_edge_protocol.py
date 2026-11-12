@@ -62,6 +62,11 @@ def test_parse_telemetry_ack_fault():
     kind, t = ep.parse_incoming(json.dumps(tel))
     assert kind == "telemetry" and t.state == "RUNNING" and t.traj_id == "" and t.index == 4
     assert t.angles_rad[1] == pytest.approx(math.radians(20))
+    assert t.magnet is False  # alan yoksa (eski kenar) kapalı kabul edilir
+    _, t = ep.parse_incoming(json.dumps({**tel, "magnet": True}))
+    assert t.magnet is True
+    _, t = ep.parse_incoming(json.dumps({**tel, "magnet": "evet"}))
+    assert t.magnet is False  # yalnız gerçek true açık sayılır
     assert ep.parse_incoming('{"v":1,"type":"ack","id":"a"}') == ("ack", "a")
     assert ep.parse_incoming('{"v":1,"type":"fault","code":"accel_limit","detail":"d"}') == (
         "fault",

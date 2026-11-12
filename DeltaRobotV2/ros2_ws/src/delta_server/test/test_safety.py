@@ -186,3 +186,31 @@ def test_G5_step_from_rest_rejected(robot, limits):
     th, t = hold(home, n=5)
     th[1:] += np.array([3.0, 0.0, 0.0])
     assert validate(robot.kin, th, t, limits).requirement == "G5"
+
+
+def test_G14_tool_below_board_rejected(robot, limits):
+    """Mıknatıs ucu (P − ee_offset) tabla üst yüzünün altına inen yol reddedilir."""
+    floor = limits.min_tool_z_mm
+    z_p = floor + limits.tool_offset_mm - 3.0  # uç yüzeyin 3 mm altında; kinematik olarak erişilir
+    ok, _arm, _reason = robot.kin.check_point((0.0, 0.0, z_p))
+    assert ok, "test noktası kinematik olarak erişilebilir olmalı (yalnız G14 reddetsin)"
+    th, t, cart = planned(robot, limits, (0.0, 0.0, z_p), duration=2.0)
+    home = robot.kin.inverse(robot.home_mm)
+    v = validate(robot.kin, th, t, limits, cartesian_mm=cart, current_deg=home)
+    assert v.requirement == "G14", v.message
+    assert v.index > 0  # yolun sonunda, yüzeye değdikten sonra
+
+
+def test_G14_tool_touching_board_accepted(robot, limits):
+    """Uç tam tabla yüzeyinde (taş bırakma) kabul edilir; sınır dahil."""
+    z_p = limits.min_tool_z_mm + limits.tool_offset_mm
+    th, t, cart = planned(robot, limits, (0.0, 0.0, z_p), duration=2.0)
+    home = robot.kin.inverse(robot.home_mm)
+    v = validate(robot.kin, th, t, limits, cartesian_mm=cart, current_deg=home)
+    assert v.accepted, v.message
+
+
+def test_G14_limit_from_robot_yaml(robot, limits):
+    k, task = robot.spec["kinematics"], robot.spec["task"]
+    assert limits.min_tool_z_mm == -k["base_to_floor"] + task["board_thickness"]
+    assert limits.tool_offset_mm == k["ee_offset"]

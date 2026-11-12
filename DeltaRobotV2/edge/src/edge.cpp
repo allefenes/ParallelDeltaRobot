@@ -22,7 +22,7 @@ EdgeCore::EdgeCore(const EdgeLimits& limits, Driver& driver, EstopInput& estop, 
       estop_(estop),
       last_tick_(now),
       next_telemetry_(now) {
-  driver_.set_magnet(false);
+  set_magnet(false);
   driver_.set_torque(false);
   measured_ = driver_.read_state();
   last_cmd_ = hold_target_ = gate_.clamp_to_limits(measured_.angles);
@@ -32,7 +32,7 @@ void EdgeCore::on_connection_open() { watchdog_.new_session(); }
 
 void EdgeCore::shutdown() {
   player_.clear();
-  driver_.set_magnet(false);
+  set_magnet(false);
   driver_.set_torque(false);
   if (state_ != State::kEstop) state_ = State::kTorqueOff;
 }
@@ -50,14 +50,14 @@ void EdgeCore::enter_hold(State next) {
 
 void EdgeCore::enter_torque_off() {
   player_.clear();
-  driver_.set_magnet(false);
+  set_magnet(false);
   driver_.set_torque(false);
   state_ = State::kTorqueOff;
 }
 
 void EdgeCore::enter_estop(Out& out) {
   player_.clear();
-  driver_.set_magnet(false);
+  set_magnet(false);
   driver_.set_torque(false);
   state_ = State::kEstop;
   out.push_back(serialize_fault(fault::kEstop, "acil stop girişi etkin; mandallandı"));
@@ -181,7 +181,7 @@ void EdgeCore::handle(const TrajectoryMsg& m, Micros now, Out& out) {
     out.push_back(serialize_fault(g.code, "yörünge " + m.id + " reddedildi: " + g.detail));
     return;
   }
-  if (m.magnet) driver_.set_magnet(*m.magnet);
+  if (m.magnet) set_magnet(*m.magnet);
   player_.start(m.id, m.points, m.period_ms, now);
   traj_id_ = m.id;
   index_ = 0;
@@ -214,11 +214,11 @@ void EdgeCore::handle(const TorqueMsg& m, Micros now, Out& out) {
 
 void EdgeCore::handle(const MagnetMsg& m, Out& out) {
   if (!m.on) {
-    driver_.set_magnet(false);
+    set_magnet(false);
     return;
   }
   if (state_ == State::kIdle || state_ == State::kRunning || state_ == State::kHolding) {
-    driver_.set_magnet(true);
+    set_magnet(true);
     return;
   }
   out.push_back(serialize_fault(fault::kNotReady,
@@ -240,6 +240,12 @@ void EdgeCore::handle_reset(Micros now, Out& out) {
   }
 }
 
+// Mıknatıs yalnız buradan sürülür; telemetri sürücüye yazılan son değeri bildirir.
+void EdgeCore::set_magnet(bool on) {
+  magnet_ = on;
+  driver_.set_magnet(on);
+}
+
 std::string EdgeCore::telemetry() const {
   Telemetry t;
   t.state = state_name(state_);
@@ -249,6 +255,7 @@ std::string EdgeCore::telemetry() const {
   t.voltages_v = measured_.voltages_v;
   t.traj_id = traj_id_;
   t.index = index_;
+  t.magnet = magnet_;
   return serialize_telemetry(t);
 }
 

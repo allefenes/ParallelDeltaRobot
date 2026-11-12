@@ -11,6 +11,8 @@ Arayüzler:
   yayın  /edge/connected      (std_msgs/Bool, kalıcı)            kenar bağlı mı
   yayın  /supervisor/events   (delta_interfaces/SupervisorEvent) kenarın reddettiği / arıza
   servis /edge_bridge/torque         (std_srvs/SetBool)   tork aç/kapa
+  servis /edge_bridge/magnet         (std_srvs/SetBool)   elektromıknatıs aç/kapa
+  servis /edge_bridge/stop           (std_srvs/Trigger)   yörüngeyi kes, konumu tut
   servis /edge_bridge/heartbeat_pause (std_srvs/SetBool)  YALNIZ TEST: kalp atışını durdurur
                                                            (bekçi G6/G7 hata enjeksiyonu)
 Parametreler: listen_host, listen_port, path, cert_file, key_file, token, heartbeat_hz,
@@ -29,7 +31,7 @@ from delta_interfaces.msg import EdgeStatus, SupervisorEvent
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool
-from std_srvs.srv import SetBool
+from std_srvs.srv import SetBool, Trigger
 from trajectory_msgs.msg import JointTrajectory
 
 from delta_server import common
@@ -67,6 +69,8 @@ class EdgeBridge(Node):
             JointTrajectory, common.TOPIC_TRAJECTORY_OUT, self.on_trajectory, common.QOS_COMMAND
         )
         self.create_service(SetBool, "/edge_bridge/torque", self.on_torque)
+        self.create_service(SetBool, "/edge_bridge/magnet", self.on_magnet)
+        self.create_service(Trigger, "/edge_bridge/stop", self.on_stop)
         self.create_service(SetBool, "/edge_bridge/heartbeat_pause", self.on_pause)
         self.client = None
         self.paused = False
@@ -95,6 +99,18 @@ class EdgeBridge(Node):
 
     def on_torque(self, req, res):
         res.success = self._send(ep.command("torque", req.data))
+        res.message = "gönderildi" if res.success else "kenar bağlı değil"
+        return res
+
+    def on_magnet(self, req, res):
+        """Mıknatıs komutu; kenar durumu uygun değilse `fault` (not_ready) ile reddeder."""
+        res.success = self._send(ep.command("magnet", req.data))
+        res.message = "gönderildi" if res.success else "kenar bağlı değil"
+        return res
+
+    def on_stop(self, _req, res):
+        """Kontrollü duruş: kenar yörüngeyi keser ve ölçülen konumu tutar."""
+        res.success = self._send(ep.command("stop"))
         res.message = "gönderildi" if res.success else "kenar bağlı değil"
         return res
 
@@ -136,6 +152,7 @@ class EdgeBridge(Node):
         st.voltages = t.voltages
         st.trajectory_id = t.traj_id
         st.index = t.index
+        st.magnet = t.magnet
         self.status_pub.publish(st)
 
     # --- Ağ tarafı (ayrı iş parçacığında asyncio) ---------------------------------------------

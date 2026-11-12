@@ -1,0 +1,11 @@
+# Yalnız imaja giren yollar bağlama gönderilir (derleme bağlamı DeltaRobotV2/).
+*
+!api/
+!web/
+!i18n/locales/
+api/tests/
+web/dev/
+web/tests/
+web/screenshots/
+**/__pycache__
+**/*.egg-info

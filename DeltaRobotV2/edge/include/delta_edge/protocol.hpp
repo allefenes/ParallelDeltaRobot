@@ -62,6 +62,7 @@ struct Telemetry {
   Angles voltages_v{};  // V
   std::string traj_id;  // boşsa null
   long long index{-1};  // oynatılan nokta indisi; yoksa -1
+  bool magnet{false};   // mıknatısa verilen son komut (sürücüye yazılan)
 };
 
 std::string serialize_telemetry(const Telemetry& t);

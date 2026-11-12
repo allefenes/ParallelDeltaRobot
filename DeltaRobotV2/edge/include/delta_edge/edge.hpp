@@ -46,6 +46,7 @@ class EdgeCore {
   void enter_hold(State next);  // yörüngeyi kes, ölçülen konumu tutma hedefi yap
   void enter_torque_off();
   void enter_estop(Out& out);
+  void set_magnet(bool on);
   std::string telemetry() const;
 
   EdgeLimits limits_;
@@ -60,6 +61,7 @@ class EdgeCore {
   Angles hold_target_{};  // tutma hedefi, deg
   std::string traj_id_;   // son yörünge kimliği (telemetri)
   long long index_{-1};
+  bool magnet_{false};
   Micros last_tick_;
   Micros next_telemetry_;
 };

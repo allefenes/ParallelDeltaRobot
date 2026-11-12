@@ -94,6 +94,7 @@ class Telemetry:
     voltages: list[float]
     traj_id: str
     index: int
+    magnet: bool = False
 
 
 def parse_incoming(text: str) -> tuple[str, object]:
@@ -116,6 +117,7 @@ def parse_incoming(text: str) -> tuple[str, object]:
                 voltages=[float(v) for v in msg["voltages"]],
                 traj_id=msg.get("traj_id") or "",
                 index=int(msg.get("index", -1)),
+                magnet=msg.get("magnet") is True,
             )
         except (KeyError, TypeError, ValueError) as e:
             raise ProtocolError(f"telemetri alanları hatalı: {e}") from e

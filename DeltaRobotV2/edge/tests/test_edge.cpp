@@ -595,6 +595,19 @@ TEST_F(Edge, ResetOutsideFaultOrEstopIsNoop) {
 
 // ---------------- telemetri ----------------
 
+TEST_F(Edge, TelemetryReportsMagnetState) {
+  // Sunucu ve web ikizi mıknatıs durumunu telemetriden okur; tork kapanınca false olmalı.
+  arm();
+  send(test::on_msg("magnet", true));
+  auto t = find_msg(run(100), "telemetry");
+  ASSERT_TRUE(t);
+  EXPECT_EQ((*t)["magnet"], true);
+  send(test::on_msg("torque", false));
+  t = find_msg(run(100), "telemetry");
+  ASSERT_TRUE(t);
+  EXPECT_EQ((*t)["magnet"], false);
+}
+
 TEST_F(Edge, TelemetryAt20Hz) {
   arm();
   const Out o = run(1000);

@@ -13,3 +13,4 @@ float64[3] voltages
 # Oynatılan yörünge ve örnek sırası (boşta: son yörünge, -1).
 string trajectory_id
 int32 index
+bool magnet

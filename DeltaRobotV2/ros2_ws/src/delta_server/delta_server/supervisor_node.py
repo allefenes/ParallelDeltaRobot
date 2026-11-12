@@ -47,6 +47,8 @@ class Supervisor(Node):
             start_tolerance_deg=float(self.get_parameter("start_tolerance_deg").value),
             cartesian_tolerance_mm=float(self.get_parameter("cartesian_tolerance_mm").value),
             max_duration_s=float(self.get_parameter("max_duration_s").value),
+            min_tool_z_mm=base.min_tool_z_mm,
+            tool_offset_mm=base.tool_offset_mm,
         )
         self.current_deg: list[float] | None = None
         self.edge_state = "UNKNOWN"

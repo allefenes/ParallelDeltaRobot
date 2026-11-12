@@ -176,7 +176,7 @@ ParseResult parse_server_message(std::string_view text) noexcept {
 std::string serialize_telemetry(const Telemetry& t) {
   json j = {{"v", kProtocolVersion},    {"type", "telemetry"}, {"state", t.state},
             {"angles", t.angles},       {"temps", t.temps_c},  {"loads", t.loads_pct},
-            {"voltages", t.voltages_v}, {"index", t.index}};
+            {"voltages", t.voltages_v}, {"index", t.index},    {"magnet", t.magnet}};
   if (t.traj_id.empty()) {
     j["traj_id"] = nullptr;
   } else {

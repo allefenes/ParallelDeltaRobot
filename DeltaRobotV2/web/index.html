@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Delta Robotics</title>
+    <link rel="icon" href="data:," />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+    <!-- CodeMirror 5 (UMD): Monaco'dan çok daha hafif; python modu yeterli -->
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="js/main.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <h1 data-i18n="app.title">Delta Robotics</h1>
+        <span class="subtitle" data-i18n="app.subtitle"></span>
+      </div>
+      <form id="login" class="login" autocomplete="off">
+        <label for="token" data-i18n="web.login.token"></label>
+        <input
+          id="token"
+          type="password"
+          spellcheck="false"
+          data-i18n-placeholder="web.login.placeholder"
+        />
+        <button type="submit" data-i18n="web.login.connect"></button>
+        <button type="button" id="token-clear" class="ghost" data-i18n="web.login.clear"></button>
+        <span id="login-status" class="muted" role="status"></span>
+      </form>
+      <button
+        type="button"
+        class="stop stop-top"
+        data-action="stop"
+        data-i18n="web.jog.stop"
+      ></button>
+    </header>
+
+    <main class="grid">
+      <section class="panel editor-panel" aria-labelledby="editor-h">
+        <div class="panel-head">
+          <h2 id="editor-h" data-i18n="nav.editor"></h2>
+          <span
+            id="job-status"
+            class="badge"
+            data-status="none"
+            data-i18n="web.job.status.none"
+          ></span>
+        </div>
+        <div id="editor" class="editor"></div>
+        <div class="row">
+          <button type="button" id="run" class="primary" data-i18n="web.editor.run"></button>
+          <button type="button" id="cancel" disabled data-i18n="web.editor.cancel"></button>
+          <span id="job-id" class="muted mono"></span>
+          <span class="muted hint" data-i18n="web.editor.shortcut"></span>
+        </div>
+        <div class="console-head">
+          <h3 data-i18n="web.console.title"></h3>
+          <button
+            type="button"
+            id="console-clear"
+            class="ghost small"
+            data-i18n="web.console.clear"
+          ></button>
+        </div>
+        <pre id="console" class="console" aria-live="polite"></pre>
+      </section>
+
+      <section class="panel twin-panel" aria-labelledby="twin-h">
+        <div class="panel-head">
+          <h2 id="twin-h" data-i18n="nav.twin"></h2>
+          <span id="magnet-badge" class="badge" data-on="false"></span>
+        </div>
+        <div id="twin" class="twin">
+          <p id="twin-msg" class="twin-msg muted" data-i18n="web.twin.waiting"></p>
+        </div>
+        <p class="muted small" data-i18n="web.twin.legend"></p>
+      </section>
+
+      <section class="panel tele-panel" aria-labelledby="tele-h">
+        <div class="panel-head">
+          <h2 id="tele-h" data-i18n="web.telemetry.title"></h2>
+          <span id="state-badge" class="badge state" data-state="DISCONNECTED"></span>
+        </div>
+        <dl class="kv">
+          <dt data-i18n="web.telemetry.edge"></dt>
+          <dd id="tele-edge">—</dd>
+          <dt data-i18n="web.telemetry.angles"></dt>
+          <dd id="tele-angles" class="mono">—</dd>
+          <dt data-i18n="web.telemetry.position"></dt>
+          <dd id="tele-pos" class="mono">—</dd>
+          <dt data-i18n="web.telemetry.magnet"></dt>
+          <dd id="tele-magnet">—</dd>
+          <dt data-i18n="web.telemetry.job"></dt>
+          <dd id="tele-job" class="mono">—</dd>
+        </dl>
+        <table class="motors">
+          <thead>
+            <tr>
+              <th data-i18n="web.telemetry.motor"></th>
+              <th>1</th>
+              <th>2</th>
+              <th>3</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th data-i18n="web.telemetry.temp"></th>
+              <td id="temp-0"></td>
+              <td id="temp-1"></td>
+              <td id="temp-2"></td>
+            </tr>
+            <tr>
+              <th data-i18n="web.telemetry.load"></th>
+              <td id="load-0"></td>
+              <td id="load-1"></td>
+              <td id="load-2"></td>
+            </tr>
+            <tr>
+              <th data-i18n="web.telemetry.voltage"></th>
+              <td id="volt-0"></td>
+              <td id="volt-1"></td>
+              <td id="volt-2"></td>
+            </tr>
+          </tbody>
+        </table>
+        <h3 data-i18n="web.telemetry.last_event"></h3>
+        <div id="tele-event" class="event muted" data-i18n="web.telemetry.no_event"></div>
+      </section>
+
+      <section class="panel jog-panel" aria-labelledby="jog-h">
+        <div class="panel-head">
+          <h2 id="jog-h" data-i18n="web.jog.title"></h2>
+        </div>
+        <form id="jog" class="jog">
+          <label>x <input id="jog-x" type="number" step="1" inputmode="decimal" required /></label>
+          <label>y <input id="jog-y" type="number" step="1" inputmode="decimal" required /></label>
+          <label>z <input id="jog-z" type="number" step="1" inputmode="decimal" required /></label>
+          <span class="muted unit">mm</span>
+          <button type="submit" class="primary" data-i18n="web.jog.go"></button>
+          <button type="button" id="jog-home" data-i18n="web.jog.home"></button>
+        </form>
+        <p id="jog-range" class="muted small"></p>
+        <div class="row">
+          <button type="button" id="magnet-toggle" data-i18n="web.jog.magnet_on"></button>
+          <button type="button" id="torque-on" data-i18n="web.jog.torque_on"></button>
+        </div>
+        <button
+          type="button"
+          class="stop stop-big"
+          data-action="stop"
+          data-i18n="web.jog.stop"
+        ></button>
+        <div id="jog-result" class="result" role="status"></div>
+      </section>
+
+      <section class="panel camera-panel" aria-labelledby="cam-h">
+        <div class="panel-head">
+          <h2 id="cam-h" data-i18n="nav.camera"></h2>
+        </div>
+        <div class="camera-placeholder" data-i18n="web.camera.placeholder"></div>
+      </section>
+    </main>
+  </body>
+</html>

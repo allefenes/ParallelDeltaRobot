@@ -1,0 +1,33 @@
+# Delta Robotics V2 Python istemcisi (F4). Sözleşme: ../docs/api.md
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "delta-robot-client"
+version = "0.1.0"
+description = "Delta Robotics V2 uzak robot API'si için Python istemcisi (HTTPS + stdio)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["httpx>=0.27", "websockets>=12"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7", "pytest-cov>=4"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["delta_robot"]
+
+[tool.hatch.build.targets.sdist]
+include = ["delta_robot", "tests", "examples", "README.md"]
+
+# Kök ayarlar devralınır; istemci Python 3.10'u desteklediği için hedef sürüm düşürülür.
+[tool.ruff]
+extend = "../pyproject.toml"
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

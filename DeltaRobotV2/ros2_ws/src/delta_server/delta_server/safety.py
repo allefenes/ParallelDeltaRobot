@@ -7,6 +7,7 @@ Her yörünge örneği için (docs/guvenlik-gereksinimleri.md):
   G3  erişilemezlik: kartezyen nokta erişilemez, ileri kinematik çözümsüz ya da eklem açıları
       planlanan noktayla / IK koluyla tutarsız
   G5  eklem hız ve ivme sınırları (server.yaml) ve başlangıç sürekliliği
+  G14 uç işlevci (mıknatıs ucu = P − ee_offset) tabla/zemin yüzeyinin altına inemez
 İlk ihlal kararı belirler; yörünge ya tamamen kabul edilir ya da hiç gönderilmez.
 
 Birimler: açı derece, konum mm, süre s.
@@ -42,6 +43,9 @@ class Limits:
     cartesian_tolerance_mm: float = 0.5
     max_duration_s: float = 60.0
     ik_tolerance_deg: float = 0.05
+    # G14: mıknatıs ucunun inebileceği en alçak z (mm) ve P'den uca uzaklık; None = denetim yok
+    min_tool_z_mm: float | None = None
+    tool_offset_mm: float = 15.0
 
 
 @dataclass
@@ -137,6 +141,15 @@ def validate(
         ok, arm, reason = kin.check_limits(tuple(float(v) for v in q), P)
         if not ok:
             return _core_reject(reason, arm, k, "")
+        if limits.min_tool_z_mm is not None:
+            tip_z = float(P[2]) - limits.tool_offset_mm
+            if tip_z < limits.min_tool_z_mm - 1e-6:
+                return _reject(
+                    "G14",
+                    f"uç tabla/zemin yüzeyinin altına iner: z_uç {tip_z:.1f} mm < "
+                    f"{limits.min_tool_z_mm:g} mm (örnek {k})",
+                    k,
+                )
         # Aynı P için delta_core'un seçtiği IK kolu (dirsek dışarıda) bu açılar olmalı.
         ik = kin.inverse(P)
         if ik is None or float(np.max(np.abs(np.asarray(ik) - q))) > limits.ik_tolerance_deg:

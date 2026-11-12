@@ -1,0 +1,4 @@
+# Yalnız koşucu kaynağı bağlama gönderilir.
+*
+!sandbox/runner/delta_runner/
+**/__pycache__

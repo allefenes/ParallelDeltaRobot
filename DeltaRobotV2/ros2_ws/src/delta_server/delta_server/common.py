@@ -47,8 +47,19 @@ def declare_common(node: Node) -> tuple[Robot, Limits]:
         max_vel_deg_s=float(node.get_parameter("max_joint_velocity_deg_s").value),
         max_acc_deg_s2=float(node.get_parameter("max_joint_acceleration_deg_s2").value),
         rate_hz=float(node.get_parameter("sample_rate_hz").value),
+        min_tool_z_mm=min_tool_z_mm(robot.spec),
+        tool_offset_mm=float(robot.spec["kinematics"]["ee_offset"]),
     )
     return robot, limits
+
+
+def min_tool_z_mm(spec: dict) -> float:
+    """G14: mıknatıs ucunun en alçak z'si = tabla üst yüzü (zemin + tabla), robot.yaml'dan.
+
+    Tabla yalnız ortada olsa da sınır her yerde uygulanır (ihtiyatlı taraf).
+    """
+    k, task = spec["kinematics"], spec.get("task", {})
+    return -float(k["base_to_floor"]) + float(task.get("board_thickness", 0.0))
 
 
 def duration_msg(t_s: float) -> Duration:
