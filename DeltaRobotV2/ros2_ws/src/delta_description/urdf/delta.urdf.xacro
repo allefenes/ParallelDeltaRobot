@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!--
+  Delta Robotics V2 URDF.
+
+  Bağlar ve çerçeveler cad/README.md "Simülasyon bağları ve çerçeveleri" tablosundadır:
+    base_link      robot çerçevesi (orijin motor eksenleri düzleminin merkezi, +Z yukarı)
+    bicep_i        orijin A_i (motor ekseni), X kısa kol yönü, Y motor ekseni, Z yukarı
+    forearm_i_a/b  orijin üst rot başı küre merkezi, X alt küreye, Y pim eksenine en yakın dik yön
+    platform       orijin P (platform eklem düzlemi merkezi), eksenler robot çerçevesine paralel
+
+  Delta kapalı zincirdir; URDF ağacı bunu ifade edemez. Bu yüzden 10 hareketli bağ base_link'e
+  `floating` eklemle bağlıdır: robot_state_publisher bunları yayımlamaz, TF'lerini
+  delta_server/delta_state_publisher ileri kinematikle (delta_core) hesaplayıp yayımlar.
+
+  Mesh'ler bağın yerel çerçevesindedir (mm) -> ölçek 0.001. Her bağ derlemede malzeme
+  bölgelerine ayrılmıştır (meshes/manifest.yaml); her bölge ayrı renkli bir <visual> olur.
+  Kütle ve atalet cad/out/mass_properties.json'dan (SI, bağ yerel çerçevesinde).
+-->
+<robot name="delta_v2" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="pkg" value="$(find delta_description)"/>
+  <xacro:property name="manifest" value="${xacro.load_yaml(pkg + '/meshes/manifest.yaml')}"/>
+  <xacro:property name="massprops" value="${xacro.load_yaml(pkg + '/config/mass_properties.json')}"/>
+
+  <!-- Malzeme renkleri (manifest.yaml'daki RGBA) -->
+  <xacro:macro name="color_defs" params="names">
+    <xacro:if value="${names}">
+      <material name="${names[0]}">
+        <color rgba="${' '.join(str(c) for c in manifest['colors'][names[0]])}"/>
+      </material>
+      <xacro:color_defs names="${names[1:]}"/>
+    </xacro:if>
+  </xacro:macro>
+  <xacro:color_defs names="${python.sorted(manifest['colors'].keys())}"/>
+
+  <!-- Bir bağın malzeme başına görselleri (özyinelemeli; xacro'da döngü yok) -->
+  <xacro:macro name="visuals" params="mesh mats">
+    <xacro:if value="${mats}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="package://delta_description/meshes/${mesh}__${mats[0]}.stl"
+                scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="${mats[0]}"/>
+      </visual>
+      <xacro:visuals mesh="${mesh}" mats="${mats[1:]}"/>
+    </xacro:if>
+  </xacro:macro>
+
+  <xacro:macro name="inertial" params="mesh">
+    <xacro:property name="mp" value="${massprops['links'][mesh]}"/>
+    <xacro:property name="I" value="${mp['inertia_kg_m2']}"/>
+    <inertial>
+      <origin xyz="${mp['com_m'][0]} ${mp['com_m'][1]} ${mp['com_m'][2]}" rpy="0 0 0"/>
+      <mass value="${mp['mass_kg']}"/>
+      <inertia ixx="${I[0][0]}" ixy="${I[0][1]}" ixz="${I[0][2]}"
+               iyy="${I[1][1]}" iyz="${I[1][2]}" izz="${I[2][2]}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="cad_link" params="name mesh">
+    <link name="${name}">
+      <xacro:visuals mesh="${mesh}" mats="${manifest['links'][mesh]}"/>
+      <xacro:inertial mesh="${mesh}"/>
+    </link>
+  </xacro:macro>
+
+  <!-- Hareketli bağ: base_link'e floating eklem; TF'i delta_state_publisher yayımlar -->
+  <xacro:macro name="moving_link" params="name">
+    <xacro:cad_link name="${name}" mesh="${name}"/>
+    <joint name="${name}_float" type="floating">
+      <parent link="base_link"/>
+      <child link="${name}"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:cad_link name="base_link" mesh="base"/>
+
+  <xacro:moving_link name="bicep_1"/>
+  <xacro:moving_link name="bicep_2"/>
+  <xacro:moving_link name="bicep_3"/>
+  <xacro:moving_link name="forearm_1_a"/>
+  <xacro:moving_link name="forearm_1_b"/>
+  <xacro:moving_link name="forearm_2_a"/>
+  <xacro:moving_link name="forearm_2_b"/>
+  <xacro:moving_link name="forearm_3_a"/>
+  <xacro:moving_link name="forearm_3_b"/>
+  <xacro:moving_link name="platform"/>
+</robot>

@@ -1,0 +1,14 @@
+# Kartezyen hedefe düz çizgi hareket isteği (yüksek seviye komut API'si).
+# target: platform eklem düzlemi merkezi P, robot çerçevesinde (base_link), BİRİM mm.
+#         Mıknatıs ucu P'nin ee_offset (config/robot.yaml) kadar altındadır.
+# duration_s: hareket süresi, saniye. <= 0 ise planlayıcı hız/ivme sınırlarına uyan en kısa
+#             süreyi kendisi seçer.
+geometry_msgs/Point target
+float64 duration_s
+---
+# accepted: yörünge 1. kapıdan (süpervizör) geçti ve kenara gönderildi.
+# reason: ret nedeni, başında gereksinim numarası (ör. "G1: motor açı limiti (kol 1, örnek 37)").
+# trajectory_id: yörünge kimliği (ret durumunda da dolu; olay kaydıyla eşleşir).
+bool accepted
+string reason
+string trajectory_id

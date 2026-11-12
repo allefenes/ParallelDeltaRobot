@@ -1,0 +1,12 @@
+# Planlayıcı -> süpervizör: zaman damgalı eklem yörüngesini 1. kapıdan geçirme isteği.
+# trajectory: motor_1..3 açıları RADYAN, time_from_start ile; örnekleme 100 Hz.
+# cartesian_mm: (isteğe bağlı) her örnek için planlanan P, mm; boşsa yalnız eklemler denetlenir.
+# target_mm: hedef P, mm (olay kaydı ve görselleştirme için).
+string trajectory_id
+trajectory_msgs/JointTrajectory trajectory
+geometry_msgs/Point[] cartesian_mm
+geometry_msgs/Point target_mm
+---
+bool accepted
+string requirement
+string reason

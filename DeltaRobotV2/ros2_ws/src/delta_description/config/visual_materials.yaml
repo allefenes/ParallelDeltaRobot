@@ -1,0 +1,77 @@
+# Mesh renk bölgeleri: YALNIZ GÖRSEL. Güvenlik ve kinematik hesapları bu dosyayı kullanmaz.
+#
+# CAD her bağı tek STL olarak verir (bağ başına tek renk olurdu). split_meshes.py her üçgeni
+# ağırlık merkezine göre aşağıdaki kurallardan İLK eşleşene atar; hiçbiri eşleşmezse `default`.
+# Kural türleri:
+#   box:       üçgen ağırlık merkezi kutunun içinde (mm)
+#   component: bağlı bileşenin (ortak köşeli üçgen kümesi) tüm sınır kutusu bu kutunun içinde
+# frame: link = bağın yerel çerçevesi; arm = kol çerçevesi (orijin A_i, X radyal, Y motor ekseni,
+#        Z yukarı; robot.yaml kol açıları ve taban yarıçapıyla üç kola çoğaltılır).
+# Bölge ölçüleri cad/lib/parts.py geometrisinden okunarak yazıldı (motor zarfı, rulman, mil);
+# CAD ölçüleri değişirse yalnız renkler kayar, güvenlik etkilenmez.
+
+colors: # RGBA 0..1
+  aluminium: [0.71, 0.73, 0.76, 1.0] # 7075 levha, sütun, tavan
+  pla: [0.941, 0.471, 0.125, 1.0] # #f07820 PLA parçalar
+  steel: [0.29, 0.30, 0.32, 1.0] # pim, somun, rot başı, saplama, rulman
+  motor: [0.08, 0.08, 0.08, 1.0] # AX-12A gövdesi
+  pom: [0.93, 0.91, 0.86, 1.0] # POM taban
+  magnet: [0.72, 0.45, 0.20, 1.0] # elektromıknatıs (bakır)
+
+links:
+  base:
+    default: pla # motor gövdesi ve rulman kapakları
+    rules:
+      - {
+          material: pom,
+          frame: link,
+          box: { min: [-1000, -1000, -1000], max: [1000, 1000, -239.9] },
+        }
+      - {
+          material: aluminium,
+          frame: link,
+          box: { min: [-1000, -1000, 26.9], max: [1000, 1000, 1000] },
+        }
+      - {
+          material: aluminium,
+          frame: link,
+          box: { min: [-1000, -1000, -1000], max: [-150, 1000, 27] },
+        }
+      - {
+          material: steel,
+          frame: arm,
+          component: { min: [-11.2, -13, -11.2], max: [11.2, 13, 11.2] },
+        }
+      - {
+          material: motor,
+          frame: arm,
+          box: { min: [-39.1, -51.1, -20.1], max: [11.1, -18.9, 20.1] },
+        }
+      - {
+          material: motor,
+          frame: arm,
+          box: { min: [-10.1, -19.1, -10.1], max: [10.1, -15.9, 10.1] },
+        }
+  bicep:
+    default: aluminium
+    rules:
+      - { material: pla, frame: link, component: { min: [-8.2, -17, -8.2], max: [8.2, 17, 8.2] } }
+      - { material: steel, frame: link, box: { min: [54, -40, -20], max: [80, -1.05, 20] } }
+      - { material: steel, frame: link, box: { min: [54, 1.05, -20], max: [80, 40, 20] } }
+  forearm:
+    default: steel
+    rules: []
+  platform:
+    default: pla
+    rules:
+      - {
+          material: magnet,
+          frame: link,
+          component: { min: [-10.2, -10.2, -15.2], max: [10.2, 10.2, 0.2] },
+        }
+      - {
+          material: steel,
+          frame: link,
+          box: { min: [-1000, -1000, -1000], max: [1000, 1000, -2.6] },
+        }
+      - { material: steel, frame: link, box: { min: [-1000, -1000, 2.6], max: [1000, 1000, 1000] } }

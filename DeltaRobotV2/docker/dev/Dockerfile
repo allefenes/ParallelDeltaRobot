@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libssl-dev \
         nlohmann-json3-dev \
         clang \
+        libclang-rt-18-dev \
         nodejs \
         npm \
     && rm -rf /var/lib/apt/lists/*

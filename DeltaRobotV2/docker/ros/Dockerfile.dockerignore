@@ -1,0 +1,8 @@
+# Yalnız imaja giren yollar bağlama gönderilir (derleme bağlamı depo kökü).
+*
+!core/
+!config/
+!cad/out/meshes/
+!ros2_ws/src/
+!docker/ros/entrypoint.sh
+**/__pycache__

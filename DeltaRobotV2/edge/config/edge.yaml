@@ -1,0 +1,34 @@
+# delta_edge (Raspberry Pi kenarı) sınırları ve zamanlamaları.
+# Eklem açı sınırları burada YOKTUR: tek kaynak config/robot.yaml (kinematics.motor_limit_min/max).
+# Bu dosya yalnız kenara özgü değerleri tutar. Birimler alan adında: deg, deg/s, deg/s2, ms, C, V, %.
+#
+# Değerlerin hepsi şimdilik VARSAYIM'dır (AX-12A katalog değerlerinden ihtiyatlı türetildi);
+# F5 donanım kabul testlerinde ölçümle doğrulanır.
+
+edge:
+  joint:
+    # varsayim: AX-12A yüksüz hız 59 rpm (12 V) = 354 deg/s; yük altında pay bırakılarak 300.
+    max_velocity_dps: 300.0
+    # varsayim: 300 deg/s'ye 0.1 s'de çıkış; kısa kol + ön kol ataleti için ihtiyatlı.
+    max_accel_dps2: 3000.0
+    # varsayim: ilk noktanın ölçülen konuma uzaklığında hız/ivme hesabından düşülen pay.
+    # AX-12A çözünürlüğü 0.29 deg ve konum ölü bandı; 1 deg ölçüm gürültüsünü yutar.
+    start_tolerance_deg: 1.0
+  heartbeat:
+    # varsayim: kalp atışı en geç bu süre gelmezse dur-tut (G6). Sunucu ~50 ms'de bir gönderir.
+    t_stop_ms: 200
+    # varsayim: bu süre gelmezse tork kapanır, mıknatıs kapanır (G7).
+    t_off_ms: 1000
+  health:
+    # varsayim: AX-12A dahili sıcaklık alarmı 70 C (katalog varsayılanı); aynı değer.
+    max_temp_c: 70.0
+    # varsayim: AX-12A çalışma gerilimi 9-12 V (önerilen 11.1 V); üst sınıra 1 V pay.
+    min_voltage_v: 9.0
+    max_voltage_v: 13.0
+    # varsayim: mutlak yük (present load, % tork); sürekli %90 üstü sıkışma/aşırı yük sayılır.
+    max_load_pct: 90.0
+  loop:
+    # varsayim: yörünge oynatma ve kapı döngüsü 100 Hz (mimari: 50-100 Hz).
+    tick_hz: 100
+    # varsayim: telemetri 20 Hz.
+    telemetry_period_ms: 50

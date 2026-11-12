@@ -1,0 +1,55 @@
+# Sunucu ROS2 yığını parametreleri (ROS parametre dosyası biçimi).
+# Geometri ve açı/rot başı limitleri BURADA DEĞİL: hepsi config/robot.yaml'dan (delta_core) okunur.
+# Burada yalnız sunucuya özgü ayarlar ve robot.yaml'da henüz olmayan hız/ivme sınırları var.
+#
+# robot_yaml: robot tanımının yolu. Boşsa DELTA_ROBOT_YAML ortam değişkeni, o da yoksa
+#             /opt/delta/config/robot.yaml (imaj) kullanılır.
+/**:
+  ros__parameters:
+    robot_yaml: ""
+    # G5 eklem sınırları. VARSAYIM: AX-12A boşta ~59 rpm (354°/s) -> 300°/s pay bırakılarak;
+    # ivme 3000°/s² yük ve dişli payı için tahmin. Pi kenarı (delta_edge) kendi yapılandırmasında
+    # aynı sayıları kullanır; ölçümle (F5) doğrulanınca robot.yaml'a taşınacak.
+    max_joint_velocity_deg_s: 300.0
+    max_joint_acceleration_deg_s2: 3000.0
+    # Yörünge örnekleme hızı (Hz). Kenar yörüngeyi bu periyotla oynatır.
+    sample_rate_hz: 100.0
+
+supervisor:
+  ros__parameters:
+    # Yörüngenin ilk örneği ile robotun o anki açısı arasındaki izinli fark (derece). Aşan
+    # yörünge basamakla başlar (G5).
+    start_tolerance_deg: 1.0
+    # Planlanan kartezyen nokta ile eklem açılarından ileri kinematikle bulunan nokta arasındaki
+    # izinli fark (mm). Aşarsa eklem yörüngesi planla tutarsızdır (G3).
+    cartesian_tolerance_mm: 0.5
+    # En uzun yörünge (s); daha uzunu bozuk veri sayılır (G4).
+    max_duration_s: 60.0
+
+trajectory_planner:
+  ros__parameters:
+    # duration_s <= 0 geldiğinde seçilen en kısa sürenin G5 sınırlarına göre payı (1.25 = %25).
+    auto_duration_margin: 1.25
+    # Süpervizör yanıtı için bekleme (s).
+    validate_timeout_s: 5.0
+
+delta_state_publisher:
+  ros__parameters:
+    # Tic-tac-toe tablası (F4.5 kesinleştirir). Tabla üst yüzü robot.yaml'dan:
+    # z = -base_to_floor + task.board_thickness (= -236 mm). Taş yüksekliği task.piece_height.
+    # VARSAYIM: çalışma alanı yarıçapı ~46 mm (rot başı 13°) olduğundan tabla 60 mm kare,
+    # 3x3 hücre (hücre 20 mm), merkezi robot ekseninde.
+    board_center_mm: [0.0, 0.0]
+    board_size_mm: 60.0
+    board_cells: 3
+    piece_diameter_mm: 16.0 # varsayim
+    # Taşlar: satır satır 9 karakter, "X", "O" ya da "." (boş). Satır 0 = +Y tarafı.
+    pieces: "X.O.X...O"
+    # Uç yolu izi: tutulacak en çok nokta (100 Hz'de 10 s).
+    trail_length: 1000
+    marker_rate_hz: 2.0
+
+sim_executor:
+  ros__parameters:
+    # Sanal Pi: telemetri yayın hızı (Hz); eklem durumu her zaman sample_rate_hz ile yayımlanır.
+    status_rate_hz: 10.0
