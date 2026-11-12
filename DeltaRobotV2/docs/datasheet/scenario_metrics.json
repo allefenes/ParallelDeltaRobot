@@ -1,0 +1,14 @@
+{
+  "moves": 12,
+  "winner": null,
+  "total_s": 41.12,
+  "cycle_mean_s": 3.42,
+  "cycle_max_s": 3.63,
+  "picks": 12,
+  "places": 12,
+  "dropped": 0,
+  "off_board": 0,
+  "missed_picks": 0,
+  "placement_error_mean_mm": 0.0,
+  "placement_error_max_mm": 0.0
+}

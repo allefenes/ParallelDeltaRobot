@@ -12,8 +12,8 @@ V2 is a from-scratch rewrite of the same robot. The server is the brain (ROS2 Ja
 | ![Automatic mode](DeltaRobotV2/web/screenshots/otomatik.png) | ![Manual mode](DeltaRobotV2/web/screenshots/manuel.png) |
 
 - **Run it:** with Docker Desktop, in `DeltaRobotV2/`: `docker compose --profile demo up -d --build`, then open https://localhost:8080 (local self-signed certificate).
-- **Safety:** 14 requirements; G1–G10 and G14 proven by tests in every software layer; sandbox (G11) and the watchdog's software side (G13) tested; hardware-level checks suspended with F5.
-- **Tests:** edge service 190 tests at 99% line coverage, mutation score 130/131 on safety-critical modules, ~175k fuzz inputs with no findings, end-to-end with fault injection 16/16, UI end-to-end (Playwright, against the real simulation) 11/11.
+- **Safety:** 12 of 14 requirements (G1–G11, G14) proven by tests in every software layer, including the code sandbox (59 container-level security tests); the watchdog's software side (G13) tested; hardware-level checks suspended with F5.
+- **Tests:** edge service 190 tests at 99% line coverage, mutation score 130/131 on safety-critical modules, ~175k fuzz inputs with no findings, end-to-end with fault injection 16/16, client → API → ROS → virtual Pi 21/21 (incl. a full tic-tac-toe game), UI end-to-end (Playwright, against the real simulation) 11/11.
 - **Datasheet:** [interactive datasheet](DeltaRobotV2/docs/datasheet/datasheet.html) (workspace, performance maps, ROS2 graph, scenario metrics).
 - **Status and restart notes:** [DeltaRobotV2/README.md](DeltaRobotV2/README.md) and [DeltaRobotV2/docs/ilerleme.md](DeltaRobotV2/docs/ilerleme.md).
 

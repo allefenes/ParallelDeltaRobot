@@ -13,13 +13,13 @@ Son güncelleme: 2026-11-12
 | F1 Kinematik                | Tamamlandı                                   | 8 / 8 teslim; 532 test geçti; 4 / 12 güvenlik gereksinimi kanıtlandı (çekirdek)                                                                                                |
 | F2 Datasheet                | Tamamlandı                                   | 1 / 1 etkileşimli HTML; 6 grafik, 10 bölüm; 25 / 25 test                                                                                                                       |
 | F3 ROS2 + kenar + uçtan uca | Tamamlandı                                   | Kenar 111 / 111 (F5 sonunda 190); ROS 79 + 3 (son 98 + 3); uçtan uca 16 / 16; mutasyon 130 / 131; fuzz ~175 bin girdi, bulgu yok; 10 / 13 gereksinim tüm yazılım katmanlarında |
-| F4 Uzaktan erişim           | Tamamlandı (F4 uçtan uca koşusu bekliyor\*)  | API 67, istemci 99, sandbox birim 90, G11 konteyner testleri 55 / 59 → düzeltme (yeniden koşu bekliyor\*); G14 eklendi                                                         |
-| F4.5 Tic-tac-toe (sim)      | Tamamlandı                                   | Tabla ikizi + kurallar 16 test; API ve simülasyon üzerinden tam oyun regresyonu ✔; ROS yığınında senaryo koşusu bekliyor\*                                                    |
+| F4 Uzaktan erişim           | Tamamlandı                                   | API 67, istemci 99, sandbox 90 birim + G11 59 / 59 (gerçek konteyner); uçtan uca (gerçek istemci → API → ROS → sanal Pi) 21 / 21; G14 eklendi                                  |
+| F4.5 Tic-tac-toe (sim)      | Tamamlandı                                   | Tabla ikizi + kurallar 16 test; gerçek yığında 12 hamlelik oyun: kaçırma/düşürme 0, yerleştirme hatası 0.0 mm, hamle ~3.4 s                                                    |
 | F5 Yeniden kurulum          | Askıda (kısmen tamamlandı)                   | Yazılım yarısı ✔ (AX-12A arka ucu, servo aracı, prosedürler; kenar 190 / 190, %99.0); donanım yarısı askıda                                                                   |
 | F6 Deneyim arayüzü          | Tamamlandı                                   | API 67 (sim modu dahil), web 31, Playwright 11 / 11 (gerçek simülasyona karşı), iki modun ekran görüntüsü                                                                      |
 | Malzeme listesi             | F5 ile askıda                                | 32 kalem, hiçbiri alınmadı; [hardware/bom.md](../hardware/bom.md)                                                                                                              |
 
-**Proje rafta (2026-11-12).** \* Docker Desktop yeniden başlatması (takılı G11 konteyneri) kullanıcı onayı bekliyor; sonra G11 yeniden koşusu ve F4/F4.5 uçtan uca koşusu yapılır (aşağıda). Son güncelleme: 2026-11-12, kapanış.
+**Proje rafta (2026-11-12).** Docker Desktop yeniden başlatıldı (kullanıcı onayı); G11 yeniden koşusu 59 / 59 ve F4/F4.5 uçtan uca 21 / 21 geçti. Son güncelleme: 2026-11-12, kapanış.
 
 ## F0 İskele
 
@@ -200,20 +200,20 @@ Sözleşme: [api.md](api.md). Bilgisayarın ikinci çökmesinden (11:07) sonra d
 | Sandbox (`sandbox/`): koşucu + ağsız, salt okunur, kaynak sınırlı kullanıcı kodu konteyneri                     | ✔                                                           |
 | Compose `sim` profili: api (server ağ ad alanında, https://localhost:8000) + runner; ROS keşfi yalnız localhost | ✔                                                           |
 | Kenar telemetrisinde mıknatıs durumu; edge_bridge magnet/stop servisleri                                        | ✔                                                           |
-| Uçtan uca test (`tools/e2e_f4.sh`, gerçek istemciyle 18 senaryo + F4.5 oyunu)                                   | Docker yeniden başlatmasını bekliyor                         |
+| Uçtan uca test (`tools/e2e_f4.sh`, gerçek istemciyle 20 senaryo + F4.5 oyunu)                                   | 21 / 21                                                      |
 | Kamera (WebRTC)                                                                                                 | F5'e ertelendi; web'de "Kamera F5'te; şimdilik dijital ikiz" |
 
 ### F4 test özeti
 
-| Bileşen                                          | Test (geçen / toplam)         | Satır % | Not                                                                |
-| ------------------------------------------------ | ----------------------------- | ------- | ------------------------------------------------------------------ |
-| API (pytest, sahte arka uç + sahte koşucu)       | 45 / 45                       | 93      | Kimlik, kilit, iş akışı, tabla, tam oyun regresyonu                |
-| Python istemcisi                                 | 99 / 99                       | 100     | Python 3.10 (en düşük sürümler) ve 3.12                            |
-| Web (JS çalıştırmadan denetimler + sahte sunucu) | 16 / 16                       | —       | Tarayıcıda elle doğrulandı (1280 px ve 375 px)                     |
-| Sandbox birim                                    | 81 / 81                       | —       | Docker'sız; G11 tıkanma regresyonu dahil                           |
-| Sandbox G11 (gerçek konteyner)                   | 55 / 59 (+14 temizlik hatası) | —       | Hatalar aşağıdaki bulgudan; düzeltme sonrası yeniden koşu bekliyor |
-| ROS2 (pytest + launch_testing)                   | 97 + 3                        | —       | G14 ve tabla ikizi dahil                                           |
-| Kenar (C++)                                      | 112 / 112                     | 99.0    | Telemetride mıknatıs                                               |
+| Bileşen                                          | Test (geçen / toplam) | Satır % | Not                                                                 |
+| ------------------------------------------------ | --------------------- | ------- | ------------------------------------------------------------------- |
+| API (pytest, sahte arka uç + sahte koşucu)       | 45 / 45               | 93      | Kimlik, kilit, iş akışı, tabla, tam oyun regresyonu                 |
+| Python istemcisi                                 | 99 / 99               | 100     | Python 3.10 (en düşük sürümler) ve 3.12                             |
+| Web (JS çalıştırmadan denetimler + sahte sunucu) | 16 / 16               | —       | Tarayıcıda elle doğrulandı (1280 px ve 375 px)                      |
+| Sandbox birim                                    | 81 / 81               | —       | Docker'sız; G11 tıkanma regresyonu dahil                            |
+| Sandbox G11 (gerçek konteyner)                   | 59 / 59               | —       | İlk koşuda 55 / 59 + tıkanma bulgusu; düzeltme sonrası tamamı geçti |
+| ROS2 (pytest + launch_testing)                   | 97 + 3                | —       | G14 ve tabla ikizi dahil                                            |
+| Kenar (C++)                                      | 112 / 112             | 99.0    | Telemetride mıknatıs                                                |
 
 **G11 bulgusu (düzeltildi):** RPC seli testinde kullanıcı kodu stdin'i okumayınca koşucunun stdout okuyucusu yanıt yazarken bekledi; docker istemcisi ve Docker daemon'ının akış kopyası tıkandı, konteyner `kill`/`rm -f` ile bile silinemez kaldı (`deltarobotv2-job-job-g11-f811554d`; Docker Desktop yeniden başlatılınca temizlenecek). Düzeltme: stdin'e bloklamadan yazma (256 KB sınır), bekleyen istek sınırını aşan sel işi durdurur, durdurmada stdin kapanır + SIGKILL + `rm -f`. Docker'sız regresyon testi eski kodda takılıyor, yenide 1 s'de geçiyor.
 
@@ -221,15 +221,15 @@ Sözleşme: [api.md](api.md). Bilgisayarın ikinci çökmesinden (11:07) sonra d
 
 ## F4.5 Tic-tac-toe (simülasyon)
 
-| Teslim                                                                                                                       | Durum                               |
-| ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
-| Tabla tasarımı: 3 × 3, hücre 20 mm (F2'deki 60 mm kare), taş Ø16 × 8 mm; `robot.yaml task.board`                             | ✔                                  |
-| Oyun: kaydırmalı tic-tac-toe (Üç Taş ailesi). Çalışma alanı tablayı doldurduğu için taş deposu yok; taşlar baştan tabladadır | ✔                                  |
-| Taş ikizi (`board_game.py`, `board_twin` düğümü): mıknatısla al/bırak, yerleştirme hatası, düşürme, kaçırma metrikleri       | ✔                                  |
-| API `GET /board`, `POST /board/reset`; istemci `board()`, `reset_board()`, `cell_xy()`, `pick_place()`                       | ✔                                  |
-| Web ikizinde tabla ve taşlar, tabla durumu, sıfırlama düğmesi                                                                | ✔                                  |
-| Senaryo regresyonu: iki minimaks oyuncu; API üzerinden (sahte arka uç) ✔, gerçek yığında `tools/e2e_f4.sh`                  | kısmen                              |
-| Datasheet "Senaryo metrikleri (simülasyon)" bölümü                                                                           | ✔ (veri uçtan uca koşudan gelecek) |
+| Teslim                                                                                                                       | Durum |
+| ---------------------------------------------------------------------------------------------------------------------------- | ----- |
+| Tabla tasarımı: 3 × 3, hücre 20 mm (F2'deki 60 mm kare), taş Ø16 × 8 mm; `robot.yaml task.board`                             | ✔    |
+| Oyun: kaydırmalı tic-tac-toe (Üç Taş ailesi). Çalışma alanı tablayı doldurduğu için taş deposu yok; taşlar baştan tabladadır | ✔    |
+| Taş ikizi (`board_game.py`, `board_twin` düğümü): mıknatısla al/bırak, yerleştirme hatası, düşürme, kaçırma metrikleri       | ✔    |
+| API `GET /board`, `POST /board/reset`; istemci `board()`, `reset_board()`, `cell_xy()`, `pick_place()`                       | ✔    |
+| Web ikizinde tabla ve taşlar, tabla durumu, sıfırlama düğmesi                                                                | ✔    |
+| Senaryo regresyonu: iki minimaks oyuncu; API (sahte arka uç), simülasyon ve gerçek yığında (`tools/e2e_f4.sh`)               | ✔    |
+| Datasheet "Senaryo metrikleri (simülasyon)" bölümü                                                                           | ✔    |
 
 ## F5 Yeniden kurulum: askıda (kısmen tamamlandı)
 
@@ -270,6 +270,15 @@ Kapsam iki kez değişti (kullanıcı, 2026-11-12): önce simülasyon kiralama s
 | ROS2 (pytest + launch_testing) | 98 + 3                | —       |
 | Sandbox birim                  | 90 / 90               | —       |
 
+## Kapanış koşusu bulguları (2026-11-12, Docker yeniden başlatmasından sonra)
+
+| Bulgu                                                                                                                                                                               | Düzeltme                                                                                 |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| G11 koşucu tıkanması (RPC seli, stdin okunmuyor)                                                                                                                                    | Bloklamasız stdin, sel durdurma, durdurmada stdin kapat + SIGKILL + `rm -f`; G11 59 / 59 |
+| `api` ile `server` yalnız ağ ad alanını paylaşıyordu: Fast DDS katılımcı kimlikleri `/dev/shm` üzerinden eşgüdümlendiği için çakıştı, API robot durumunu hiç alamadı (DISCONNECTED) | Compose: `server` `ipc: shareable`, `api` `ipc: service:server`                          |
+| API `/stop` kenara `stop` gönderiyordu: kenar konumu tutup IDLE'da kalıyordu; sözleşme ve arayüz HOLDING + "torku aç" bekliyor                                                      | `edge_bridge` dur servisi `hold` gönderir                                                |
+| Hareket "bitti" yanıtı servo takip gecikmesi oturmadan veriliyordu (konum ~0.7 mm eksik)                                                                                            | API son konumu ardışık iki ölçüm 0.05 mm içinde kalınca (en çok 1 s) döndürür            |
+
 ## Projeyi yeniden başlatma
 
 Gerekenler: Docker Desktop (WSL 2), Git Bash. Komutlar `DeltaRobotV2/` içinde.
@@ -287,17 +296,15 @@ Gerekenler: Docker Desktop (WSL 2), Git Bash. Komutlar `DeltaRobotV2/` içinde.
 
 Bekleyen işler:
 
-| İş                                                                                                                                                          | Neden                                                                                                                                | Ne zaman                                                              |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------- |
-| G11 yeniden koşusu, F4/F4.5 uçtan uca koşusu (`./sandbox/run_tests.sh`, `./tools/e2e_f4.sh`)                                                                | Takılı `deltarobotv2-job-job-g11-f811554d` konteyneri yalnız Docker Desktop yeniden başlatmasıyla silinir; test temizliği buna bağlı | Kullanıcı onayıyla Docker yeniden başlatılınca                        |
-| F5 donanım yarısı: elektronik (donanım bekçisi, mıknatıs sürücüsü, acil stop, Pi beslemesi), kutu ve kamera, üretim, montaj, kabul testleri S1–S8 ve H1–H13 | Kullanıcı kararıyla askıda                                                                                                           | Proje yeniden başlatılınca; sıra [kurulum-plani.md](kurulum-plani.md) |
-| Kamera (WebRTC)                                                                                                                                             | F5 donanımına bağlı                                                                                                                  | F5 ile                                                                |
+| İş                                                                                                                                                          | Neden                      | Ne zaman                                                              |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | --------------------------------------------------------------------- |
+| F5 donanım yarısı: elektronik (donanım bekçisi, mıknatıs sürücüsü, acil stop, Pi beslemesi), kutu ve kamera, üretim, montaj, kabul testleri S1–S8 ve H1–H13 | Kullanıcı kararıyla askıda | Proje yeniden başlatılınca; sıra [kurulum-plani.md](kurulum-plani.md) |
+| Kamera (WebRTC)                                                                                                                                             | F5 donanımına bağlı        | F5 ile                                                                |
 
 Açık kararlar:
 
-| Konu                              | Not                                                                                                                |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Sunucu ve alan adı                | Deneyim arayüzü şimdilik yalnız yerel; gerçek sertifika ve dağıtım bu kararla                                      |
-| Motor seçimi                      | Yeniden kurulumda Dynamixel dışı motor mümkün; `edge/config/motor_ax12.yaml` biçimi yeni `model` için genişletilir |
-| Rot başı modeli                   | 13° yanal açı limiti varsayım; çalışma alanını en çok bu sınırlıyor (F2 bulgusu)                                   |
-| Docker Desktop yeniden başlatması | Kullanıcı onayı bekleniyor (yukarıda)                                                                              |
+| Konu               | Not                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| Sunucu ve alan adı | Deneyim arayüzü şimdilik yalnız yerel; gerçek sertifika ve dağıtım bu kararla                                      |
+| Motor seçimi       | Yeniden kurulumda Dynamixel dışı motor mümkün; `edge/config/motor_ax12.yaml` biçimi yeni `model` için genişletilir |
+| Rot başı modeli    | 13° yanal açı limiti varsayım; çalışma alanını en çok bu sınırlıyor (F2 bulgusu)                                   |

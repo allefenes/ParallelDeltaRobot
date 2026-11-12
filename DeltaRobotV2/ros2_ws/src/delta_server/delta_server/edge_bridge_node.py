@@ -12,7 +12,7 @@ Arayüzler:
   yayın  /supervisor/events   (delta_interfaces/SupervisorEvent) kenarın reddettiği / arıza
   servis /edge_bridge/torque         (std_srvs/SetBool)   tork aç/kapa
   servis /edge_bridge/magnet         (std_srvs/SetBool)   elektromıknatıs aç/kapa
-  servis /edge_bridge/stop           (std_srvs/Trigger)   yörüngeyi kes, konumu tut
+  servis /edge_bridge/stop           (std_srvs/Trigger)   yörüngeyi kes, konumu tut (HOLDING)
   servis /edge_bridge/heartbeat_pause (std_srvs/SetBool)  YALNIZ TEST: kalp atışını durdurur
                                                            (bekçi G6/G7 hata enjeksiyonu)
 Parametreler: listen_host, listen_port, path, cert_file, key_file, token, heartbeat_hz,
@@ -109,8 +109,12 @@ class EdgeBridge(Node):
         return res
 
     def on_stop(self, _req, res):
-        """Kontrollü duruş: kenar yörüngeyi keser ve ölçülen konumu tutar."""
-        res.success = self._send(ep.command("stop"))
+        """Dur: kenar yörüngeyi keser, ölçülen konumu tutar ve HOLDING'e geçer (`hold`).
+
+        API sözleşmesi: duruştan sonra yeniden hareket için `torque on` ile IDLE'a dönülür.
+        Kenarın `stop` komutu konumu tutup IDLE'da kalır; arayüzün açık onay adımı için `hold`.
+        """
+        res.success = self._send(ep.command("hold"))
         res.message = "gönderildi" if res.success else "kenar bağlı değil"
         return res
 

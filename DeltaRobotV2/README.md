@@ -32,8 +32,8 @@ V2 sıfırdan yazılır. Repodaki eski klasörler (`LikeSoup/`, `KilavuzDeltaRob
 
 Öne çıkanlar (sayılar [docs/ilerleme.md](docs/ilerleme.md)):
 
-- **Güvenlik:** 14 gereksinim (G1–G14). G1–G10 ve G14 tüm yazılım katmanlarında testle kanıtlandı; G11 (sandbox) ve G13'ün yazılım tarafı test edildi; donanım katmanı (G12, G13 ve süre ölçümleri) F5 ile askıda. Ayrıntı: [docs/guvenlik-gereksinimleri.md](docs/guvenlik-gereksinimleri.md).
-- **Test:** kenar (C++) 190 test, %99 satır; kritik modüllerde mutasyon skoru 130 / 131; protokol ayrıştırıcıda ~175 bin girdilik fuzz, bulgu yok; ROS2 98 + 3; API 67; istemci 99; sandbox 90 birim + G11 konteyner testleri; çekirdek 22 + 495 (V1 çapraz doğrulama dahil); uçtan uca (ROS + sanal Pi, hata enjeksiyonuyla) 16 / 16; arayüz (Playwright, gerçek simülasyona karşı) 11 / 11.
+- **Güvenlik:** 14 gereksinimin 12'si (G1–G11, G14) tüm yazılım katmanlarında testle kanıtlandı; G13'ün yazılım tarafı test edildi; donanım katmanı (G12, G13 ve süre ölçümleri) F5 ile askıda. Ayrıntı: [docs/guvenlik-gereksinimleri.md](docs/guvenlik-gereksinimleri.md).
+- **Test:** kenar (C++) 190 test, %99 satır; kritik modüllerde mutasyon skoru 130 / 131; protokol ayrıştırıcıda ~175 bin girdilik fuzz, bulgu yok; ROS2 98 + 3; API 67; istemci 99; sandbox 90 birim + G11 59 (gerçek konteyner); çekirdek 22 + 495 (V1 çapraz doğrulama dahil); uçtan uca: ROS + sanal Pi hata enjeksiyonuyla 16 / 16, gerçek istemci → API → ROS → sanal Pi 21 / 21 (tic-tac-toe oyunu dahil); arayüz (Playwright, gerçek simülasyona karşı) 11 / 11.
 - **Datasheet:** [docs/datasheet/datasheet.html](docs/datasheet/datasheet.html): çalışma alanı, performans haritaları, tabla, ROS2 ağı, senaryo metrikleri.
 - **CAD:** 20 parça, 123 bileşen; [docs/img/cad/](docs/img/cad/).
 

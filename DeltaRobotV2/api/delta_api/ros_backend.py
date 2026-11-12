@@ -50,6 +50,7 @@ QOS_LATCHED = QoSProfile(
 SERVICE_TIMEOUT_S = 5.0
 STATUS_STALE_S = 1.0  # bu süre telemetri gelmezse durum DISCONNECTED sayılır
 AUTO_DURATION_GUESS_S = 30.0  # süre planlayıcıya bırakılınca bekleme üst sınırı için
+SETTLE_S = 1.0  # hareket sonu oturma beklemesi üst sınırı
 
 
 class RosBackend(Backend):
@@ -199,9 +200,8 @@ class RosBackend(Backend):
             if s.trajectory_id == tid:
                 seen = True
                 if s.state == "IDLE":
-                    return MoveOutcome(
-                        True, trajectory_id=tid, done=True, position_mm=s.position_mm
-                    )
+                    pos = await self._settled_position()
+                    return MoveOutcome(True, trajectory_id=tid, done=True, position_mm=pos)
             if seen and s.state in ("HOLDING", "TORQUE_OFF", "FAULT", "ESTOP", "DISCONNECTED"):
                 return MoveOutcome(
                     True,
@@ -212,6 +212,19 @@ class RosBackend(Backend):
                 )
             await asyncio.sleep(0.02)
         return MoveOutcome(True, trajectory_id=tid, done=False, reason="bekleme süresi aşıldı")
+
+    async def _settled_position(self) -> list[float] | None:
+        """Yörünge bitince servolar hedefe birkaç on ms içinde oturur (takip gecikmesi): ardışık
+        iki ölçüm 0.05 mm içinde kalana ya da SETTLE_S dolana kadar beklenir."""
+        prev = self.state().position_mm
+        t_end = time.monotonic() + SETTLE_S
+        while time.monotonic() < t_end:
+            await asyncio.sleep(0.1)
+            cur = self.state().position_mm
+            if prev is not None and cur is not None and math.dist(prev, cur) < 0.05:
+                return cur
+            prev = cur
+        return prev
 
     async def _set_bool(self, client, on: bool) -> bool:
         res = await self._call(client, SetBool.Request(data=bool(on)))

@@ -45,6 +45,9 @@ services:
       - ./tests/e2e:/e2e:ro
       - ./ros2_ws/tools:/tools:ro
     command: ["ros2", "launch", "delta_server", "delta.launch.py", "sim:=false", "edge:=true"]
+    # api ağ VE IPC ad alanını paylaşır: Fast DDS katılımcı kimliklerini ve paylaşımlı belleği
+    # /dev/shm üzerinden eşgüdümler; yalnız ağ paylaşılırsa kimlikler çakışır, veri gelmez.
+    ipc: shareable
     # API (aynı ağ ad alanı) dışarıya yalnız yerel makinede açılır: https://localhost:8000
     ports:
       - "127.0.0.1:8000:8000"
@@ -58,6 +61,7 @@ services:
     image: deltarobotv2-api:latest
     depends_on: [server, runner]
     network_mode: "service:server"
+    ipc: "service:server"
     environment:
       ROS_DOMAIN_ID: "21"
       ROS_LOG_DIR: /tmp/roslog
